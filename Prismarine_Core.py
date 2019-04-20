@@ -1,58 +1,58 @@
-import discord
-import time
-import asyncio
+import discord, logging
+from discord.ext import commands
 
-messages = joined = 0
+client = commands.Bot(command_prefix=";", status=discord.Status.online, activity=discord.Game(name="with my creator!"))
+logging.basicConfig(level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s")
 
-client = discord.Client()
-
-
-async def update_stats():
-    await client.wait_until_ready()
-    global messages, joined
-
-    while not client.is_closed():
-        try:
-            with open("stats.txt", "a") as f:
-                f.write(f"Time: {int(time.time())}, Messages: {messages}, Members Joined: {joined}\n")
-
-            messages = 0
-            joined = 0
-
-            await asyncio.sleep(5)
-        except Exception as e:
-            print(e)
-            await asyncio.sleep(5)
-
-
+@client.event
+async def on_ready():
+    logging.basicConfig(level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s")
+    logging.info("Log successfuly launched. Project Prismarine is online.")
 
 @client.event
 async def on_member_join(member):
-    global joined
-    joined += 1
-    for channel in member.server.channels:
-        if str(channel) == "general":
-            await client.send_message(f"""Welcome to the server {member.mention}""")
-
+    print(f"{member} has joined the server.")
 
 @client.event
-async def on_message(message):
-    global messages
-    messages += 1
+async def on_member_remove(member):
+    print(f"{member} has left the server.")
 
-    id = client.get_guild(561529218949971989)
-    channels = ["prismarines-room"]
-    valid_users = ["Dr. Prismarine Bluefall#3305"]
+@client.command()
+async def ping(ctx):
+    ping_ = client.latency
+    ping = round(ping_, ndigits=5)
+    await ctx.channel.send(f"Latency: {ping} sec.")
 
-    if str(message.channel) in channels and str(message.author) in valid_users:
-        if message.content.find("!hello") != -1:
-            await message.channel.send("Hi")
-        elif message.content == "!users":
-            await message.channel.send(f"""# of Members: {id.member_count}""")
-        elif message.content == "!close":
-            await message.channel.send("Closing up shop...")
-            print("Sleep tight, Prismarine.")
-            await client.logout()
+@client.command()
+async def user(ctx, member:discord.User = None):
+    if member == None:
+        member = ctx.message.author
+    else:
+        member = ctx.message.mentions[0]
+    name = f"`{member.name}#{member.discriminator}`"
+    await ctx.channel.send(f"""Discord ID: {name}
+User ID: `{ctx.message.author.id}`
+Account Created: `{member.created_at} UTC`
+Status: `{member.status}`
+Joined Server At: `{member.joined_at} UTC`""")
 
-client.loop.create_task(update_stats())
+@client.command()
+async def send(ctx, channel:str, *, content:str):
+    if ctx.message.author.id != 490650609641324544:
+        await ctx.send("You're not authorized to use this!")
+        return
+    channel = client.get_channel(int(channel))
+    await channel.send(content)
+    await ctx.send(f"Message sent to {channel}.")
+
+@client.command()
+async def logout(ctx):
+    if ctx.message.author.id != 490650609641324544:
+        await ctx.send("You're not authorized to use this!")
+        return
+    logging.info("Shutting down Project Prismarine...")
+    await ctx.send("*Shutting down Project Prismarine...*")
+    await client.logout()
+
+
 client.run("NTY4NDY5NDM3Mjg0NjE0MTc0.XLnOww.bHZ06CxgJVo4oYj-W-Vyj5VxSbM")

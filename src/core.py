@@ -13,7 +13,7 @@ with open("../config.json", "r") as infile:
 
     except (KeyError, FileNotFoundError):
         raise EnvironmentError(
-            "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token' and 'owner_id'"
+            "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token' and 'owner'"
         )
 
 CLIENT = commands.Bot(

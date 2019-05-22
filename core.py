@@ -1,8 +1,20 @@
 """Core file holding the Prismarine Bot."""
 import logging
 import asyncio
+import json
 import discord
 from discord.ext import commands
+
+with open("../config.json", "r") as infile:
+    try:
+        CONFIG = json.load(infile)
+        _ = infile["token"]
+        _ = infile["owner"]
+
+    except (KeyError, FileNotFoundError):
+        raise EnvironmentError(
+            "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token' and 'owner_id'"
+        )
 
 CLIENT = commands.Bot(
     command_prefix="-",
@@ -55,7 +67,7 @@ Joined Server At: `{member.joined_at} UTC`"""
 
 @CLIENT.command()
 async def send(ctx, *, channel: str, content: str):
-    if ctx.message.author.id != 490650609641324544:
+    if ctx.message.author.id != CONFIG["owner"]:
         await ctx.send("You're not authorized to use this!")
         return
     channel = CLIENT.get_channel(int(channel))
@@ -66,7 +78,7 @@ async def send(ctx, *, channel: str, content: str):
 
 @CLIENT.command()
 async def announce(ctx, *, text):
-    if ctx.message.author.id != 490650609641324544:
+    if ctx.message.author.id != CONFIG["owner"]:
         await ctx.send("You're not authorized to use this!")
         return
     embed = discord.Embed(
@@ -162,7 +174,7 @@ async def changename(ctx, *, name_user, nickname: str):
 
 @CLIENT.command()
 async def logout(ctx):
-    if ctx.message.author.id != 490650609641324544:
+    if ctx.message.author.id != CONFIG["owner"]:
         await ctx.send("You're not authorized to use this!")
         return
     logging.info("Shutting down Project Prismarine...")
@@ -170,4 +182,4 @@ async def logout(ctx):
     await CLIENT.logout()
 
 
-CLIENT.run("NTY4NDY5NDM3Mjg0NjE0MTc0.XLnOww.bHZ06CxgJVo4oYj-W-Vyj5VxSbM")
+CLIENT.run(CONFIG["token"])

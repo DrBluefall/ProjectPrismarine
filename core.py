@@ -5,7 +5,7 @@ import json
 import discord
 from discord.ext import commands
 
-with open("../config.json", "r") as infile:
+with open("config.json", "r") as infile:
     try:
         CONFIG = json.load(infile)
         _ = infile["token"]

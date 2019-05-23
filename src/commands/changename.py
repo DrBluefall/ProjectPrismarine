@@ -1,6 +1,6 @@
 @commands.has_permissions(manage_nicknames=True)
 @CLIENT.command()
-async def changename(ctx, *, name_user, nickname: str):
+async def changename(ctx, name_user, *, nickname: str):
     try:
         name_user = ctx.message.mentions[0]
     except IndexError:

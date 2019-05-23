@@ -1,6 +1,6 @@
 @commands.has_permissions(ban_members=True)
 @CLIENT.command()
-async def ban(ctx, *, banned_user, time: int = 0, reason: str = ""):
+async def ban(ctx, banned_user, time: int = 0, *, reason: str = ""):
     try:
         banned_user = ctx.message.mentions[0]
     except IndexError:

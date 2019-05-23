@@ -1,6 +1,6 @@
 @commands.has_permissions(kick_members=True)
 @CLIENT.command()
-async def kick(ctx, *, kicked_user, reason: str = None):
+async def kick(ctx, kicked_user, *, reason: str = None):
     try:
         kicked_user = ctx.message.mentions[0]
     except IndexError:

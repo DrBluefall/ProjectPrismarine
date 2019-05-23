@@ -51,7 +51,7 @@ async def ping(ctx):
 
 
 @CLIENT.command()
-async def user(ctx, *, member: discord.User = None):
+async def user(ctx, member: discord.User = None):
     """Get user info on a user."""
     if member is None:
         member = ctx.message.author
@@ -131,7 +131,7 @@ async def delete_error(ctx, error):
 
 @commands.has_permissions(ban_members=True)
 @CLIENT.command()
-async def ban(ctx, *, banned_user, time: int = 0, reason: str = ""):
+async def ban(ctx, banned_user, time: int = 0, *, reason: str = None):
     """Ban a user."""
     try:
         banned_user = ctx.message.mentions[0]
@@ -158,7 +158,7 @@ async def ban_error(ctx, error):
 
 @commands.has_permissions(kick_members=True)
 @CLIENT.command()
-async def kick(ctx, *, kicked_user, reason: str = None):
+async def kick(ctx, kicked_user, *, reason: str = None):
     """Kick a user."""
     try:
         kicked_user = ctx.message.mentions[0]
@@ -180,7 +180,7 @@ async def kick_error(ctx, error):
 
 @commands.has_permissions(kick_members=True)
 @CLIENT.command()
-async def prune(ctx, *, reason: str, time: int = 0):
+async def prune(ctx, time: int = 0, *, reason: str):
     """Prune the server."""
     pruned = await ctx.guild.prune_members(days=time, reason=reason)
     await ctx.send(f"{pruned} member(s) have been pruned from the server.")
@@ -188,7 +188,7 @@ async def prune(ctx, *, reason: str, time: int = 0):
 
 @commands.has_permissions(manage_nicknames=True)
 @CLIENT.command()
-async def changename(ctx, *, name_user, nickname: str):
+async def changename(ctx, name_user, *, nickname: str):
     """Change user's nick."""
     try:
         name_user = ctx.message.mentions[0]

@@ -1,5 +1,5 @@
 @CLIENT.command()
-async def user(ctx, *, member: discord.User = None):
+async def user(ctx, member: discord.User = None):
     if member is None:
         member = ctx.message.author
     else:

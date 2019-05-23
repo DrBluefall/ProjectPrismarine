@@ -44,11 +44,7 @@ async def on_ready():
 async def ping(ctx):
     """Ping the user."""
     ping_ms = round(CLIENT.latency * 1000, ndigits=4)
-    await ctx.channel.send(
-        f"""Pong!
-
-Latency: {ping_ms} ms"""
-    )
+    await ctx.channel.send(f"Pong! \n Latency: {ping_ms}ms")
 
 
 @CLIENT.command()

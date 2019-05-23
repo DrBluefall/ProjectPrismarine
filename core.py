@@ -30,6 +30,7 @@ logging.basicConfig(
 
 @CLIENT.event
 async def on_ready():
+    """What happens whem the bot is ready."""
     logging.basicConfig(
         level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
     )
@@ -41,6 +42,7 @@ async def on_ready():
 
 @CLIENT.command()
 async def ping(ctx):
+    """Ping the user."""
     ping_ms = round(CLIENT.latency * 1000, ndigits=4)
     await ctx.channel.send(
         f"""Pong!
@@ -51,6 +53,7 @@ Latency: {ping_ms} ms"""
 
 @CLIENT.command()
 async def user(ctx, *, member: discord.User = None):
+    """Get user info on a user."""
     if member is None:
         member = ctx.message.author
     else:
@@ -67,6 +70,7 @@ Joined Server At: `{member.joined_at} UTC`"""
 
 @CLIENT.command()
 async def send(ctx, *, channel: str, content: str):
+    """Send message to a channel as the bot."""
     if ctx.message.author.id != CONFIG["owner"]:
         await ctx.send("You're not authorized to use this!")
         return
@@ -78,6 +82,7 @@ async def send(ctx, *, channel: str, content: str):
 
 @CLIENT.command()
 async def announce(ctx, *, text):
+    """Make an announcement as the bot"""
     if ctx.message.author.id != CONFIG["owner"]:
         await ctx.send("You're not authorized to use this!")
         return
@@ -95,6 +100,7 @@ async def announce(ctx, *, text):
 @commands.has_permissions(manage_messages=True)
 @CLIENT.command()
 async def delete(ctx, amount: int = 10):
+    """Purge a number of messages."""
     channel = CLIENT.get_channel(ctx.channel.id)
     deleted = await channel.purge(limit=amount)
     await ctx.send("{} message(s) have been deleted.".format(len(deleted)), delete_after=10)
@@ -102,6 +108,7 @@ async def delete(ctx, amount: int = 10):
 
 @delete.error
 async def delete_error(ctx, error):
+    """Error when delete doesn't work."""
     if isinstance(error, commands.MissingPermissions):
         await ctx.send(
             "Command failed. Make sure you have the `manage_messages` permission in order to use this command."
@@ -111,6 +118,7 @@ async def delete_error(ctx, error):
 @commands.has_permissions(ban_members=True)
 @CLIENT.command()
 async def ban(ctx, *, banned_user, time: int = 0, reason: str = ""):
+    """Ban a user."""
     try:
         banned_user = ctx.message.mentions[0]
     except IndexError:
@@ -126,6 +134,7 @@ async def ban(ctx, *, banned_user, time: int = 0, reason: str = ""):
 
 @ban.error
 async def ban_error(ctx, error):
+    """Error when ban doesn't work."""
     if isinstance(error, (commands.BadArgument, commands.MissingPermissions)):
         await ctx.send(
             "Command failed. Make sure you have the `ban_members` permission in order to use this command, or have specified the correct arguments."
@@ -136,6 +145,7 @@ async def ban_error(ctx, error):
 @commands.has_permissions(kick_members=True)
 @CLIENT.command()
 async def kick(ctx, *, kicked_user, reason: str = None):
+    """Kick a user."""
     try:
         kicked_user = ctx.message.mentions[0]
     except IndexError:
@@ -146,6 +156,7 @@ async def kick(ctx, *, kicked_user, reason: str = None):
 
 @kick.error
 async def kick_error(ctx, error):
+    """Error when cick doesn't work."""
     if isinstance(error, (commands.MissingRequiredArgument, commands.MissingPermissions)):
         await ctx.send(
             "Command failed. Make sure you have the `kick_members` permission in order to use this command, or have specified the user you want to kick using an @mention."
@@ -156,6 +167,7 @@ async def kick_error(ctx, error):
 @commands.has_permissions(kick_members=True)
 @CLIENT.command()
 async def prune(ctx, *, reason: str, time: int = 0):
+    """Prune the server."""
     pruned = await ctx.guild.prune_members(days=time, reason=reason)
     await ctx.send(f"{pruned} member(s) have been pruned from the server.")
 
@@ -163,6 +175,7 @@ async def prune(ctx, *, reason: str, time: int = 0):
 @commands.has_permissions(manage_nicknames=True)
 @CLIENT.command()
 async def changename(ctx, *, name_user, nickname: str):
+    """Change user's nick."""
     try:
         name_user = ctx.message.mentions[0]
     except IndexError:
@@ -174,6 +187,7 @@ async def changename(ctx, *, name_user, nickname: str):
 
 @CLIENT.command()
 async def logout(ctx):
+    """Quit the bot."""
     if ctx.message.author.id != CONFIG["owner"]:
         await ctx.send("You're not authorized to use this!")
         return

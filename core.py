@@ -138,8 +138,8 @@ async def ban(ctx, banned_user, time: int = 0, *, reason: str = None):
     except IndexError:
         banned_user = CLIENT.get_user(banned_user)
     try:
-        await ctx.guild.ban(user=user, reason=reason, delete_message_days=time)
-        await ctx.send(f"The ban hammer has been dropped on {user}!")
+        await ctx.guild.ban(user=banned_user, reason=reason, delete_message_days=time)
+        await ctx.send(f"The ban hammer has been dropped on {banned_user}!")
     except asyncio.TimeoutError:
         await ctx.send(
             "Command failed. Make sure all necessary arguments are provided and/or correct."

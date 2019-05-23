@@ -80,7 +80,7 @@ async def send_error(ctx, error):
     if isinstance(error, (discord.ext.commands.errors.NotOwner)):
         await ctx.send(":warning: *You're not authorized to use this!* :warning:")
 
-@commands.is_owner()
+@commands.has_permissions(administrator=True)
 @CLIENT.command()
 async def announce(ctx, *, text):
     """Make an announcement as the bot"""
@@ -90,7 +90,7 @@ async def announce(ctx, *, text):
         color=discord.Color.blurple(),
     )
     embed.set_author(name="Unit 10008-RSP", icon_url=CLIENT.user.avatar_url)
-    embed.set_footer(text=f"Solidarity, Dr. P. Bluefall.", icon_url=ctx.author.avatar_url)
+    embed.set_footer(text=f"Solidarity, {ctx.message.author.display_name}.", icon_url=ctx.author.avatar_url)
     channel = CLIENT.get_channel(561530381908836353)
     await channel.send(embed=embed)
 

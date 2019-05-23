@@ -79,13 +79,11 @@ async def send(ctx, channel: str, *, content: str):
 
 @send.error
 async def send_error(ctx, error):
-    """Error for send command."""
     if isinstance(error, (discord.ext.commands.errors.NotOwner)):
         await ctx.send(":warning: *You're not authorized to use this!* :warning:")
 
 
 def is_main_guild(ctx):
-    """Check if the guild is the main guild."""
     return ctx.guild.id == 561529218949971989
 
 
@@ -93,7 +91,7 @@ def is_main_guild(ctx):
 @commands.has_permissions(administrator=True)
 @CLIENT.command()
 async def announce(ctx, *, text):
-    """Make an announcement as the bot."""
+    """Make an announcement as the bot"""
     embed = discord.Embed(
         title=f"An Announcement from {ctx.message.author.display_name}...",
         description=text,
@@ -101,17 +99,14 @@ async def announce(ctx, *, text):
     )
     embed.set_author(name="Unit 10008-RSP", icon_url=CLIENT.user.avatar_url)
     embed.set_footer(
-        text=f"Solidarity, {ctx.message.author.display_name}.", icon_url=ctx.author.avatar_url
-    )
-    announce_channel = CLIENT.get_channel(561530381908836353)
-    if ctx.message.mention_everyone:
-        await announce_channel.send("@everyone")
-    await announce_channel.send(embed=embed)
+        text=f"Solidarity, {ctx.message.author.display_name}.", icon_url=ctx.author.avatar_url)
+    channel = CLIENT.get_channel(561530381908836353)
+    await channel.send(embed=embed)
 
 
 @announce.error
 async def send_error(ctx, error):
-    """Error when announce is used by an unauthorized user."""
+    """Error when announce is used by an unauthorized user"""
     if isinstance(error, (discord.ext.commands.errors.NotOwner)):
         await ctx.send(":warning: *You're not authorized to use this!* :warning:")
 
@@ -215,9 +210,32 @@ async def logout(ctx):
 
 @logout.error
 async def logout_error(ctx, error):
-    """Error when Logout fails."""
     if isinstance(error, (discord.ext.commands.errors.NotOwner)):
         await ctx.send(":warning: *You're not authorized to use this!* :warning:")
+
+
+@CLIENT.command()
+async def credits(ctx):
+    embed = discord.Embed(
+        title="The Credits",
+        description="""This command exists to commemorate and properly credit those who have assisted, inspired, or otherwise contributed to the creation of Project Prismarine.
+
+    @.MO#0401 - For initially inspiring me to learn Python and persue Computer Science and programming in a serious manner.
+
+    @Ikaheishi#0003 - For reviewing Project Prismarine's code and general assistance in my code endeavors.
+    @TruePikachu#1985 - For aiding me in fixing several commands and showing me just how much of a newbie I am at Python.
+
+    @DuckyQuack#7707 - For his massive assistance in improving the backend of Project Prismarine and making a multitide of improvements in the bot.
+
+    To all of these people, I only have one thing to say.
+
+    Thank you.
+    """,
+        color=discord.Color.dark_gold(),
+    )
+    embed.set_author(name="Unit 10008-RSP", icon_url=CLIENT.user.avatar_url)
+    embed.set_footer(text=f"Solidarity, Dr. Prismarine Bluefall.")
+    await ctx.send(embed=embed)
 
 
 CLIENT.run(CONFIG["token"])

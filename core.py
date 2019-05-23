@@ -231,7 +231,7 @@ async def credits(ctx):
 
     Thank you.
     """,
-        color=discord.Color.dark_gold(),
+        color=discord.Color.gold(),
     )
     embed.set_author(name="Unit 10008-RSP", icon_url=CLIENT.user.avatar_url)
     embed.set_footer(text=f"Solidarity, Dr. Prismarine Bluefall.")

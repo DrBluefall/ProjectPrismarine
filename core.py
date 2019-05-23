@@ -103,8 +103,10 @@ async def announce(ctx, *, text):
     embed.set_footer(
         text=f"Solidarity, {ctx.message.author.display_name}.", icon_url=ctx.author.avatar_url
     )
-    channel = CLIENT.get_channel(561530381908836353)
-    await channel.send(embed=embed)
+    announce_channel = CLIENT.get_channel(561530381908836353)
+    if ctx.message.mention_everyone:
+        await announce_channel.send("@everyone")
+    await announce_channel.send(embed=embed)
 
 
 @announce.error

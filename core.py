@@ -8,8 +8,8 @@ from discord.ext import commands
 with open("config.json", "r") as infile:
     try:
         CONFIG = json.load(infile)
-        _ = infile["token"]
-        _ = infile["owner"]
+        _ = CONFIG["token"]
+        _ = CONFIG["owner"]
 
     except (KeyError, FileNotFoundError):
         raise EnvironmentError(

@@ -66,6 +66,7 @@ Status: `{member.status}`
 Joined Server At: `{member.joined_at} UTC`"""
     )
 
+
 @commands.is_owner()
 @CLIENT.command()
 async def send(ctx, channel: str, *, content: str):
@@ -75,32 +76,40 @@ async def send(ctx, channel: str, *, content: str):
     await ctx.send(f"Message sent to {channel}.")
     logging.info("Message sent to %s.", channel)
 
+
 @send.error
 async def send_error(ctx, error):
+    """Error for send command."""
     if isinstance(error, (discord.ext.commands.errors.NotOwner)):
         await ctx.send(":warning: *You're not authorized to use this!* :warning:")
 
+
 def is_main_guild(ctx):
+    """Check if the guild is the main guild."""
     return ctx.guild.id == 561529218949971989
+
 
 @commands.check(is_main_guild)
 @commands.has_permissions(administrator=True)
 @CLIENT.command()
 async def announce(ctx, *, text):
-    """Make an announcement as the bot"""
+    """Make an announcement as the bot."""
     embed = discord.Embed(
         title=f"An Announcement from {ctx.message.author.display_name}...",
         description=text,
         color=discord.Color.blurple(),
     )
     embed.set_author(name="Unit 10008-RSP", icon_url=CLIENT.user.avatar_url)
-    embed.set_footer(text=f"Solidarity, {ctx.message.author.display_name}.", icon_url=ctx.author.avatar_url)
+    embed.set_footer(
+        text=f"Solidarity, {ctx.message.author.display_name}.", icon_url=ctx.author.avatar_url
+    )
     channel = CLIENT.get_channel(561530381908836353)
     await channel.send(embed=embed)
 
+
 @announce.error
 async def send_error(ctx, error):
-    """Error when announce is used by an unauthorized user"""
+    """Error when announce is used by an unauthorized user."""
     if isinstance(error, (discord.ext.commands.errors.NotOwner)):
         await ctx.send(":warning: *You're not authorized to use this!* :warning:")
 
@@ -192,6 +201,7 @@ async def changename(ctx, *, name_user, nickname: str):
     await user.edit(reason=None, nick=nickname)
     await ctx.send(f"`{name_user}`'s nickname has been changed to `{nickname}`.")
 
+
 @commands.is_owner()
 @CLIENT.command()
 async def logout(ctx):
@@ -200,8 +210,10 @@ async def logout(ctx):
     await ctx.send("*Shutting down Project Prismarine...*")
     await CLIENT.logout()
 
+
 @logout.error
 async def logout_error(ctx, error):
+    """Error when Logout fails."""
     if isinstance(error, (discord.ext.commands.errors.NotOwner)):
         await ctx.send(":warning: *You're not authorized to use this!* :warning:")
 

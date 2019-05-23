@@ -43,8 +43,11 @@ async def on_ready():
 @CLIENT.command()
 async def ping(ctx):
     """Ping the user."""
-    ping_ms = round(CLIENT.latency * 1000, ndigits=4)
-    await ctx.channel.send(f"Pong! \n Latency: {ping_ms}ms")
+    embed = discord.Embed(color=0xDE2E43)
+    embed.add_field(
+        name=f":ping_pong: Latency: `{round(CLIENT.latency*1000, ndigits=4)}ms`", value="\u200B"
+    )
+    await ctx.channel.send(embed=embed)
 
 
 @CLIENT.command()
@@ -82,7 +85,7 @@ async def send_error(ctx, error):
 async def announce(ctx, *, text):
     """Make an announcement as the bot"""
     embed = discord.Embed(
-        title="An Announcement from Dr. Bluefall...",
+        title=f"An Announcement from {ctx.message.author.display_name}...",
         description=text,
         color=discord.Color.blurple(),
     )

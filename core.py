@@ -91,7 +91,7 @@ def is_main_guild(ctx):
 @commands.has_permissions(administrator=True)
 @CLIENT.command()
 async def announce(ctx, *, text):
-    """Make an announcement as the bot"""
+    """Make an announcement as the bot."""
     embed = discord.Embed(
         title=f"An Announcement from {ctx.message.author.display_name}...",
         description=text,
@@ -99,9 +99,12 @@ async def announce(ctx, *, text):
     )
     embed.set_author(name="Unit 10008-RSP", icon_url=CLIENT.user.avatar_url)
     embed.set_footer(
-        text=f"Solidarity, {ctx.message.author.display_name}.", icon_url=ctx.author.avatar_url)
-    channel = CLIENT.get_channel(561530381908836353)
-    await channel.send(embed=embed)
+        text=f"Solidarity, {ctx.message.author.display_name}.", icon_url=ctx.author.avatar_url
+    )
+    announce_channel = CLIENT.get_channel(561530381908836353)
+    if ctx.message.mention_everyone:
+        await announce_channel.send("@everyone")
+    await announce_channel.send(embed=embed)
 
 
 @announce.error
@@ -216,6 +219,7 @@ async def logout_error(ctx, error):
 
 @CLIENT.command()
 async def credits(ctx):
+    """Credits the people who have contributed to the bot."""
     embed = discord.Embed(
         title="The Credits",
         description="""This command exists to commemorate and properly credit those who have assisted, inspired, or otherwise contributed to the creation of Project Prismarine.

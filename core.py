@@ -80,6 +80,10 @@ async def send_error(ctx, error):
     if isinstance(error, (discord.ext.commands.errors.NotOwner)):
         await ctx.send(":warning: *You're not authorized to use this!* :warning:")
 
+def is_main_guild(ctx):
+    return ctx.guild.id == 561529218949971989
+
+@commands.check(is_main_guild)
 @commands.has_permissions(administrator=True)
 @CLIENT.command()
 async def announce(ctx, *, text):

@@ -164,7 +164,7 @@ async def kick(ctx, *, kicked_user, reason: str = None):
 
 @kick.error
 async def kick_error(ctx, error):
-    """Error when cick doesn't work."""
+    """Error when kick doesn't work."""
     if isinstance(error, (commands.MissingRequiredArgument, commands.MissingPermissions)):
         await ctx.send(
             "Command failed. Make sure you have the `kick_members` permission in order to use this command, or have specified the user you want to kick using an @mention."

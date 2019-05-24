@@ -1,12 +1,13 @@
-#  No module docstring
-import discord  # unused import
-import logging  # unused import
+"""Module containing all moderator-usable commands."""
+import asyncio
 from discord.ext import commands
 
 
-class Moderation(commands.Cog):  # Missing class docstring
-    def __init__(self, CLIENT):
-        self.CLIENT = CLIENT  # self.CLIENT should be "self.client"
+class Moderation(commands.Cog):
+    """Module containing all moderator-usable commands."""
+
+    def __init__(self, client):
+        self.client = client
 
     @commands.has_permissions(manage_nicknames=True)
     @commands.command()
@@ -16,7 +17,7 @@ class Moderation(commands.Cog):  # Missing class docstring
             name_user = ctx.message.mentions[0]
         except IndexError:
             name_user = int(name_user)
-            name_user = CLIENT.get_user(name_user)  # CLIENT should be self.client
+            name_user = self.client.get_user(name_user)  # CLIENT should be self.client
         await name_user.edit(reason=None, nick=nickname)
         await ctx.send(f"`{name_user}`'s nickname has been changed to `{nickname}`.")
 
@@ -24,15 +25,15 @@ class Moderation(commands.Cog):  # Missing class docstring
     @commands.command()
     async def delete(self, ctx, amount: int = 10):
         """Purge a number of messages."""
-        channel = CLIENT.get_channel(ctx.channel.id)  # CLIENT should be self.client
+        channel = self.client.get_channel(ctx.channel.id)  # CLIENT should be self.client
         deleted = await channel.purge(limit=amount)
         await ctx.send("{} message(s) have been deleted.".format(len(deleted)), delete_after=10)
 
     @delete.error
-    async def delete_error(ctx, error):  # forgot "self"
+    async def delete_error(self, ctx, error):
         """Error when delete doesn't work."""
         if isinstance(error, commands.MissingPermissions):
-            await ctx.send(  # Moderation has no "send" attribute
+            await ctx.send(
                 "Command failed. Make sure you have the `manage_messages` permission in order to use this command."
             )
 
@@ -43,17 +44,17 @@ class Moderation(commands.Cog):  # Missing class docstring
         try:
             banned_user = ctx.message.mentions[0]
         except IndexError:
-            banned_user = CLIENT.get_user(banned_user)  # CLIENT should be self.client
+            banned_user = self.client.get_user(banned_user)
         try:
             await ctx.guild.ban(user=banned_user, reason=reason, delete_message_days=time)
             await ctx.send(f"The ban hammer has been dropped on {banned_user}!")
-        except asyncio.TimeoutError:  # forgot to import asyncio
+        except asyncio.TimeoutError:
             await ctx.send(
                 "Command failed. Make sure all necessary arguments are provided and/or correct."
             )
 
     @ban.error
-    async def ban_error(ctx, error):  # forgot "self"
+    async def ban_error(self, ctx, error):  # forgot "self"
         """Error when ban doesn't work."""
         if isinstance(error, (commands.BadArgument, commands.MissingPermissions)):
             await ctx.send(  # Moderation has no "send" attribute
@@ -68,12 +69,12 @@ class Moderation(commands.Cog):  # Missing class docstring
         try:
             kicked_user = ctx.message.mentions[0]
         except IndexError:
-            kicked_user = CLIENT.get_user(kicked_user)  # CLIENT should be self.client
+            kicked_user = self.client.get_user(kicked_user)  # CLIENT should be self.client
         await ctx.guild.kick(user=kicked_user, reason=reason)
         await ctx.send(f"User {kicked_user} has been kicked.")
 
     @kick.error
-    async def kick_error(ctx, error):  # forgot "self"
+    async def kick_error(self, ctx, error):  # forgot "self"
         """Error when kick doesn't work."""
         if isinstance(error, (commands.MissingRequiredArgument, commands.MissingPermissions)):
             await ctx.send(  # Moderation has no "send" attribute
@@ -89,5 +90,6 @@ class Moderation(commands.Cog):  # Missing class docstring
         await ctx.send(f"{pruned} member(s) have been pruned from the server.")
 
 
-def setup(CLIENT):  # CLIENT should be client
-    CLIENT.add_cog(Moderation(CLIENT))
+def setup(client):
+    """Adds the cog to the bot."""
+    client.add_cog(Moderation(client))

@@ -1,11 +1,10 @@
 """Core file holding the Prismarine Bot."""
+import os
 import logging
-import asyncio
 import json
+from itertools import cycle
 import discord
 from discord.ext import commands, tasks
-import os
-from itertools import cycle
 
 
 with open("config.json", "r") as infile:
@@ -44,7 +43,6 @@ async def on_ready():
 
 
 # --- Bot Commands
-
 
 @CLIENT.command()
 async def credits(ctx):

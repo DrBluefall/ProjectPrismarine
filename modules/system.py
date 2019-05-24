@@ -132,9 +132,10 @@ class System(commands.Cog):
     async def reload_error(self, ctx, error):
         """Error if the specified module cannot be reloaded."""
         if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
-            await ctx.send("Module could not be unloaded. Make sure that the module name is correct, and is in the correct directory.")
+            await ctx.send("Module could not be reloaded. Make sure that the module name is correct, and is in the correct directory.")
 
 
 def setup(client):
     """Adds the module to the bot."""
     client.add_cog(System(client))
+    logging.info("System Module Online.")

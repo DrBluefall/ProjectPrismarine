@@ -1,4 +1,5 @@
 """Module containing all moderator-usable commands."""
+import logging
 import asyncio
 from discord.ext import commands
 
@@ -93,3 +94,4 @@ class Moderation(commands.Cog):
 def setup(client):
     """Adds the cog to the bot."""
     client.add_cog(Moderation(client))
+    logging.info("Moderation module online.")

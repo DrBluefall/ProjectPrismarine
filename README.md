@@ -1,6 +1,4 @@
-Dr. Prismarine Bluefall#3305 brings to you...
-
-##Project Prismarine!
+#Project Prismarine!
 
 An experimental bot meant for its lead developer to learn and improve at programming, with the aid of other developers.
 

@@ -3,8 +3,9 @@ import logging
 import asyncio
 import json
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import os
+from itertools import cycle
 
 
 with open("config.json", "r") as infile:
@@ -18,11 +19,14 @@ with open("config.json", "r") as infile:
             "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token' and 'owner'"
         )
 
+status = cycle(["with my creator!", "with the life, universe, and everything.", "with my ROBOT ARMY!"])
+
 CLIENT = commands.Bot(
     command_prefix="-",
     status=discord.Status.online,
     activity=discord.Game(name="with my creator!"),
 )
+
 logging.basicConfig(
     level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
 )
@@ -65,6 +69,13 @@ async def credits(ctx):
     embed.set_author(name="Unit 10008-RSP", icon_url=CLIENT.user.avatar_url)
     embed.set_footer(text=f"Solidarity, Dr. Prismarine Bluefall.")
     await ctx.send(embed=embed)
+
+# --- Misc. Code
+
+
+@tasks.loop(seconds=10)
+async def stat_change():
+    await CLIENT.change_presence(activity=discord.Game(next(status)))
 
 for filename in os.listdir('./modules'):
     if filename.endswith(".py"):

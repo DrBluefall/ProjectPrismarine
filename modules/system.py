@@ -77,11 +77,11 @@ class System(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def logout(ctx):
+    async def logout(self, ctx):
         """Quit the bot."""
         logging.info("Shutting down Project Prismarine...")
         await ctx.send("*Shutting down Project Prismarine...*")
-        await CLIENT.logout()
+        await self.CLIENT.logout()
 
     @logout.error
     async def logout_error(ctx, error):

@@ -79,11 +79,13 @@ async def send(ctx, channel: str, *, content: str):
 
 @send.error
 async def send_error(ctx, error):
+    """Error when sending fails."""
     if isinstance(error, (discord.ext.commands.errors.NotOwner)):
         await ctx.send(":warning: *You're not authorized to use this!* :warning:")
 
 
 def is_main_guild(ctx):
+    """Check to see if the guild is the main one."""
     return ctx.guild.id == 561529218949971989
 
 
@@ -213,6 +215,7 @@ async def logout(ctx):
 
 @logout.error
 async def logout_error(ctx, error):
+    """Error when logout fails."""
     if isinstance(error, (discord.ext.commands.errors.NotOwner)):
         await ctx.send(":warning: *You're not authorized to use this!* :warning:")
 

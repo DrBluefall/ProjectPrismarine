@@ -110,7 +110,7 @@ async def announce(ctx, *, text):
 
 
 @announce.error
-async def send_error(ctx, error):
+async def announce_error(ctx, error):
     """Error when announce is used by an unauthorized user"""
     if isinstance(error, (discord.ext.commands.errors.NotOwner)):
         await ctx.send(":warning: *You're not authorized to use this!* :warning:")

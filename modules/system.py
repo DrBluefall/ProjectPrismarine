@@ -95,8 +95,8 @@ class System(commands.Cog):
         await ctx.send(f"Module `{extension}` loaded.")
         logging.info(f"{extension} module loaded.")
 
-    @load.error()
-    async def load_error(ctx, error):
+    @load.error
+    async def load_error(self, ctx, error):
         if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
             await ctx.send("Module could not be loaded. Make sure that the module name is correct, and is in the correct directory.")
 
@@ -107,8 +107,8 @@ class System(commands.Cog):
         await ctx.send(f"Module `{extension}` unloaded.")
         logging.info(f"{extension} module unloaded.")
 
-    @unload.error()
-    async def unload_error(ctx, error):
+    @unload.error
+    async def unload_error(self, ctx, error):
         if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
             await ctx.send("Module could not be unloaded. Make sure that the module name is correct, and is in the correct directory.")
 
@@ -120,8 +120,8 @@ class System(commands.Cog):
         await ctx.send(f"Module `{extension}` reloaded.")
         logging.info(f"{extension} module reloaded.")
 
-    @reload.error()
-    async def reload_error(ctx, error):
+    @reload.error
+    async def reload_error(self, ctx, error):
         if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
             await ctx.send("Module could not be unloaded. Make sure that the module name is correct, and is in the correct directory.")
 

@@ -18,8 +18,8 @@ with open("config.json", "r") as infile:
             "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token' and 'owner'"
         )
 
-STATUS = cycle(["with my creator!", "with life, the universe, and everything.",
-                "with my ROBOT ARMY!", "with a rubber ducky :)", "with Agent 3 and her Pokemon!", "with Python and waifus!"])
+STATUS = cycle(["with my creator!", "with life, the universe, and everything.", "with my ROBOT ARMY!",
+                "with a rubber ducky :)", "with Agent 3 and her Pokemon!", "with Python and waifus!"])
 
 CLIENT = commands.Bot(
     command_prefix="-",

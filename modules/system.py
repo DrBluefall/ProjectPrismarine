@@ -25,15 +25,23 @@ class System(commands.Cog):
         await ctx.channel.send(embed=embed)
 
     @commands.command()
-    async def user(self, ctx, member: discord.User = None):
+    async def user(self, ctx, member=None):
         """Get user info on a user."""
         if member is None:
             member = ctx.message.author
         else:
-            member = ctx.message.mentions[0]
+            try:
+                member = int(member)
+                member = ctx.guild.get_member(member)
+            except ValueError:
+                member = ctx.message.mentions[0]
         name = f"`{member.name}#{member.discriminator}`"
         await ctx.channel.send(
-            f"""Discord ID: {name} \n User ID: `{ctx.message.author.id} \n Account Created: `{member.created_at} UTC` \n Status: `{member.status}` \n Joined Server At: `{member.joined_at} UTC`"""
+            f"""Discord ID: {name}
+User ID: `{member.id}
+Account Created: `{member.created_at} UTC`
+Status: `{member.status}`
+Joined Server At: `{member.joined_at} UTC`"""
         )
 
     @commands.is_owner()

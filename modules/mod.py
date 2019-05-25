@@ -18,7 +18,7 @@ class Moderation(commands.Cog):
             name_user = ctx.message.mentions[0]
         except IndexError:
             name_user = int(name_user)
-            name_user = self.client.get_user(name_user)  # CLIENT should be self.client
+            name_user = self.client.get_user(name_user)
         await name_user.edit(reason=None, nick=nickname)
         await ctx.send(f"`{name_user}`'s nickname has been changed to `{nickname}`.")
 
@@ -26,7 +26,7 @@ class Moderation(commands.Cog):
     @commands.command()
     async def delete(self, ctx, amount: int = 10):
         """Purge a number of messages."""
-        channel = self.client.get_channel(ctx.channel.id)  # CLIENT should be self.client
+        channel = self.client.get_channel(ctx.channel.id)
         deleted = await channel.purge(limit=amount)
         await ctx.send("{} message(s) have been deleted.".format(len(deleted)), delete_after=10)
 
@@ -45,6 +45,7 @@ class Moderation(commands.Cog):
         try:
             banned_user = ctx.message.mentions[0]
         except IndexError:
+            banned_user = int(banned_user)
             banned_user = self.client.get_user(banned_user)
         try:
             await ctx.guild.ban(user=banned_user, reason=reason, delete_message_days=time)
@@ -55,10 +56,10 @@ class Moderation(commands.Cog):
             )
 
     @ban.error
-    async def ban_error(self, ctx, error):  # forgot "self"
+    async def ban_error(self, ctx, error):
         """Error when ban doesn't work."""
         if isinstance(error, (commands.BadArgument, commands.MissingPermissions)):
-            await ctx.send(  # Moderation has no "send" attribute
+            await ctx.send(
                 "Command failed. Make sure you have the `ban_members` permission in order to use this command, or have specified the correct arguments."
             )
             print(error)
@@ -70,15 +71,16 @@ class Moderation(commands.Cog):
         try:
             kicked_user = ctx.message.mentions[0]
         except IndexError:
-            kicked_user = self.client.get_user(kicked_user)  # CLIENT should be self.client
+            kicked_user = int(kicked_user)
+            kicked_user = self.client.get_user(kicked_user)
         await ctx.guild.kick(user=kicked_user, reason=reason)
         await ctx.send(f"User {kicked_user} has been kicked.")
 
     @kick.error
-    async def kick_error(self, ctx, error):  # forgot "self"
+    async def kick_error(self, ctx, error):
         """Error when kick doesn't work."""
         if isinstance(error, (commands.MissingRequiredArgument, commands.MissingPermissions)):
-            await ctx.send(  # Moderation has no "send" attribute
+            await ctx.send(
                 "Command failed. Make sure you have the `kick_members` permission in order to use this command, or have specified the user you want to kick using an @mention."
             )
             print(error)

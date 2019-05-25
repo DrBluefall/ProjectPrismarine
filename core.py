@@ -18,7 +18,8 @@ with open("config.json", "r") as infile:
             "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token' and 'owner'"
         )
 
-STATUS = cycle(["with my creator!", "with the life, universe, and everything.", "with my ROBOT ARMY!"])
+STATUS = cycle(["with my creator!", "with life, the universe, and everything.",
+                "with my ROBOT ARMY!", "with a rubber ducky :)"])
 
 CLIENT = commands.Bot(
     command_prefix="-",
@@ -75,7 +76,6 @@ async def credits(ctx):
 async def stat_change():
     """Changes the status of the bot every few seconds."""
     await CLIENT.change_presence(activity=discord.Game(next(STATUS)))
-    logging.info("Status updated.")
 
 for filename in os.listdir('./modules'):
     if filename.endswith(".py"):

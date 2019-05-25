@@ -19,7 +19,7 @@ with open("config.json", "r") as infile:
         )
 
 STATUS = cycle(["with my creator!", "with life, the universe, and everything.",
-                "with my ROBOT ARMY!", "with a rubber ducky :)"])
+                "with my ROBOT ARMY!", "with a rubber ducky :)", "with Agent 3 and her Pokemon!", "with Python and waifus!"])
 
 CLIENT = commands.Bot(
     command_prefix="-",

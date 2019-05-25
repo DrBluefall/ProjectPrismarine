@@ -23,7 +23,6 @@ STATUS = cycle(["with my creator!", "with the life, universe, and everything.", 
 CLIENT = commands.Bot(
     command_prefix="-",
     status=discord.Status.online,
-    activity=discord.Game(name="with my creator!"),
 )
 
 logging.basicConfig(
@@ -39,6 +38,7 @@ async def on_ready():
     logging.basicConfig(
         level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
     )
+    stat_change.start()
     logging.info("Log successfuly launched. Project Prismarine is online.")
 
 
@@ -71,7 +71,7 @@ async def credits(ctx):
 # --- Misc. Code
 
 
-@tasks.loop(seconds=5)
+@tasks.loop(seconds=30)
 async def stat_change():
     """Changes the status of the bot every few seconds."""
     await CLIENT.change_presence(activity=discord.Game(next(STATUS)))

@@ -33,11 +33,7 @@ class System(commands.Cog):
             member = ctx.message.mentions[0]
         name = f"`{member.name}#{member.discriminator}`"
         await ctx.channel.send(
-            f"""Discord ID: {name}
-    User ID: `{ctx.message.author.id}`
-    Account Created: `{member.created_at} UTC`
-    Status: `{member.status}`
-    Joined Server At: `{member.joined_at} UTC`"""
+            f"""Discord ID: {name} \n User ID: `{ctx.message.author.id} \n Account Created: `{member.created_at} UTC` \n Status: `{member.status}` \n Joined Server At: `{member.joined_at} UTC`"""
         )
 
     @commands.is_owner()

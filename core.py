@@ -18,13 +18,18 @@ with open("config.json", "r") as infile:
             "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token' and 'owner'"
         )
 
-STATUS = cycle(["with my creator!", "with life, the universe, and everything.", "with my ROBOT ARMY!",
-                "with a rubber ducky :)", "with Agent 3 and her Pokemon!", "with Python and waifus!"])
-
-CLIENT = commands.Bot(
-    command_prefix="-",
-    status=discord.Status.online,
+STATUS = cycle(
+    [
+        "with my creator!",
+        "with life, the universe, and everything.",
+        "with my ROBOT ARMY!",
+        "with a rubber ducky :)",
+        "with Agent 3 and her Pokemon!",
+        "with Python and waifus!",
+    ]
 )
+
+CLIENT = commands.Bot(command_prefix="-", status=discord.Status.online)
 
 logging.basicConfig(
     level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
@@ -44,6 +49,7 @@ async def on_ready():
 
 
 # --- Bot Commands
+
 
 @CLIENT.command()
 async def credits(ctx):
@@ -69,6 +75,7 @@ async def credits(ctx):
     embed.set_footer(text=f"Solidarity, Dr. Prismarine Bluefall.")
     await ctx.send(embed=embed)
 
+
 # --- Misc. Code
 
 
@@ -77,7 +84,8 @@ async def stat_change():
     """Changes the status of the bot every few seconds."""
     await CLIENT.change_presence(activity=discord.Game(next(STATUS)))
 
-for filename in os.listdir('./modules'):
+
+for filename in os.listdir("./modules"):
     if filename.endswith(".py"):
         CLIENT.load_extension(f"modules.{filename[:-3]}")
 

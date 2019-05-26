@@ -33,17 +33,30 @@ class System(commands.Cog):
         else:
             try:
                 member = int(member)
-                member = ctx.guild.get_member(member)
+                member = self.client.get_user(member)
             except ValueError:
                 member = ctx.message.mentions[0]
         name = f"`{member.name}#{member.discriminator}`"
-        await ctx.channel.send(
-            f"""Discord ID: `{name}`
-User ID: `{member.id}`
-Account Created: `{member.created_at} UTC`
-Status: `{member.status}`
-Joined Server At: `{member.joined_at} UTC`"""
-        )
+        if member.bot == False:
+            type = "User"
+        else:
+            type = "Bot"
+        embed = discord.Embed(title=f"User Report: {member.display_name}",
+                              description=f"""**Discord ID:**
+        {name}
+        **User ID:**
+        `{member.id}`
+        **Account Created At:**
+        `{member.created_at}`
+        **Account Type:**
+        {type}
+        """,
+                              color=discord.Color.blurple(),
+                              )
+        embed.set_thumbnail(url=member.avatar_url)
+        embed.set_footer(
+            text=f"""Date Generated: {ctx.message.created_at}, Requested By: {ctx.message.author}""")
+        await ctx.channel.send(embed=embed)
 
     @commands.is_owner()
     @commands.command()

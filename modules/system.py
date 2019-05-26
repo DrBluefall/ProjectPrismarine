@@ -20,7 +20,8 @@ class System(commands.Cog):
         """Ping the user."""
         embed = discord.Embed(color=0xDE2E43)
         embed.add_field(
-            name=f":ping_pong: Latency: `{round(self.client.latency*1000, ndigits=4)}ms`", value="\u200B"
+            name=f":ping_pong: Latency: `{round(self.client.latency*1000, ndigits=4)}ms`",
+            value="\u200B",
         )
         await ctx.channel.send(embed=embed)
 
@@ -109,7 +110,9 @@ Joined Server At: `{member.joined_at} UTC`"""
     async def load_error(self, ctx, error):
         """Error if the specified module cannot be loaded."""
         if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
-            await ctx.send("Module could not be loaded. Make sure that the module name is correct, and is in the correct directory.")
+            await ctx.send(
+                "Module could not be loaded. Make sure that the module name is correct, and is in the correct directory."
+            )
 
     @commands.command()
     async def unload(self, ctx, extension):
@@ -122,7 +125,9 @@ Joined Server At: `{member.joined_at} UTC`"""
     async def unload_error(self, ctx, error):
         """Error if the specified module cannot be unloaded."""
         if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
-            await ctx.send("Module could not be unloaded. Make sure that the module name is correct, and is in the correct directory.")
+            await ctx.send(
+                "Module could not be unloaded. Make sure that the module name is correct, and is in the correct directory."
+            )
 
     @commands.command()
     async def reload(self, ctx, extension):
@@ -136,7 +141,9 @@ Joined Server At: `{member.joined_at} UTC`"""
     async def reload_error(self, ctx, error):
         """Error if the specified module cannot be reloaded."""
         if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
-            await ctx.send("Module could not be reloaded. Make sure that the module name is correct, and is in the correct directory.")
+            await ctx.send(
+                "Module could not be reloaded. Make sure that the module name is correct, and is in the correct directory."
+            )
 
 
 def setup(client):

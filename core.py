@@ -57,7 +57,7 @@ async def credits(ctx):
     @Ikaheishi#0003 - For reviewing Project Prismarine's code and general assistance in my code endeavors.
     @TruePikachu#1985 - For aiding me in fixing several commands and showing me just how much of a newbie I am at Python.
 
-    @DuckyQuack#7707 - For his massive assistance in improving the backend of Project Prismarine and making a multitide of improvements in the bot.
+    @LeptoSpira#4548  - For his massive assistance in improving the backend of Project Prismarine and making a multitide of improvements in the bot.
 
     To all of these people, I only have one thing to say.
 

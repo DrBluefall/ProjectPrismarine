@@ -37,8 +37,8 @@ class System(commands.Cog):
                 member = ctx.message.mentions[0]
         name = f"`{member.name}#{member.discriminator}`"
         await ctx.channel.send(
-            f"""Discord ID: {name}
-User ID: `{member.id}
+            f"""Discord ID: `{name}`
+User ID: `{member.id}`
 Account Created: `{member.created_at} UTC`
 Status: `{member.status}`
 Joined Server At: `{member.joined_at} UTC`"""

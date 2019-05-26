@@ -4,8 +4,26 @@ import logging
 import json
 from itertools import cycle
 import discord
+import sqlite3
+import aiosqlite
 from discord.ext import commands, tasks
 
+db = sqlite3.connect("profile.db")
+c = db.cursor()
+
+c.execute("""CREATE TABLE IF NOT EXISTS
+profile(
+id integer primary key,
+user_id integer,
+user text,
+ign text,
+fc text,
+level integer,
+rm_rank text,
+tc_rank text,
+sz_rank text,
+cb_rank text
+)""")
 
 with open("config.json", "r") as infile:
     try:

@@ -151,6 +151,7 @@ class System(commands.Cog):
             await ctx.send(
                 "Module could not be reloaded. Make sure that the module name is correct, and is in the correct directory."
             )
+            print(error)
 
 
 def setup(client):

@@ -32,7 +32,15 @@ class Profiler(commands.Cog):
         db = sqlite3.connect("ProjectPrismarine.db")
         c = db.cursor()
         if ctx.invoked_subcommand is None:
-            c.execute("SELECT * FROM profile WHERE user_id = ?", (ctx.message.author.id,))
+            if user is None:
+                user = ctx.message.author
+            else:
+                try:
+                    user = int(user)
+                    user = self.client.get_user(user)
+                except ValueError:
+                    user = ctx.message.mentions[0]
+            c.execute("SELECT * FROM profile WHERE user_id = ?", (user.id,))
             profile = c.fetchone()
             embed = discord.Embed(
                 title=f"QA Tester #{profile[0]}'s Profile",

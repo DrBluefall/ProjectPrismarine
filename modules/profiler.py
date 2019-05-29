@@ -22,13 +22,14 @@ sr_rank text
 
 
 class Profiler(commands.Cog):
-    """Module containing commands pertaining to managing user profiles."""
+    """Module containing commands pertaining to managing and querying user profiles."""
 
     def __init__(self, client):
         self.client = client
 
     @commands.group(invoke_without_command=True, case_insensitive=True, ignore_extra=False)
-    async def profile(self, ctx, user=None):  # set up querying of other users' profiles
+    async def profile(self, ctx, user=None):
+        """Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user."""
         db = sqlite3.connect("ProjectPrismarine.db")
         c = db.cursor()
         if ctx.invoked_subcommand is None:
@@ -47,7 +48,7 @@ class Profiler(commands.Cog):
                 color=discord.Color.dark_red()
             )
 
-            embed.set_thumbnail(url=ctx.message.author.avatar_url)
+            embed.set_thumbnail(url=user.avatar_url)
             embed.add_field(name="In-Game Name:", value=profile[1])
             embed.add_field(name="Level:", value=profile[3])
             embed.add_field(name="Friend Code:", value=profile[2])
@@ -60,13 +61,17 @@ class Profiler(commands.Cog):
 
     @profile.command()
     async def init(self, ctx):
-        # Implement check if the user already has a profile, likely by using an SQL query and seeing if it outputs None.
         db = sqlite3.connect("ProjectPrismarine.db")
         c = db.cursor()
-        c.execute("INSERT OR IGNORE INTO profile(user_id, ign, fc, level, rm_rank, tc_rank, sz_rank, cb_rank, sr_rank) VALUES (:user_id, :ign, :fc, :level, :rm_rank, :tc_rank, :sz_rank, :cb_rank, :sr_rank) ",
-                  {'user_id': ctx.message.author.id, 'ign': 'N/A', 'fc': 'SW-0000-0000-0000', 'level': 1, 'rm_rank': 'C-', 'tc_rank': 'C-', 'sz_rank': 'C-', 'cb_rank': 'C-', 'sr_rank': 'Intern'})
-        db.commit()
-        print(ctx.message.author.id)
+        c.execute("SELECT * FROM profile WHERE user_id = ?", (ctx.message.author.id,))
+        user = c.fetchone()
+        if user is None:
+            c.execute("INSERT OR IGNORE INTO profile(user_id, ign, fc, level, rm_rank, tc_rank, sz_rank, cb_rank, sr_rank) VALUES (:user_id, :ign, :fc, :level, :rm_rank, :tc_rank, :sz_rank, :cb_rank, :sr_rank) ",
+                      {'user_id': ctx.message.author.id, 'ign': 'N/A', 'fc': 'SW-0000-0000-0000', 'level': 1, 'rm_rank': 'C-', 'tc_rank': 'C-', 'sz_rank': 'C-', 'cb_rank': 'C-', 'sr_rank': 'Intern'})
+            db.commit()
+            await ctx.send("QA Tester Profile Initialized. Thank you for choosing PrismarineCo. Laboratories.")
+        else:
+            await ctx.send("Existing QA Profile detected. Aborting initialization...")
 
 
 def setup(client):

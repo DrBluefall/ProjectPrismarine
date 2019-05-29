@@ -5,9 +5,7 @@ import json
 from itertools import cycle
 import discord
 import sqlite3
-import aiosqlite
 from discord.ext import commands, tasks
-
 
 with open("config.json", "r") as infile:
     try:
@@ -28,6 +26,7 @@ STATUS = cycle(
         "with a rubber ducky :)",
         "with Agent 3 and her Pokemon!",
         "with Python and waifus!",
+        "with SCIENCE!"
     ]
 )
 

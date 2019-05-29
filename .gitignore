@@ -1,6 +1,7 @@
 # Project specific files
 config.json
 .DS_Store
+ProjectPrismarine.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -34,14 +34,15 @@ class Profiler(commands.Cog):
         if ctx.invoked_subcommand is None:
             # Get the output from this query and turn it into an embed, listing the user's IGN, level, and ranks.
             c.execute("SELECT * FROM profile WHERE user_id = ?", (ctx.message.author.id,))
-            print(c.fetchone())
+            profile = c.fetchone()
+            print(profile)
 
     @profile.command()
     async def init(self, ctx):
         # Implement check if the user already has a profile, likely by using an SQL query and seeing if it outputs None.
         db = sqlite3.connect("ProjectPrismarine.db")
         c = db.cursor()
-        c.execute("INSERT OR IGNORE INTO profile(user_id, ign, fc, level, rm_rank, tc_rank, sz_rank, cb_rank) VALUES (:user_id, :ign, :fc, :level, :rm_rank, :tc_rank, :sz_rank, :cb_rank, :sr_rank) ",
+        c.execute("INSERT OR IGNORE INTO profile(user_id, ign, fc, level, rm_rank, tc_rank, sz_rank, cb_rank, sr_rank) VALUES (:user_id, :ign, :fc, :level, :rm_rank, :tc_rank, :sz_rank, :cb_rank, :sr_rank) ",
                   {'user_id': ctx.message.author.id, 'ign': 'N/A', 'fc': 'SW-0000-0000-0000', 'level': 1, 'rm_rank': 'C-', 'tc_rank': 'C-', 'sz_rank': 'C-', 'cb_rank': 'C-', 'sr_rank': 'Intern'})
         db.commit()
         print(ctx.message.author.id)

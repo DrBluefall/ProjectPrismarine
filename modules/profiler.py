@@ -35,20 +35,7 @@ class Profiler(commands.Cog):
             # Get the output from this query and turn it into an embed, listing the user's IGN, level, and ranks.
             c.execute("SELECT * FROM profile WHERE user_id = ?", (ctx.message.author.id,))
             profile = c.fetchone()
-            embed = discord.Embed(
-                title=f"QA Tester #{profile[0]}'s Profile",
-                color=discord.Color.dark_red()
-            )
-            embed.set_thumbnail(url=ctx.message.author.avatar_url)
-            embed.add_field(name="In-Game Name:", value=profile[1])
-            embed.add_field(name="Level:", value=profile[3])
-            embed.add_field(name="Friend Code:", value=profile[2])
-            embed.add_field(name="Rainmaker Rank:", value=profile[4])
-            embed.add_field(name="Tower Control Rank:", value=profile[5])
-            embed.add_field(name="Splat Zones Rank:", value=profile[6])
-            embed.add_field(name="Clam Blitz Rank:", value=profile[7])
-            embed.add_field(name="Salmon Run Rank:", value=profile[8])
-            await ctx.send(embed=embed)
+            print(profile)
 
     @profile.command()
     async def init(self, ctx):

@@ -32,7 +32,6 @@ class Profiler(commands.Cog):
         db = sqlite3.connect("ProjectPrismarine.db")
         c = db.cursor()
         if ctx.invoked_subcommand is None:
-            # Get the output from this query and turn it into an embed, listing the user's IGN, level, and ranks.
             c.execute("SELECT * FROM profile WHERE user_id = ?", (ctx.message.author.id,))
             profile = c.fetchone()
             embed = discord.Embed(

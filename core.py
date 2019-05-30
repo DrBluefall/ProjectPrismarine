@@ -51,6 +51,61 @@ async def on_ready():
 
 # --- Bot Commands
 
+@commands.is_owner()
+@CLIENT.command()
+async def load(ctx, extension):
+    """Loads the specified module within the bot."""
+    CLIENT.load_extension("modules.%s", extension)
+    await ctx.send("Module `%s` loaded.", extension)
+    logging.info("%s module loaded.", extension)
+
+
+@load.error
+async def load_error(ctx, error):
+    """Error if the specified module cannot be loaded."""
+    if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
+        await ctx.send(
+            "Module could not be loaded. Make sure that the module name is correct, and is in the correct directory."
+        )
+
+
+@commands.is_owner()
+@CLIENT.command()
+async def unload(ctx, extension):
+    """Unloads the specified module within the bot."""
+    CLIENT.unload_extension("modules.%s", extension)
+    await ctx.send("Module `%s` unloaded.", extension)
+    logging.info("%s module unloaded.", extension)
+
+
+@unload.error
+async def unload_error(ctx, error):
+    """Error if the specified module cannot be unloaded."""
+    if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
+        await ctx.send(
+            "Module could not be unloaded. Make sure that the module name is correct, and is in the correct directory."
+        )
+
+
+@commands.is_owner()
+@CLIENT.command()
+async def reload(ctx, extension):
+    """Reloads the specified module within the bot."""
+    CLIENT.unload_extension("modules.%s", extension)
+    CLIENT.load_extension("modules.%s", extension)
+    await ctx.send("Module `%s` reloaded.", extension)
+    logging.info("%s module reloaded.", extension)
+
+
+@reload.error
+async def reload_error(ctx, error):
+    """Error if the specified module cannot be reloaded."""
+    if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
+        await ctx.send(
+            "Module could not be reloaded. Make sure that the module name is correct, and is in the correct directory."
+        )
+        print(error)
+
 
 @CLIENT.command()
 async def credits(ctx):

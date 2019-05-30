@@ -81,7 +81,7 @@ class System(commands.Cog):
         embed.set_footer(
             text=f"Solidarity, {ctx.message.author.display_name}.", icon_url=ctx.author.avatar_url
         )
-        announce_channel = self.client.get_channel(561530381908836353)
+        announce_channel = self.client.get_channel(583704659080773642)
         if ctx.message.mention_everyone:
             await announce_channel.send("@everyone")
         await announce_channel.send(embed=embed)
@@ -91,6 +91,8 @@ class System(commands.Cog):
         """Error when announce is used by an unauthorized user"""
         if isinstance(error, (discord.ext.commands.errors.NotOwner)):
             await ctx.send(":warning: *You're not authorized to use this!* :warning:")
+        else:
+            print(error)
 
     @commands.is_owner()
     @commands.command()
@@ -105,53 +107,6 @@ class System(commands.Cog):
         """Error if the person using the command is not the bot owner."""
         if isinstance(error, (discord.ext.commands.errors.NotOwner)):
             await ctx.send(":warning: *You're not authorized to use this!* :warning:")
-
-    @commands.command()
-    async def load(self, ctx, extension):
-        """Loads the specified module within the bot."""
-        self.client.load_extension("modules.%s", extension)
-        await ctx.send("Module `%s` loaded.", extension)
-        logging.info("%s module loaded.", extension)
-
-    @load.error
-    async def load_error(self, ctx, error):
-        """Error if the specified module cannot be loaded."""
-        if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
-            await ctx.send(
-                "Module could not be loaded. Make sure that the module name is correct, and is in the correct directory."
-            )
-
-    @commands.command()
-    async def unload(self, ctx, extension):
-        """Unloads the specified module within the bot."""
-        self.client.unload_extension("modules.%s", extension)
-        await ctx.send("Module `%s` unloaded.", extension)
-        logging.info("%s module unloaded.", extension)
-
-    @unload.error
-    async def unload_error(self, ctx, error):
-        """Error if the specified module cannot be unloaded."""
-        if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
-            await ctx.send(
-                "Module could not be unloaded. Make sure that the module name is correct, and is in the correct directory."
-            )
-
-    @commands.command()
-    async def reload(self, ctx, extension):
-        """Reloads the specified module within the bot."""
-        self.client.unload_extension("modules.%s", extension)
-        self.client.load_extension("modules.%s", extension)
-        await ctx.send("Module `%s` reloaded.", extension)
-        logging.info("%s module reloaded.", extension)
-
-    @reload.error
-    async def reload_error(self, ctx, error):
-        """Error if the specified module cannot be reloaded."""
-        if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
-            await ctx.send(
-                "Module could not be reloaded. Make sure that the module name is correct, and is in the correct directory."
-            )
-            print(error)
 
 
 def setup(client):

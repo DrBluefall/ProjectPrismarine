@@ -1,22 +1,29 @@
 import logging
 import discord
 import sqlite3
+from sqlalchemy import create_engine
+from sqlalchemy import MetaData
+from sqlalchemy import Table, Column
+from sqlalchemy import Integer, String
+from sqlalchemy import select
 from discord.ext import commands
 
-db = sqlite3.connect("ProjectPrismarine.db")
-c = db.cursor()
+engine = create_engine("sqlite:///ProjectPrismarine.db")
+metadata = MetaData(engine)
+table = Table('profile', metadata,
+              Column('user_id', Integer, primary_key=True),
+              Column('ign', String),
+              Column('fc', String),
+              Column('level', Integer),
+              Column('rm_rank', String),
+              Column('tc_rank', String),
+              Column('sz_rank', String),
+              Column('cb_rank', String),
+              Column('sr_rank', String),
+              )
 
-c.execute("""CREATE TABLE IF NOT EXISTS profile(
-user_id integer primary key,
-ign text,
-fc text,
-level integer,
-rm_rank text,
-tc_rank text,
-sz_rank text,
-cb_rank text,
-sr_rank text
-)""")
+metadata.create_all()
+c = engine.connect()
 
 # Note to self: Remember to commit database changes!!!!!
 
@@ -30,8 +37,10 @@ class Profiler(commands.Cog):
     @commands.group(invoke_without_command=True, case_insensitive=True, ignore_extra=False)
     async def profile(self, ctx, user=None):
         """Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user."""
-        db = sqlite3.connect("ProjectPrismarine.db")
-        c = db.cursor()
+        global engine
+        global metadata
+        global table
+        global c
         if ctx.invoked_subcommand is None:
             if user is None:
                 user = ctx.message.author
@@ -41,8 +50,9 @@ class Profiler(commands.Cog):
                     user = self.client.get_user(user)
                 except ValueError:
                     user = ctx.message.mentions[0]
-            c.execute("SELECT * FROM profile WHERE user_id = ?", (user.id,))
-            profile = c.fetchone()
+            profile_select = select([table]).where(table.c.user_id == user.id)
+            profile = c.execute(profile_select)
+            profile = profile.fetchone()
             embed = discord.Embed(
                 title=f"QA Tester #{profile[0]}'s Profile",
                 color=discord.Color.dark_red()
@@ -61,14 +71,17 @@ class Profiler(commands.Cog):
 
     @profile.command()
     async def init(self, ctx):
-        db = sqlite3.connect("ProjectPrismarine.db")
-        c = db.cursor()
-        c.execute("SELECT * FROM profile WHERE user_id = ?", (ctx.message.author.id,))
-        user = c.fetchone()
-        if user is None:
-            c.execute("INSERT OR IGNORE INTO profile(user_id, ign, fc, level, rm_rank, tc_rank, sz_rank, cb_rank, sr_rank) VALUES (:user_id, :ign, :fc, :level, :rm_rank, :tc_rank, :sz_rank, :cb_rank, :sr_rank) ",
-                      {'user_id': ctx.message.author.id, 'ign': 'N/A', 'fc': 'SW-0000-0000-0000', 'level': 1, 'rm_rank': 'C-', 'tc_rank': 'C-', 'sz_rank': 'C-', 'cb_rank': 'C-', 'sr_rank': 'Intern'})
-            db.commit()
+        global engine
+        global metadata
+        global table
+        global c
+        profile_select = select([table]).where(table.c.user_id == ctx.message.author.id)
+        profile = c.execute(profile_select)
+        profile = profile.fetchone()
+        if profile is None:
+            ins = table.insert().values(user_id=ctx.message.author.id, ign='N/A', fc='SW-0000-0000-0000',
+                                        level=1, rm_rank='C-', tc_rank='C-', sz_rank='C-', cb_rank='C-', sr_rank='Intern')
+            c.execute(ins)
             await ctx.send("QA Tester Profile Initialized. Thank you for choosing PrismarineCo. Laboratories.")
         else:
             await ctx.send("Existing QA Profile detected. Aborting initialization...")

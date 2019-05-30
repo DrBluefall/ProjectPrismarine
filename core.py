@@ -78,7 +78,7 @@ async def unload(ctx, extension):
     logging.info("%s module unloaded.", extension)
 
 
-@unload.error
+@unload.error()
 async def unload_error(ctx, error):
     """Error if the specified module cannot be unloaded."""
     if isinstance(error, discord.ext.commands.errors.CommandInvokeError):

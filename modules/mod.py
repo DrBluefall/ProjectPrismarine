@@ -18,7 +18,7 @@ class Moderation(commands.Cog):
             name_user = ctx.message.mentions[0]
         except IndexError:
             name_user = int(name_user)
-            name_user = self.client.get_user(name_user)
+            name_user = ctx.guild.get_member(name_user)
         await name_user.edit(reason=None, nick=nickname)
         await ctx.send(f"`{name_user}`'s nickname has been changed to `{nickname}`.")
 
@@ -87,10 +87,11 @@ class Moderation(commands.Cog):
 
     @commands.has_permissions(kick_members=True)
     @commands.command()
-    async def prune(self, ctx, time: int = 0, *, reason: str):
-        """Prune the server."""
-        pruned = await ctx.guild.prune_members(days=time, reason=reason)
-        await ctx.send(f"{pruned} member(s) have been pruned from the server.")
+    async def prune(self, ctx, time: int = 30):
+        """Prunes the server. By default, it prunes all users who have been inactive for the past 30 days."""
+        await ctx.guild.prune_members(days=time, compute_prune_count='False')
+        await ctx.send("Prune executed.")
+        # await ctx.send(f"{pruned} member(s) have been pruned from the server.")
 
 
 def setup(client):

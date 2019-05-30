@@ -71,6 +71,7 @@ class Profiler(commands.Cog):
 
     @profile.command()
     async def init(self, ctx):
+        """Initializes a user profile."""
         global engine
         global metadata
         global table

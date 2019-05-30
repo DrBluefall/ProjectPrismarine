@@ -30,7 +30,7 @@ STATUS = cycle(
     ]
 )
 
-CLIENT = commands.Bot(command_prefix="-", status=discord.Status.online)
+CLIENT = commands.Bot(command_prefix="pr.", status=discord.Status.online)
 
 logging.basicConfig(
     level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
@@ -78,7 +78,7 @@ async def unload(ctx, extension):
     logging.info("%s module unloaded.", extension)
 
 
-@unload.error()
+@unload.error
 async def unload_error(ctx, error):
     """Error if the specified module cannot be unloaded."""
     if isinstance(error, discord.ext.commands.errors.CommandInvokeError):

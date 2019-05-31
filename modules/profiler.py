@@ -104,12 +104,13 @@ class Profiler(commands.Cog):
             await ctx.send("Command Failed - No IGN specified.")
 
     @profile.command()
-    async def fc(self, ctx, friend: str = None, code: str = None, here: str = None):
+    async def fc(self, ctx, friend: int = None, code: int = None, here: int = None):
         global engine
         global metadata
         global table
         global c
         if friend is not None and code is not None and here is not None:
+            friend, code, here = str(friend), str(code), str(here)
             fc_len = len(friend) + len(code) + len(here)
             if fc_len == 12 and len(friend) == 4 and len(code) == 4 and len(here) == 4:
                 fc = table.update().where(table.c.user_id == ctx.message.author.id).values(

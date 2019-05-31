@@ -1,11 +1,7 @@
 import logging
 import discord
 import sqlite3
-from sqlalchemy import create_engine
-from sqlalchemy import MetaData
-from sqlalchemy import Table, Column
-from sqlalchemy import Integer, String
-from sqlalchemy import select
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 from discord.ext import commands
 
 engine = create_engine("sqlite:///ProjectPrismarine.db")

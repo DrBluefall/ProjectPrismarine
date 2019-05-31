@@ -54,9 +54,10 @@ class System(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def send(self, ctx, channel: str, *, content: str):
+    async def send(self, ctx, channel, *, content: str):
         """Send message to a channel as the bot."""
-        channel = self.client.get_channel(int(channel))
+        channel = int(channel)
+        channel = self.client.get_channel(channel)
         await channel.send(content)
         await ctx.send(f"Message sent to {channel}.")
         logging.info("Message sent to %s.", channel)

@@ -275,7 +275,7 @@ class Profiler(commands.Cog):
 
     @staticmethod
     def check_profile_exists(user_id):
-        """Checks if a profile exists in the database or not."""
+        """Check if a profile exists in the database or not."""
         profile = c.execute(select([table]).where(table.c.user_id == user_id)).fetchone()
         if profile is None:
             output = False
@@ -285,6 +285,6 @@ class Profiler(commands.Cog):
 
 
 def setup(client):
-    """Adds the module to the bot."""
+    """Add the module to the bot."""
     client.add_cog(Profiler(client))
     logging.info("Profiler Module Online.")

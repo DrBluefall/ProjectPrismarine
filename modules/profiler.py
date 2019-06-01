@@ -5,9 +5,6 @@ from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 
 
-# Note to self: Remember to commit database changes!!!!!
-
-
 class Profiler(commands.Cog):
     """Module containing commands pertaining to managing and querying user profiles."""
 

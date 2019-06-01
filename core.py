@@ -38,15 +38,25 @@ logging.basicConfig(
 
 # --- Client Events
 
+task_starter = 0
+
 
 @CLIENT.event
 async def on_ready():
     """What happens whem the bot is ready."""
+    global task_starter
     logging.basicConfig(
         level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
     )
-    stat_change.start()
+    if task_starter == 0:
+        stat_change.start()
+        task_starter += 1
     logging.info("Log successfuly launched. Project Prismarine is online.")
+
+
+@CLIENT.event
+async def on_command_error(ctx, error):
+    logging.info(f"{ctx.guild.id} - {error}")
 
 
 # --- Bot Commands

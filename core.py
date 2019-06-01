@@ -3,6 +3,7 @@ import os
 import logging
 import json
 from itertools import cycle
+import sqlite3  # pylint: disable=unused-import
 import discord
 from discord.ext import commands, tasks
 
@@ -26,7 +27,7 @@ STATUS = cycle(
         "with Agent 3 and her Pokemon!",
         "with Python and waifus!",
         "with SCIENCE!",
-        "with atomic bo-I MEAN TOYS! Toys. Yeah. That's a thing bots do, right?",
+        "with atomic bo- ...I mean toys",
     ]
 )
 

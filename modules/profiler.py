@@ -22,6 +22,8 @@ table = Table(
 metadata.create_all()
 c = engine.connect()
 
+# Note to self: Remember to commit database changes!!!!!
+
 
 class Profiler(commands.Cog):
     """Module containing commands pertaining to managing and querying user profiles."""

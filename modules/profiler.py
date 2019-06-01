@@ -156,8 +156,8 @@ class Profiler(commands.Cog):
     @profile.command()
     async def rank(self, ctx, gamemode: str = None, rank: str = None):
         """Update a person's rank in the database."""
-        game_mode = ["cb", "tc", "sz", "rm", "sr"]
-        rank_list = [
+        game_mode = ("cb", "tc", "sz", "rm", "sr")
+        rank_list = (
             "c-",
             "c",
             "c+",
@@ -179,15 +179,15 @@ class Profiler(commands.Cog):
             "s+8",
             "s+9",
             "x",
-        ]
-        sr_rank_list = [
+        )
+        sr_rank_list = (
             "intern",
             "apprentice",
             "part-timer",
             "go-getter",
             "overachiever",
             "profreshional",
-        ]
+        )
         try:
             if gamemode.lower() in game_mode:
                 if rank.lower() in rank_list:

@@ -1,27 +1,9 @@
+"""Holds the profile cog."""
 import logging
-import sqlite3
 import discord
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 from discord.ext import commands
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 
-engine = create_engine("sqlite:///ProjectPrismarine.db")
-metadata = MetaData(engine)
-table = Table(
-    "profile",
-    metadata,
-    Column("user_id", Integer, primary_key=True),
-    Column("ign", String),
-    Column("fc", String),
-    Column("level", Integer),
-    Column("rm_rank", String),
-    Column("tc_rank", String),
-    Column("sz_rank", String),
-    Column("cb_rank", String),
-    Column("sr_rank", String),
-)
-
-metadata.create_all()
-c = engine.connect()
 
 # Note to self: Remember to commit database changes!!!!!
 
@@ -32,13 +14,28 @@ class Profiler(commands.Cog):
     def __init__(self, client):
         self.client = client
 
+    engine = create_engine("sqlite:///ProjectPrismarine.db")
+    metadata = MetaData(engine)
+    table = Table(
+        "profile",
+        metadata,
+        Column("user_id", Integer, primary_key=True),
+        Column("ign", String),
+        Column("fc", String),
+        Column("level", Integer),
+        Column("rm_rank", String),
+        Column("tc_rank", String),
+        Column("sz_rank", String),
+        Column("cb_rank", String),
+        Column("sr_rank", String),
+    )
+
+    metadata.create_all()
+    c = engine.connect()
+
     @commands.group(invoke_without_command=True, case_insensitive=True, ignore_extra=False)
     async def profile(self, ctx, user=None):
         """Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user."""
-        global engine
-        global metadata
-        global table
-        global c
         if ctx.invoked_subcommand is None:
             if user is None:
                 user = ctx.message.author
@@ -48,8 +45,8 @@ class Profiler(commands.Cog):
                     user = self.client.get_user(user)
                 except ValueError:
                     user = ctx.message.mentions[0]
-            profile_select = select([table]).where(table.c.user_id == user.id)
-            profile = c.execute(profile_select)
+            profile_select = select([__class__.table]).where(__class__.table.c.user_id == user.id)
+            profile = __class__.c.execute(profile_select)
             profile = profile.fetchone()
             embed = discord.Embed(
                 title=f"QA Tester #{profile[0]}'s Profile", color=discord.Color.dark_red()
@@ -69,15 +66,13 @@ class Profiler(commands.Cog):
     @profile.command()
     async def init(self, ctx):
         """Initializes a user profile."""
-        global engine
-        global metadata
-        global table
-        global c
-        profile_select = select([table]).where(table.c.user_id == ctx.message.author.id)
-        profile = c.execute(profile_select)
+        profile = __class__.c.execute(
+            select([__class__.table]).where(__class__.table.c.user_id == ctx.message.author.id)
+        )
         profile = profile.fetchone()
+        assert len(profile.fetchall()) == 1 or len(profile.fetchall()) is None
         if profile is None:
-            ins = table.insert().values(
+            ins = __class__.table.insert().values(
                 user_id=ctx.message.author.id,
                 ign="N/A",
                 fc="SW-0000-0000-0000",
@@ -88,25 +83,36 @@ class Profiler(commands.Cog):
                 cb_rank="C-",
                 sr_rank="Intern",
             )
-            c.execute(ins)
+            __class__.c.execute(ins)
             await ctx.send(
                 "Quality Assurance Tester Profile initialized. Thank you for choosing PrismarineCo. Laboratories."
             )
         else:
             await ctx.send("Existing QA Profile detected. Aborting initialization...")
 
+    @staticmethod
+    def check_profile_exists(user_id):
+        """Check if a profile exists in the database or not."""
+        profile = __class__.c.execute(
+            select([__class__.table]).where(__class__.table.c.user_id == user_id)
+        ).fetchone()
+        if profile is None:
+            output = False
+        else:
+            output = True
+        return output
+
     @profile.command()
     async def ign(self, ctx, *, name: str = None):
-        global engine
-        global metadata
-        global table
-        global c
+        """Update someone's IGN."""
         if name is not None:
             if not len(name) > 10:
                 ign = (
-                    table.update().where(table.c.user_id == ctx.message.author.id).values(ign=name)
+                    __class__.table.update()
+                    .where(__class__.table.c.user_id == ctx.message.author.id)
+                    .values(ign=name)
                 )
-                c.execute(ign)
+                __class__.c.execute(ign)
                 await ctx.send("IGN successfully updated!")
             else:
                 await ctx.send("Command Failed - IGN character limit is set at 10.")
@@ -115,20 +121,17 @@ class Profiler(commands.Cog):
 
     @profile.command()
     async def fc(self, ctx, friend: int = None, code: int = None, here: int = None):
-        global engine
-        global metadata
-        global table
-        global c
+        """Update someone's Friend Code."""
         if friend is not None and code is not None and here is not None:
             friend, code, here = str(friend), str(code), str(here)
             fc_len = len(friend) + len(code) + len(here)
             if fc_len == 12 and len(friend) == 4 and len(code) == 4 and len(here) == 4:
                 fc = (
-                    table.update()
-                    .where(table.c.user_id == ctx.message.author.id)
+                    __class__.table.update()
+                    .where(__class__.table.c.user_id == ctx.message.author.id)
                     .values(fc=f"SW-{friend}-{code}-{here}")
                 )
-                c.execute(fc)
+                __class__.c.execute(fc)
                 await ctx.send("Friend Code successfully updated!")
             else:
                 await ctx.send(
@@ -141,25 +144,21 @@ class Profiler(commands.Cog):
 
     @profile.command()
     async def level(self, ctx, *, level: int = None):
-        global engine
-        global metadata
-        global table
-        global c
+        """Update someone's level."""
         if level is not None:
             level = (
-                table.update().where(table.c.user_id == ctx.message.author.id).values(level=level)
+                __class__.table.update()
+                .where(__class__.table.c.user_id == ctx.message.author.id)
+                .values(level=level)
             )
-            c.execute(level)
+            __class__.c.execute(level)
             await ctx.send("Level successfully updated!")
         else:
             await ctx.send("Command Failed - No level specified.")
 
     @profile.command()
     async def rank(self, ctx, gamemode: str = None, rank: str = None):
-        global engine
-        global metadata
-        global table
-        global c
+        """Update a person's rank in the database."""
         game_mode = ["cb", "tc", "sz", "rm", "sr"]
         rank_list = [
             "c-",
@@ -197,75 +196,75 @@ class Profiler(commands.Cog):
                 if rank.lower() in rank_list:
                     if gamemode == game_mode[0]:
                         rank = (
-                            table.update()
-                            .where(table.c.user_id == ctx.message.author.id)
+                            __class__.table.update()
+                            .where(__class__.table.c.user_id == ctx.message.author.id)
                             .values(cb_rank=rank.upper())
                         )
-                        c.execute(rank)
+                        __class__.c.execute(rank)
                         await ctx.send("Clam Blitz rank updated!")
                     elif gamemode == game_mode[1]:
                         rank = (
-                            table.update()
-                            .where(table.c.user_id == ctx.message.author.id)
+                            __class__.table.update()
+                            .where(__class__.table.c.user_id == ctx.message.author.id)
                             .values(tc_rank=rank.upper())
                         )
-                        c.execute(rank)
+                        __class__.c.execute(rank)
                         await ctx.send("Tower Control rank updated!")
                     elif gamemode == game_mode[2]:
                         rank = (
-                            table.update()
-                            .where(table.c.user_id == ctx.message.author.id)
+                            __class__.table.update()
+                            .where(__class__.table.c.user_id == ctx.message.author.id)
                             .values(sz_rank=rank.upper())
                         )
-                        c.execute(rank)
+                        __class__.c.execute(rank)
                         await ctx.send("Splat Zones rank updated!")
                     elif gamemode == game_mode[3]:
                         rank = (
-                            table.update()
-                            .where(table.c.user_id == ctx.message.author.id)
+                            __class__.table.update()
+                            .where(__class__.table.c.user_id == ctx.message.author.id)
                             .values(rm_rank=rank.upper())
                         )
-                        c.execute(rank)
+                        __class__.c.execute(rank)
                         await ctx.send("Rainmaker rank updated!")
                 elif rank.lower() == sr_rank_list[0]:
                     rank = (
-                        table.update()
-                        .where(table.c.user_id == ctx.message.author.id)
+                        __class__.table.update()
+                        .where(__class__.table.c.user_id == ctx.message.author.id)
                         .values(sr_rank="Intern")
                     )
                     await ctx.send("Salmon Run rank updated!")
                 elif rank.lower() == sr_rank_list[1]:
                     rank = (
-                        table.update()
-                        .where(table.c.user_id == ctx.message.author.id)
+                        __class__.table.update()
+                        .where(__class__.table.c.user_id == ctx.message.author.id)
                         .values(sr_rank="Apprentice")
                     )
                     await ctx.send("Salmon Run rank updated!")
                 elif rank.lower() == sr_rank_list[2]:
                     rank = (
-                        table.update()
-                        .where(table.c.user_id == ctx.message.author.id)
+                        __class__.table.update()
+                        .where(__class__.table.c.user_id == ctx.message.author.id)
                         .values(sr_rank="Part-Timer")
                     )
                     await ctx.send("Salmon Run rank updated!")
                 elif rank.lower() == sr_rank_list[3]:
                     rank = (
-                        table.update()
-                        .where(table.c.user_id == ctx.message.author.id)
+                        __class__.table.update()
+                        .where(__class__.table.c.user_id == ctx.message.author.id)
                         .values(sr_rank="Go-Getter")
                     )
                     await ctx.send("Salmon Run rank updated!")
                 elif rank.lower() == sr_rank_list[4]:
                     rank = (
-                        table.update()
-                        .where(table.c.user_id == ctx.message.author.id)
+                        __class__.table.update()
+                        .where(__class__.table.c.user_id == ctx.message.author.id)
                         .values(sr_rank="Overachiever")
                     )
                     await ctx.send("Salmon Run rank updated!")
                 elif rank.lower() == sr_rank_list[5]:
                     rank = (
-                        table.update()
-                        .where(table.c.user_id == ctx.message.author.id)
+                        __class__.table.update()
+                        .where(__class__.table.c.user_id == ctx.message.author.id)
                         .values(sr_rank="Profreshional")
                     )
                     await ctx.send("Salmon Run rank updated!")

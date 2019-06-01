@@ -1,4 +1,5 @@
 import logging
+import sqlite3
 import discord
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 from discord.ext import commands
@@ -159,8 +160,8 @@ class Profiler(commands.Cog):
         global metadata
         global table
         global c
-        game_mode = ("cb", "tc", "sz", "rm", "sr")
-        rank_list = (
+        game_mode = ["cb", "tc", "sz", "rm", "sr"]
+        rank_list = [
             "c-",
             "c",
             "c+",
@@ -182,15 +183,15 @@ class Profiler(commands.Cog):
             "s+8",
             "s+9",
             "x",
-        )
-        sr_rank_list = (
+        ]
+        sr_rank_list = [
             "intern",
             "apprentice",
             "part-timer",
             "go-getter",
             "overachiever",
             "profreshional",
-        )
+        ]
         try:
             if gamemode.lower() in game_mode:
                 if rank.lower() in rank_list:
@@ -274,16 +275,6 @@ class Profiler(commands.Cog):
                 await ctx.send("Command Failed - Gamemode was not and/or incorrectly specified.")
         except AttributeError:
             await ctx.send("Command Failed - Argument not specified.")
-
-    @staticmethod
-    def check_profile_exists(user_id):
-        """Checks if a profile exists in the database or not."""
-        profile = c.execute(select([table]).where(table.c.user_id == user_id)).fetchone()
-        if profile is None:
-            output = False
-        else:
-            output = True
-        return output
 
 
 def setup(client):

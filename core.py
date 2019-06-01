@@ -3,8 +3,8 @@ import os
 import logging
 import json
 from itertools import cycle
+import sqlite3  # pylint: disable=unused-import
 import discord
-import sqlite3
 from discord.ext import commands, tasks
 
 with open("config.json", "r") as infile:
@@ -26,7 +26,8 @@ STATUS = cycle(
         "with a rubber ducky :)",
         "with Agent 3 and her Pokemon!",
         "with Python and waifus!",
-        "with SCIENCE!"
+        "with SCIENCE!",
+        "with ~~atomic bombs~~ ...toys",
     ]
 )
 
@@ -38,13 +39,13 @@ logging.basicConfig(
 
 # --- Client Events
 
-task_starter = 0
+task_starter = 0  # only set variables that are constants here.
 
 
 @CLIENT.event
 async def on_ready():
     """What happens whem the bot is ready."""
-    global task_starter
+    global task_starter  # Try to avoid using global statements
     logging.basicConfig(
         level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
     )
@@ -56,17 +57,19 @@ async def on_ready():
 
 @CLIENT.event
 async def on_command_error(ctx, error):
-    logging.info(f"{ctx.guild.id} - {error}")
+    """Logs the error."""
+    logging.info("%i - %s", ctx.guild.id, error)
 
 
 # --- Bot Commands
+
 
 @commands.is_owner()
 @CLIENT.command()
 async def load(ctx, extension):
     """Loads the specified module within the bot."""
-    CLIENT.load_extension("modules.%s", extension)
-    await ctx.send("Module `%s` loaded.", extension)
+    CLIENT.load_extension(f"modules.{extension}")
+    await ctx.send(f"Module `{extension}` loaded.")
     logging.info("%s module loaded.", extension)
 
 
@@ -83,8 +86,8 @@ async def load_error(ctx, error):
 @CLIENT.command()
 async def unload(ctx, extension):
     """Unloads the specified module within the bot."""
-    CLIENT.unload_extension("modules.%s", extension)
-    await ctx.send("Module `%s` unloaded.", extension)
+    CLIENT.unload_extension(f"modules.{extension}")
+    await ctx.send(f"Module `{extension}` unloaded.")
     logging.info("%s module unloaded.", extension)
 
 
@@ -101,9 +104,9 @@ async def unload_error(ctx, error):
 @CLIENT.command()
 async def reload(ctx, extension):
     """Reloads the specified module within the bot."""
-    CLIENT.unload_extension("modules.%s", extension)
-    CLIENT.load_extension("modules.%s", extension)
-    await ctx.send("Module `%s` reloaded.", extension)
+    CLIENT.unload_extension(f"modules.{extension}")
+    CLIENT.load_extension(f"modules.{extension}")
+    await ctx.send(f"Module `{extension}` reloaded.")
     logging.info("%s module reloaded.", extension)
 
 
@@ -124,22 +127,22 @@ async def credits(ctx):
         title="The Credits",
         description="""This command exists to commemorate and properly credit those who have assisted, inspired, or otherwise contributed to the creation of Project Prismarine.
 
-    @.MO#0401 - For initially inspiring me to learn Python and persue Computer Science and programming in a serious manner, as well as for his open-source Splatoon bot, from which I referenced frequently in Project Prismarine's development.
+    <@196470965402730507> - For initially inspiring me to learn Python and persue Computer Science and programming in a serious manner, as well as for his open-source Splatoon bot, from which I referenced frequently in Project Prismarine's development.
 
-    @Ikaheishi#0003 - For reviewing Project Prismarine's code and general assistance in my code endeavors.
-    @TruePikachu#1985 - For aiding me in fixing several commands and showing me just how much of a newbie I am at Python.
+    <@196470965402730507> - For reviewing Project Prismarine's code and general assistance in my code endeavors.
+    <@196470965402730507> - For aiding me in fixing several commands and showing me just how much of a newbie I am at Python.
 
-    @LeptoSpira#4548  - For his massive assistance in improving the backend of Project Prismarine and making a multitide of improvements in the bot.
+    <@196470965402730507> - For his massive assistance in improving the backend of Project Prismarine and making a multitide of improvements in the bot.
 
-    To all of these people, I only have one thing to say.
-
+    To all of these people, I only have one thing to say:
     Thank you.
     """,
         color=discord.Color.gold(),
     )
     embed.set_author(name="Unit 10008-RSP", icon_url=CLIENT.user.avatar_url)
     embed.set_footer(text=f"Solidarity, Dr. Prismarine Bluefall.")
-    await ctx.send(embed=embed)
+    credits_message = await ctx.send(embed=embed)
+    await credits_message.add_reaction("🏆")
 
 
 # --- Misc. Code

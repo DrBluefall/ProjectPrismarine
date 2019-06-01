@@ -42,14 +42,16 @@ class System(commands.Cog):
         else:
             type = "`Bot`"
         embed = discord.Embed(
-            title=f"User Report: {member.display_name}", color=discord.Color.blurple())
+            title=f"User Report: {member.display_name}", color=discord.Color.blurple()
+        )
         embed.add_field(name="Discord ID:", value=name, inline=True)
         embed.add_field(name="User ID:", value=f"`{member.id}`", inline=True)
         embed.add_field(name="Account Created At:", value=f"`{member.created_at}`", inline=True)
         embed.add_field(name="Account Type:", value=type, inline=True)
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(
-            text=f"""Date Generated: {ctx.message.created_at}, Requested By: {ctx.message.author}""")
+            text=f"""Date Generated: {ctx.message.created_at}, Requested By: {ctx.message.author}"""
+        )
         await ctx.channel.send(embed=embed)
 
     @commands.is_owner()

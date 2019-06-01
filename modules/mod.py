@@ -89,7 +89,7 @@ class Moderation(commands.Cog):
     @commands.command()
     async def prune(self, ctx, time: int = 30):
         """Prunes the server. By default, it prunes all users who have been inactive for the past 30 days."""
-        pruned = await ctx.guild.prune_members(days=time, compute_prune_count='False')
+        pruned = await ctx.guild.prune_members(days=time, compute_prune_count="False")
         # await ctx.send("Prune executed.")
         await ctx.send(f"{pruned} member(s) have been pruned from the server.")
 

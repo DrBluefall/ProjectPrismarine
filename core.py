@@ -3,7 +3,6 @@ import os
 import logging
 import json
 from itertools import cycle
-import sqlite3  # pylint: disable=unused-import
 import discord
 from discord.ext import commands, tasks
 

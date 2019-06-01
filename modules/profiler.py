@@ -1,5 +1,4 @@
 import logging
-import sqlite3
 import discord
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 from discord.ext import commands
@@ -22,8 +21,6 @@ table = Table(
 
 metadata.create_all()
 c = engine.connect()
-
-# Note to self: Remember to commit database changes!!!!!
 
 
 class Profiler(commands.Cog):

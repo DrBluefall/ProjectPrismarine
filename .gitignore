@@ -1,7 +1,7 @@
 # Project specific files
 config.json
 .DS_Store
-discord.py/*
+.pylintrc
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

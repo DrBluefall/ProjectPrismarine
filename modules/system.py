@@ -5,7 +5,7 @@ from discord.ext import commands
 
 
 def is_main_guild(ctx):
-    """Checks if the guild is the main one."""
+    """Check if the guild is the main one."""
     return ctx.guild.id == 561529218949971989
 
 
@@ -37,7 +37,7 @@ class System(commands.Cog):
             except ValueError:
                 member = ctx.message.mentions[0]
         name = f"`{member.name}#{member.discriminator}`"
-        if member.bot == False:
+        if member.bot is False:
             type = "`User`"
         else:
             type = "`Bot`"
@@ -91,7 +91,7 @@ class System(commands.Cog):
 
     @announce.error
     async def announce_error(self, ctx, error):
-        """Error when announce is used by an unauthorized user"""
+        """Error when announce is used by an unauthorized user."""
         if isinstance(error, (discord.ext.commands.errors.NotOwner)):
             await ctx.send(":warning: *You're not authorized to use this!* :warning:")
         else:
@@ -113,6 +113,6 @@ class System(commands.Cog):
 
 
 def setup(client):
-    """Adds the module to the bot."""
+    """Add the module to the bot."""
     client.add_cog(System(client))
     logging.info("System Module Online.")

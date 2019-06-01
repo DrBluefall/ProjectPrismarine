@@ -27,7 +27,7 @@ STATUS = cycle(
         "with Agent 3 and her Pokemon!",
         "with Python and waifus!",
         "with SCIENCE!",
-        "with ~~atomic bombs~~ ...toys",
+        "with atomic bo-I MEAN TOYS! Toys. Yeah. That's a thing bots do, right?",
     ]
 )
 

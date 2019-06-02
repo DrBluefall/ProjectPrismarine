@@ -9,6 +9,7 @@ class Profiler(commands.Cog):
     """Module containing commands pertaining to managing and querying user profiles."""
 
     def __init__(self, client):
+        """Initialize the Profiler cog."""
         self.client = client
 
     engine = create_engine("sqlite:///ProjectPrismarine.db")
@@ -62,14 +63,14 @@ class Profiler(commands.Cog):
 
     @profile.command()
     async def init(self, ctx):
-        """Initializes a user profile."""
+        """Initialize a user profile."""
         profile = __class__.c.execute(
             select([__class__.table]).where(__class__.table.c.user_id == ctx.message.author.id)
         )
         profile = profile.fetchone()
         assert len(profile.fetchall()) == 1 or len(profile.fetchall()) is None
         if profile is None:
-            ins = __class__.table.insert().values(
+            ins = __class__.table.insert(None).values(
                 user_id=ctx.message.author.id,
                 ign="N/A",
                 fc="SW-0000-0000-0000",
@@ -105,7 +106,7 @@ class Profiler(commands.Cog):
         if name is not None:
             if not len(name) > 10:
                 ign = (
-                    __class__.table.update()
+                    __class__.table.update(None)
                     .where(__class__.table.c.user_id == ctx.message.author.id)
                     .values(ign=name)
                 )
@@ -124,7 +125,7 @@ class Profiler(commands.Cog):
             fc_len = len(friend) + len(code) + len(here)
             if fc_len == 12 and len(friend) == 4 and len(code) == 4 and len(here) == 4:
                 fc = (
-                    __class__.table.update()
+                    __class__.table.update(None)
                     .where(__class__.table.c.user_id == ctx.message.author.id)
                     .values(fc=f"SW-{friend}-{code}-{here}")
                 )
@@ -144,7 +145,7 @@ class Profiler(commands.Cog):
         """Update someone's level."""
         if level is not None:
             level = (
-                __class__.table.update()
+                __class__.table.update(None)
                 .where(__class__.table.c.user_id == ctx.message.author.id)
                 .values(level=level)
             )
@@ -156,124 +157,83 @@ class Profiler(commands.Cog):
     @profile.command()
     async def rank(self, ctx, gamemode: str = None, rank: str = None):
         """Update a person's rank in the database."""
-        game_mode = ("cb", "tc", "sz", "rm", "sr")
         rank_list = (
-            "c-",
-            "c",
-            "c+",
-            "b-",
-            "b",
-            "b+",
-            "a-",
-            "a",
-            "a+",
-            "s",
-            "s+0",
-            "s+1",
-            "s+2",
-            "s+3",
-            "s+4",
-            "s+5",
-            "s+6",
-            "s+7",
-            "s+8",
-            "s+9",
-            "x",
+            "C-",
+            "C",
+            "C+",
+            "B-",
+            "B",
+            "B+",
+            "A-",
+            "A",
+            "A+",
+            "S",
+            "S+0",
+            "S+1",
+            "S+2",
+            "S+3",
+            "S+4",
+            "S+5",
+            "S+6",
+            "S+7",
+            "S+8",
+            "S+9",
+            "X",
         )
-        sr_rank_list = (
-            "intern",
-            "apprentice",
-            "part-timer",
-            "go-getter",
-            "overachiever",
-            "profreshional",
-        )
-        try:
-            if gamemode.lower() in game_mode:
-                if rank.lower() in rank_list:
-                    if gamemode == game_mode[0]:
-                        rank = (
-                            __class__.table.update()
-                            .where(__class__.table.c.user_id == ctx.message.author.id)
-                            .values(cb_rank=rank.upper())
+        modes = {
+            "Splat Zones": {"aliases": ("sz", "splatzones", "sz_rank"), "rlist": rank_list},
+            "Rainmaker": {"aliases": ("rm", "rm_rank"), "rlist": rank_list},
+            "Tower Control": {"aliases": ("tc", "towercontrol", "tc_rank"), "rlist": rank_list},
+            "Clam Blitz": {"aliases": ("cb", "clamblitz", "cb_rank"), "rlist": rank_list},
+            "Salmon Run": {
+                "aliases": ("sr", "salmonrun"),
+                "rlist": (
+                    "Intern",
+                    "Apprentice",
+                    "Part-timer",
+                    "Go-getter",
+                    "Overachiever",
+                    "Profreshional",
+                ),
+            },
+        }
+        if gamemode is None:
+            await ctx.send("Command Failed - Argument not specified.")
+        else:
+            for key, value in modes.items():
+                if gamemode.lower() in value["aliases"]:
+
+                    if rank.upper() in value["rlist"]:
+                        changed_rank = rank.upper()
+                    elif rank.capitalize() in value["rlist"]:
+                        change_rank = rank.capitalize()
+                    else:
+                        changed_rank = None
+
+                    if change_rank is None:
+                        await ctx.send(
+                            "Command Failed - Rank was not and/or incorrectly specified."
                         )
-                        __class__.c.execute(rank)
-                        await ctx.send("Clam Blitz rank updated!")
-                    elif gamemode == game_mode[1]:
-                        rank = (
-                            __class__.table.update()
-                            .where(__class__.table.c.user_id == ctx.message.author.id)
-                            .values(tc_rank=rank.upper())
+                    else:
+                        eval(
+                            """__class__.c.execute(
+                            (
+                                __class__.table.update(None)
+                                .where(__class__.table.c.user_id == ctx.message.author.id)
+                                .values("""
+                            + value["aliases"][-1]
+                            + """=changed_rank)
+                            )
                         )
-                        __class__.c.execute(rank)
-                        await ctx.send("Tower Control rank updated!")
-                    elif gamemode == game_mode[2]:
-                        rank = (
-                            __class__.table.update()
-                            .where(__class__.table.c.user_id == ctx.message.author.id)
-                            .values(sz_rank=rank.upper())
+                        """
                         )
-                        __class__.c.execute(rank)
-                        await ctx.send("Splat Zones rank updated!")
-                    elif gamemode == game_mode[3]:
-                        rank = (
-                            __class__.table.update()
-                            .where(__class__.table.c.user_id == ctx.message.author.id)
-                            .values(rm_rank=rank.upper())
-                        )
-                        __class__.c.execute(rank)
-                        await ctx.send("Rainmaker rank updated!")
-                elif rank.lower() == sr_rank_list[0]:
-                    rank = (
-                        __class__.table.update()
-                        .where(__class__.table.c.user_id == ctx.message.author.id)
-                        .values(sr_rank="Intern")
-                    )
-                    await ctx.send("Salmon Run rank updated!")
-                elif rank.lower() == sr_rank_list[1]:
-                    rank = (
-                        __class__.table.update()
-                        .where(__class__.table.c.user_id == ctx.message.author.id)
-                        .values(sr_rank="Apprentice")
-                    )
-                    await ctx.send("Salmon Run rank updated!")
-                elif rank.lower() == sr_rank_list[2]:
-                    rank = (
-                        __class__.table.update()
-                        .where(__class__.table.c.user_id == ctx.message.author.id)
-                        .values(sr_rank="Part-Timer")
-                    )
-                    await ctx.send("Salmon Run rank updated!")
-                elif rank.lower() == sr_rank_list[3]:
-                    rank = (
-                        __class__.table.update()
-                        .where(__class__.table.c.user_id == ctx.message.author.id)
-                        .values(sr_rank="Go-Getter")
-                    )
-                    await ctx.send("Salmon Run rank updated!")
-                elif rank.lower() == sr_rank_list[4]:
-                    rank = (
-                        __class__.table.update()
-                        .where(__class__.table.c.user_id == ctx.message.author.id)
-                        .values(sr_rank="Overachiever")
-                    )
-                    await ctx.send("Salmon Run rank updated!")
-                elif rank.lower() == sr_rank_list[5]:
-                    rank = (
-                        __class__.table.update()
-                        .where(__class__.table.c.user_id == ctx.message.author.id)
-                        .values(sr_rank="Profreshional")
-                    )
-                    await ctx.send("Salmon Run rank updated!")
-                else:
-                    await ctx.send("Command Failed - Rank was not and/or incorrectly specified.")
+                        await ctx.send(f"{key} rank updated!")
+                    break
             else:
                 await ctx.send("Command Failed - Gamemode was not and/or incorrectly specified.")
-        except AttributeError:
-            await ctx.send("Command Failed - Argument not specified.")
 
 
 def setup(client):
-    """Adds the module to the bot."""
+    """Add the module to the bot."""
     client.add_cog(Profiler(client))
     logging.info("Profiler Module Online.")

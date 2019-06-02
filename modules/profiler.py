@@ -182,11 +182,11 @@ class Profiler(commands.Cog):
         )
         modes = {
             "Splat Zones": {"aliases": ("sz", "splatzones", "sz_rank"), "rlist": rank_list},
-            "Rainmaker": {"aliases": ("rm", "rm_rank"), "rlist": rank_list},
+            "Rainmaker": {"aliases": ("rm", "rainmaker", "rm_rank"), "rlist": rank_list},
             "Tower Control": {"aliases": ("tc", "towercontrol", "tc_rank"), "rlist": rank_list},
             "Clam Blitz": {"aliases": ("cb", "clamblitz", "cb_rank"), "rlist": rank_list},
             "Salmon Run": {
-                "aliases": ("sr", "salmonrun"),
+                "aliases": ("sr", "salmonrun", "sr_rank"),
                 "rlist": (
                     "Intern",
                     "Apprentice",
@@ -206,20 +206,19 @@ class Profiler(commands.Cog):
                     if rank.upper() in value["rlist"]:
                         changed_rank = rank.upper()
                     elif rank.capitalize() in value["rlist"]:
-                        change_rank = rank.capitalize()
+                        changed_rank = rank.capitalize()
                     else:
                         changed_rank = None
 
-                    if change_rank is None:
+                    if changed_rank is None:
                         await ctx.send(
                             "Command Failed - Rank was not and/or incorrectly specified."
                         )
                     else:
                         eval(
-                            """__class__.c.execute((__class__.table.update(None).where(__class__.table.c.user_id == ctx.message.author.id).values("""
+                            """Profiler.c.execute((Profiler.table.update(None).where(Profiler.table.c.user_id == ctx.message.author.id).values("""
                             + value["aliases"][-1]
-                            + """=changed_rank)))""",
-                            [__class__, ctx, change_rank],
+                            + """=changed_rank)))"""
                         )
                         await ctx.send(f"{key} rank updated!")
                     break

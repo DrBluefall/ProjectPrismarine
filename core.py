@@ -31,7 +31,7 @@ STATUS = cycle(
     ]
 )
 
-CLIENT = commands.Bot(command_prefix="pc.", status=discord.Status.online)
+CLIENT = commands.Bot(command_prefix=CONFIG["prefix"], status=discord.Status.online)
 
 logging.basicConfig(
     level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"

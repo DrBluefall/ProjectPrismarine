@@ -9,6 +9,7 @@ class Profiler(commands.Cog):
     """Module containing commands pertaining to managing and querying user profiles."""
 
     def __init__(self, client):
+        """Initialize the Profiler cog."""
         self.client = client
 
     engine = create_engine("sqlite:///ProjectPrismarine.db")
@@ -62,14 +63,14 @@ class Profiler(commands.Cog):
 
     @profile.command()
     async def init(self, ctx):
-        """Initializes a user profile."""
+        """Initialize a user profile."""
         profile = __class__.c.execute(
             select([__class__.table]).where(__class__.table.c.user_id == ctx.message.author.id)
         )
         profile = profile.fetchone()
         assert len(profile.fetchall()) == 1 or len(profile.fetchall()) is None
         if profile is None:
-            ins = __class__.table.insert().values(
+            ins = __class__.table.insert(None).values(
                 user_id=ctx.message.author.id,
                 ign="N/A",
                 fc="SW-0000-0000-0000",
@@ -105,7 +106,7 @@ class Profiler(commands.Cog):
         if name is not None:
             if not len(name) > 10:
                 ign = (
-                    __class__.table.update()
+                    __class__.table.update(None)
                     .where(__class__.table.c.user_id == ctx.message.author.id)
                     .values(ign=name)
                 )
@@ -124,7 +125,7 @@ class Profiler(commands.Cog):
             fc_len = len(friend) + len(code) + len(here)
             if fc_len == 12 and len(friend) == 4 and len(code) == 4 and len(here) == 4:
                 fc = (
-                    __class__.table.update()
+                    __class__.table.update(None)
                     .where(__class__.table.c.user_id == ctx.message.author.id)
                     .values(fc=f"SW-{friend}-{code}-{here}")
                 )
@@ -144,7 +145,7 @@ class Profiler(commands.Cog):
         """Update someone's level."""
         if level is not None:
             level = (
-                __class__.table.update()
+                __class__.table.update(None)
                 .where(__class__.table.c.user_id == ctx.message.author.id)
                 .values(level=level)
             )
@@ -193,7 +194,7 @@ class Profiler(commands.Cog):
                 if rank.lower() in rank_list:
                     if gamemode == game_mode[0]:
                         rank = (
-                            __class__.table.update()
+                            __class__.table.update(None)
                             .where(__class__.table.c.user_id == ctx.message.author.id)
                             .values(cb_rank=rank.upper())
                         )
@@ -201,7 +202,7 @@ class Profiler(commands.Cog):
                         await ctx.send("Clam Blitz rank updated!")
                     elif gamemode == game_mode[1]:
                         rank = (
-                            __class__.table.update()
+                            __class__.table.update(None)
                             .where(__class__.table.c.user_id == ctx.message.author.id)
                             .values(tc_rank=rank.upper())
                         )
@@ -209,7 +210,7 @@ class Profiler(commands.Cog):
                         await ctx.send("Tower Control rank updated!")
                     elif gamemode == game_mode[2]:
                         rank = (
-                            __class__.table.update()
+                            __class__.table.update(None)
                             .where(__class__.table.c.user_id == ctx.message.author.id)
                             .values(sz_rank=rank.upper())
                         )
@@ -217,7 +218,7 @@ class Profiler(commands.Cog):
                         await ctx.send("Splat Zones rank updated!")
                     elif gamemode == game_mode[3]:
                         rank = (
-                            __class__.table.update()
+                            __class__.table.update(None)
                             .where(__class__.table.c.user_id == ctx.message.author.id)
                             .values(rm_rank=rank.upper())
                         )
@@ -225,42 +226,42 @@ class Profiler(commands.Cog):
                         await ctx.send("Rainmaker rank updated!")
                 elif rank.lower() == sr_rank_list[0]:
                     rank = (
-                        __class__.table.update()
+                        __class__.table.update(None)
                         .where(__class__.table.c.user_id == ctx.message.author.id)
                         .values(sr_rank="Intern")
                     )
                     await ctx.send("Salmon Run rank updated!")
                 elif rank.lower() == sr_rank_list[1]:
                     rank = (
-                        __class__.table.update()
+                        __class__.table.update(None)
                         .where(__class__.table.c.user_id == ctx.message.author.id)
                         .values(sr_rank="Apprentice")
                     )
                     await ctx.send("Salmon Run rank updated!")
                 elif rank.lower() == sr_rank_list[2]:
                     rank = (
-                        __class__.table.update()
+                        __class__.table.update(None)
                         .where(__class__.table.c.user_id == ctx.message.author.id)
                         .values(sr_rank="Part-Timer")
                     )
                     await ctx.send("Salmon Run rank updated!")
                 elif rank.lower() == sr_rank_list[3]:
                     rank = (
-                        __class__.table.update()
+                        __class__.table.update(None)
                         .where(__class__.table.c.user_id == ctx.message.author.id)
                         .values(sr_rank="Go-Getter")
                     )
                     await ctx.send("Salmon Run rank updated!")
                 elif rank.lower() == sr_rank_list[4]:
                     rank = (
-                        __class__.table.update()
+                        __class__.table.update(None)
                         .where(__class__.table.c.user_id == ctx.message.author.id)
                         .values(sr_rank="Overachiever")
                     )
                     await ctx.send("Salmon Run rank updated!")
                 elif rank.lower() == sr_rank_list[5]:
                     rank = (
-                        __class__.table.update()
+                        __class__.table.update(None)
                         .where(__class__.table.c.user_id == ctx.message.author.id)
                         .values(sr_rank="Profreshional")
                     )
@@ -274,6 +275,6 @@ class Profiler(commands.Cog):
 
 
 def setup(client):
-    """Adds the module to the bot."""
+    """Add the module to the bot."""
     client.add_cog(Profiler(client))
     logging.info("Profiler Module Online.")

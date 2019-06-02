@@ -274,6 +274,6 @@ class Profiler(commands.Cog):
 
 
 def setup(client):
-    """Adds the module to the bot."""
+    """Add the module to the bot."""
     client.add_cog(Profiler(client))
     logging.info("Profiler Module Online.")

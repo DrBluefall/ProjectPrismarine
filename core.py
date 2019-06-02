@@ -11,10 +11,11 @@ with open("config.json", "r") as infile:
         CONFIG = json.load(infile)
         _ = CONFIG["token"]
         _ = CONFIG["owner"]
+        _ = CONFIG["prefix"]
 
     except (KeyError, FileNotFoundError):
         raise EnvironmentError(
-            "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token' and 'owner'"
+            "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token', 'owner', and  'prefix'."
         )
 
 STATUS = cycle(
@@ -30,7 +31,7 @@ STATUS = cycle(
     ]
 )
 
-CLIENT = commands.Bot(command_prefix="pr.", status=discord.Status.online)
+CLIENT = commands.Bot(command_prefix="pc.", status=discord.Status.online)
 
 logging.basicConfig(
     level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"

@@ -3,7 +3,6 @@ import os
 import logging
 import json
 from itertools import cycle
-import sqlite3  # pylint: disable=unused-import
 import discord
 from discord.ext import commands, tasks
 
@@ -44,7 +43,7 @@ task_starter = 0  # only set variables that are constants here.
 
 @CLIENT.event
 async def on_ready():
-    """What happens whem the bot is ready."""
+    """Execute on bot login."""
     global task_starter  # Try to avoid using global statements
     logging.basicConfig(
         level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
@@ -57,7 +56,7 @@ async def on_ready():
 
 @CLIENT.event
 async def on_command_error(ctx, error):
-    """Logs the error."""
+    """Log the error."""
     logging.info("%i - %s", ctx.guild.id, error)
 
 
@@ -67,7 +66,7 @@ async def on_command_error(ctx, error):
 @commands.is_owner()
 @CLIENT.command()
 async def load(ctx, extension):
-    """Loads the specified module within the bot."""
+    """Load the specified module within the bot."""
     CLIENT.load_extension(f"modules.{extension}")
     await ctx.send(f"Module `{extension}` loaded.")
     logging.info("%s module loaded.", extension)
@@ -85,7 +84,7 @@ async def load_error(ctx, error):
 @commands.is_owner()
 @CLIENT.command()
 async def unload(ctx, extension):
-    """Unloads the specified module within the bot."""
+    """Unload the specified module within the bot."""
     CLIENT.unload_extension(f"modules.{extension}")
     await ctx.send(f"Module `{extension}` unloaded.")
     logging.info("%s module unloaded.", extension)
@@ -103,7 +102,7 @@ async def unload_error(ctx, error):
 @commands.is_owner()
 @CLIENT.command()
 async def reload(ctx, extension):
-    """Reloads the specified module within the bot."""
+    """Reload the specified module within the bot."""
     CLIENT.unload_extension(f"modules.{extension}")
     CLIENT.load_extension(f"modules.{extension}")
     await ctx.send(f"Module `{extension}` reloaded.")
@@ -150,7 +149,7 @@ async def credits(ctx):
 
 @tasks.loop(seconds=30)
 async def stat_change():
-    """Changes the status of the bot every few seconds."""
+    """Change the status of the bot every few seconds."""
     await CLIENT.change_presence(activity=discord.Game(next(STATUS)))
 
 

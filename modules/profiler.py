@@ -216,16 +216,9 @@ class Profiler(commands.Cog):
                         )
                     else:
                         eval(
-                            """__class__.c.execute(
-                            (
-                                __class__.table.update(None)
-                                .where(__class__.table.c.user_id == ctx.message.author.id)
-                                .values("""
+                            """__class__.c.execute((__class__.table.update(None).where(__class__.table.c.user_id == ctx.message.author.id).values("""
                             + value["aliases"][-1]
-                            + """=changed_rank)
-                            )
-                        )
-                        """
+                            + """=changed_rank)))"""
                         )
                         await ctx.send(f"{key} rank updated!")
                     break

@@ -38,13 +38,13 @@ logging.basicConfig(
 
 # --- Client Events
 
-task_starter = 0  # only set variables that are constants here.
+task_starter = 0  # pylint: disable=invalid-name
 
 
 @CLIENT.event
 async def on_ready():
     """Execute on bot login."""
-    global task_starter  # Try to avoid using global statements
+    global task_starter  # pylint: disable=global-statement, invalid-name
     logging.basicConfig(
         level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
     )

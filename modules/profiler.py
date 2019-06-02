@@ -215,7 +215,7 @@ class Profiler(commands.Cog):
                             "Command Failed - Rank was not and/or incorrectly specified."
                         )
                     else:
-                        eval(
+                        eval(  # pylint: disable=eval-used
                             """Profiler.c.execute((Profiler.table.update(None).where(Profiler.table.c.user_id == ctx.message.author.id).values("""
                             + value["aliases"][-1]
                             + """=changed_rank)))"""

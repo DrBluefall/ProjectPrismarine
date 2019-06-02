@@ -182,7 +182,7 @@ class Profiler(commands.Cog):
         )
         modes = {
             "Splat Zones": {"aliases": ("sz", "splatzones", "sz_rank"), "rlist": rank_list},
-            "Rainmaker": {"aliases": ("rm", "rainamaker", "rm_rank"), "rlist": rank_list},
+            "Rainmaker": {"aliases": ("rm", "rainmaker", "rm_rank"), "rlist": rank_list},
             "Tower Control": {"aliases": ("tc", "towercontrol", "tc_rank"), "rlist": rank_list},
             "Clam Blitz": {"aliases": ("cb", "clamblitz", "cb_rank"), "rlist": rank_list},
             "Salmon Run": {

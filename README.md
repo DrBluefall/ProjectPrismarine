@@ -9,10 +9,9 @@ Its a bot that makes prismarine or something...
 
 ## TODO:
 ### Top Priority:
-- Create profile check function, apply to all relevant commands
-- Fix load, unload, and reload commands so that they actually work
+- [ ] Fix load, unload, and reload commands so that they actually work
 
 ### Planned for the Future:
-- Implement loadout System
-    - Decide on a means of getting loadouts into the bot (loadout.ink, through discord, or standalone app)
-    - Design a way of how that info is to be displayed (probably using PIL in some way)
+- [ ] Implement loadout System
+    - [ ] Decide on a means of getting loadouts into the bot (loadout.ink, through discord, or standalone app)
+    - [ ] Design a way of how that info is to be displayed (probably using PIL in some way)

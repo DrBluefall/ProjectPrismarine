@@ -218,7 +218,8 @@ class Profiler(commands.Cog):
                         eval(
                             """__class__.c.execute((__class__.table.update(None).where(__class__.table.c.user_id == ctx.message.author.id).values("""
                             + value["aliases"][-1]
-                            + """=changed_rank)))"""
+                            + """=changed_rank)))""",
+                            [__class__, ctx, change_rank],
                         )
                         await ctx.send(f"{key} rank updated!")
                     break

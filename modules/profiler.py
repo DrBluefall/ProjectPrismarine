@@ -74,7 +74,6 @@ class Profiler(commands.Cog):
             select([__class__.table]).where(__class__.table.c.user_id == ctx.message.author.id)
         )
         profile = profile.fetchone()
-        assert len(profile.fetchall()) == 1 or len(profile.fetchall()) is None
         if profile is None:
             ins = __class__.table.insert(None).values(
                 user_id=ctx.message.author.id,

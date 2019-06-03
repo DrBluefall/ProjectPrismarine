@@ -157,29 +157,15 @@ class Profiler(commands.Cog):
     @profile.command()
     async def rank(self, ctx, gamemode: str = None, rank: str = None):
         """Update a person's rank in the database."""
+        # fmt: off
         rank_list = (
-            "C-",
-            "C",
-            "C+",
-            "B-",
-            "B",
-            "B+",
-            "A-",
-            "A",
-            "A+",
-            "S",
-            "S+0",
-            "S+1",
-            "S+2",
-            "S+3",
-            "S+4",
-            "S+5",
-            "S+6",
-            "S+7",
-            "S+8",
-            "S+9",
+            "C-", "C", "C+",
+            "B-", "B", "B+",
+            "A-", "A", "A+",
+            "S", "S+0", "S+1", "S+2", "S+3", "S+4", "S+5", "S+6", "S+7", "S+8", "S+9",
             "X",
         )
+        # fmt: on
         modes = {
             "Splat Zones": {"aliases": ("sz", "splatzones", "sz_rank"), "rlist": rank_list},
             "Rainmaker": {"aliases": ("rm", "rainmaker", "rm_rank"), "rlist": rank_list},
@@ -215,7 +201,7 @@ class Profiler(commands.Cog):
                             "Command Failed - Rank was not and/or incorrectly specified."
                         )
                     else:
-                        eval(
+                        eval(  # pylint: disable=eval-used
                             """Profiler.c.execute((Profiler.table.update(None).where(Profiler.table.c.user_id == ctx.message.author.id).values("""
                             + value["aliases"][-1]
                             + """=changed_rank)))"""

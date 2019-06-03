@@ -68,7 +68,6 @@ class Profiler(commands.Cog):
             select([__class__.table]).where(__class__.table.c.user_id == ctx.message.author.id)
         )
         profile = profile.fetchone()
-        assert len(profile.fetchall()) == 1 or len(profile.fetchall()) is None
         if profile is None:
             ins = __class__.table.insert(None).values(
                 user_id=ctx.message.author.id,
@@ -157,15 +156,29 @@ class Profiler(commands.Cog):
     @profile.command()
     async def rank(self, ctx, gamemode: str = None, rank: str = None):
         """Update a person's rank in the database."""
-        # fmt: off
         rank_list = (
-            "C-", "C", "C+",
-            "B-", "B", "B+",
-            "A-", "A", "A+",
-            "S", "S+0", "S+1", "S+2", "S+3", "S+4", "S+5", "S+6", "S+7", "S+8", "S+9",
+            "C-",
+            "C",
+            "C+",
+            "B-",
+            "B",
+            "B+",
+            "A-",
+            "A",
+            "A+",
+            "S",
+            "S+0",
+            "S+1",
+            "S+2",
+            "S+3",
+            "S+4",
+            "S+5",
+            "S+6",
+            "S+7",
+            "S+8",
+            "S+9",
             "X",
         )
-        # fmt: on
         modes = {
             "Splat Zones": {"aliases": ("sz", "splatzones", "sz_rank"), "rlist": rank_list},
             "Rainmaker": {"aliases": ("rm", "rainmaker", "rm_rank"), "rlist": rank_list},

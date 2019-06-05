@@ -117,7 +117,7 @@ async def reload_error(ctx, error):
         await ctx.send(
             "Module could not be reloaded. Make sure that the module name is correct, and is in the correct directory."
         )
-        print(error)
+        logging.info("%i - %s", ctx.guild.id, error)
 
 
 @CLIENT.command()

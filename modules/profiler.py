@@ -3,6 +3,7 @@ import logging
 import discord
 from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
+import encode
 
 
 class Profiler(commands.Cog):
@@ -52,17 +53,17 @@ class Profiler(commands.Cog):
 
             embed.set_thumbnail(url=user.avatar_url)
             for name, index in zip(
-                (
-                    "In-Game Name:",
-                    "Level:",
-                    "Friend Code:",
-                    "Rainmaker Rank:",
-                    "Tower Control Rank:",
-                    "Splat Zones Rank:",
-                    "Clam Blitz Rank:",
-                    "Salmon Run Rank:",
-                ),
-                range(8),
+                    (
+                        "In-Game Name:",
+                        "Level:",
+                        "Friend Code:",
+                        "Rainmaker Rank:",
+                        "Tower Control Rank:",
+                        "Splat Zones Rank:",
+                        "Clam Blitz Rank:",
+                        "Salmon Run Rank:",
+                    ),
+                    range(8),
             ):
                 embed.add_field(name=name, value=profile[index + 1])
             await ctx.send(embed=embed)
@@ -218,6 +219,12 @@ class Profiler(commands.Cog):
                     break
             else:
                 await ctx.send("Command Failed - Gamemode was not and/or incorrectly specified.")
+
+
+class Loadout(commands.Cog):
+
+    def __init__(self, client):
+        self.client = client
 
 
 def setup(client):

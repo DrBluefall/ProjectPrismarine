@@ -31,7 +31,7 @@ STATUS = cycle(
     ]
 )
 
-CLIENT = commands.Bot(command_prefix="pc.", status=discord.Status.online)
+CLIENT = commands.Bot(command_prefix=CONFIG["prefix"], status=discord.Status.online)
 
 logging.basicConfig(
     level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
@@ -39,13 +39,13 @@ logging.basicConfig(
 
 # --- Client Events
 
-task_starter = 0  # only set variables that are constants here.
+task_starter = 0  # pylint: disable=invalid-name
 
 
 @CLIENT.event
 async def on_ready():
     """Execute on bot login."""
-    global task_starter  # Try to avoid using global statements
+    global task_starter  # pylint: disable=global-statement, invalid-name
     logging.basicConfig(
         level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
     )
@@ -117,7 +117,7 @@ async def reload_error(ctx, error):
         await ctx.send(
             "Module could not be reloaded. Make sure that the module name is correct, and is in the correct directory."
         )
-        print(error)
+        logging.info("%i - %s", ctx.guild.id, error)
 
 
 @CLIENT.command()

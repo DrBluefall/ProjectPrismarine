@@ -11,10 +11,11 @@ with open("config.json", "r") as infile:
         CONFIG = json.load(infile)
         _ = CONFIG["token"]
         _ = CONFIG["owner"]
+        _ = CONFIG["prefix"]
 
     except (KeyError, FileNotFoundError):
         raise EnvironmentError(
-            "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token' and 'owner'"
+            "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token', 'owner', and  'prefix'."
         )
 
 STATUS = cycle(
@@ -30,7 +31,7 @@ STATUS = cycle(
     ]
 )
 
-CLIENT = commands.Bot(command_prefix="pr.", status=discord.Status.online)
+CLIENT = commands.Bot(command_prefix=CONFIG["prefix"], status=discord.Status.online)
 
 logging.basicConfig(
     level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
@@ -38,13 +39,13 @@ logging.basicConfig(
 
 # --- Client Events
 
-task_starter = 0  # only set variables that are constants here.
+task_starter = 0  # pylint: disable=invalid-name
 
 
 @CLIENT.event
 async def on_ready():
-    """What happens whem the bot is ready."""
-    global task_starter  # Try to avoid using global statements
+    """Execute on bot login."""
+    global task_starter  # pylint: disable=global-statement, invalid-name
     logging.basicConfig(
         level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
     )
@@ -56,7 +57,7 @@ async def on_ready():
 
 @CLIENT.event
 async def on_command_error(ctx, error):
-    """Logs the error."""
+    """Log the error."""
     logging.info("%i - %s", ctx.guild.id, error)
 
 
@@ -66,7 +67,7 @@ async def on_command_error(ctx, error):
 @commands.is_owner()
 @CLIENT.command()
 async def load(ctx, extension):
-    """Loads the specified module within the bot."""
+    """Load the specified module within the bot."""
     CLIENT.load_extension(f"modules.{extension}")
     await ctx.send(f"Module `{extension}` loaded.")
     logging.info("%s module loaded.", extension)
@@ -84,7 +85,7 @@ async def load_error(ctx, error):
 @commands.is_owner()
 @CLIENT.command()
 async def unload(ctx, extension):
-    """Unloads the specified module within the bot."""
+    """Unload the specified module within the bot."""
     CLIENT.unload_extension(f"modules.{extension}")
     await ctx.send(f"Module `{extension}` unloaded.")
     logging.info("%s module unloaded.", extension)
@@ -102,7 +103,7 @@ async def unload_error(ctx, error):
 @commands.is_owner()
 @CLIENT.command()
 async def reload(ctx, extension):
-    """Reloads the specified module within the bot."""
+    """Reload the specified module within the bot."""
     CLIENT.unload_extension(f"modules.{extension}")
     CLIENT.load_extension(f"modules.{extension}")
     await ctx.send(f"Module `{extension}` reloaded.")
@@ -116,7 +117,7 @@ async def reload_error(ctx, error):
         await ctx.send(
             "Module could not be reloaded. Make sure that the module name is correct, and is in the correct directory."
         )
-        print(error)
+        logging.info("%i - %s", ctx.guild.id, error)
 
 
 @CLIENT.command()
@@ -149,7 +150,7 @@ async def credits(ctx):
 
 @tasks.loop(seconds=30)
 async def stat_change():
-    """Changes the status of the bot every few seconds."""
+    """Change the status of the bot every few seconds."""
     await CLIENT.change_presence(activity=discord.Game(next(STATUS)))
 
 

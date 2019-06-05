@@ -8,6 +8,7 @@ class Moderation(commands.Cog):
     """Module containing all moderator-usable commands."""
 
     def __init__(self, client):
+        """Initialize the Moderation cog."""
         self.client = client
 
     @commands.has_permissions(manage_nicknames=True)
@@ -62,7 +63,7 @@ class Moderation(commands.Cog):
             await ctx.send(
                 "Command failed. Make sure you have the `ban_members` permission in order to use this command, or have specified the correct arguments."
             )
-            print(error)
+            logging.info("%i - %s", ctx.guild.id, error)
 
     @commands.has_permissions(kick_members=True)
     @commands.command()
@@ -83,7 +84,7 @@ class Moderation(commands.Cog):
             await ctx.send(
                 "Command failed. Make sure you have the `kick_members` permission in order to use this command, or have specified the user you want to kick using an @mention."
             )
-            print(error)
+            logging.info("%i - %s", ctx.guild.id, error)
 
     @commands.has_permissions(kick_members=True)
     @commands.command()
@@ -95,6 +96,6 @@ class Moderation(commands.Cog):
 
 
 def setup(client):
-    """Adds the cog to the bot."""
+    """Add the cog to the bot."""
     client.add_cog(Moderation(client))
     logging.info("Moderation Module online.")

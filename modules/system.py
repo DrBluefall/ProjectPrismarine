@@ -5,7 +5,7 @@ from discord.ext import commands
 
 
 def is_main_guild(ctx):
-    """Checks if the guild is the main one."""
+    """Check if the guild is the main one."""
     return ctx.guild.id == 561529218949971989
 
 
@@ -13,6 +13,7 @@ class System(commands.Cog):
     """Module containing all administrative commands. DEVELOPER-ONLY."""
 
     def __init__(self, client):
+        """Initialize the System cog."""
         self.client = client
 
     @commands.command()
@@ -37,17 +38,17 @@ class System(commands.Cog):
             except ValueError:
                 member = ctx.message.mentions[0]
         name = f"`{member.name}#{member.discriminator}`"
-        if member.bot == False:
-            type = "`User`"
+        if member.bot is False:
+            user_type = "`User`"
         else:
-            type = "`Bot`"
+            user_type = "`Bot`"
         embed = discord.Embed(
             title=f"User Report: {member.display_name}", color=discord.Color.blurple()
         )
         embed.add_field(name="Discord ID:", value=name, inline=True)
         embed.add_field(name="User ID:", value=f"`{member.id}`", inline=True)
         embed.add_field(name="Account Created At:", value=f"`{member.created_at}`", inline=True)
-        embed.add_field(name="Account Type:", value=type, inline=True)
+        embed.add_field(name="Account Type:", value=user_type, inline=True)
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(
             text=f"""Date Generated: {ctx.message.created_at}, Requested By: {ctx.message.author}"""
@@ -91,7 +92,7 @@ class System(commands.Cog):
 
     @announce.error
     async def announce_error(self, ctx, error):
-        """Error when announce is used by an unauthorized user"""
+        """Error when announce is used by an unauthorized user."""
         if isinstance(error, (discord.ext.commands.errors.NotOwner)):
             await ctx.send(":warning: *You're not authorized to use this!* :warning:")
         else:
@@ -113,6 +114,6 @@ class System(commands.Cog):
 
 
 def setup(client):
-    """Adds the module to the bot."""
+    """Add the module to the bot."""
     client.add_cog(System(client))
     logging.info("System Module Online.")

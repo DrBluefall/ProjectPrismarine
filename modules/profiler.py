@@ -3,7 +3,6 @@ import logging
 import discord
 from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
-import encode
 
 
 class Profiler(commands.Cog):
@@ -32,7 +31,9 @@ class Profiler(commands.Cog):
     metadata.create_all()
     c = engine.connect()
 
-    @commands.group(invoke_without_command=True, case_insensitive=True, ignore_extra=False)
+    @commands.group(
+        invoke_without_command=True, case_insensitive=True, ignore_extra=False
+    )
     async def profile(self, ctx, user=None):
         """Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user."""
         if ctx.invoked_subcommand is None:
@@ -44,26 +45,29 @@ class Profiler(commands.Cog):
                     user = self.client.get_user(user)
                 except ValueError:
                     user = ctx.message.mentions[0]
-            profile_select = select([__class__.table]).where(__class__.table.c.user_id == user.id)
+            profile_select = select([__class__.table]).where(
+                __class__.table.c.user_id == user.id
+            )
             profile = __class__.c.execute(profile_select)
             profile = profile.fetchone()
             embed = discord.Embed(
-                title=f"QA Tester #{profile[0]}'s Profile", color=discord.Color.dark_red()
+                title=f"QA Tester #{profile[0]}'s Profile",
+                color=discord.Color.dark_red(),
             )
 
             embed.set_thumbnail(url=user.avatar_url)
             for name, index in zip(
-                    (
-                        "In-Game Name:",
-                        "Level:",
-                        "Friend Code:",
-                        "Rainmaker Rank:",
-                        "Tower Control Rank:",
-                        "Splat Zones Rank:",
-                        "Clam Blitz Rank:",
-                        "Salmon Run Rank:",
-                    ),
-                    range(8),
+                (
+                    "In-Game Name:",
+                    "Level:",
+                    "Friend Code:",
+                    "Rainmaker Rank:",
+                    "Tower Control Rank:",
+                    "Splat Zones Rank:",
+                    "Clam Blitz Rank:",
+                    "Salmon Run Rank:",
+                ),
+                range(8),
             ):
                 embed.add_field(name=name, value=profile[index + 1])
             await ctx.send(embed=embed)
@@ -72,7 +76,9 @@ class Profiler(commands.Cog):
     async def init(self, ctx):
         """Initialize a user profile."""
         profile = __class__.c.execute(
-            select([__class__.table]).where(__class__.table.c.user_id == ctx.message.author.id)
+            select([__class__.table]).where(
+                __class__.table.c.user_id == ctx.message.author.id
+            )
         )
         profile = profile.fetchone()
         if profile is None:
@@ -175,10 +181,22 @@ class Profiler(commands.Cog):
         )
         # fmt: on
         modes = {
-            "Splat Zones": {"aliases": ("sz", "splatzones", "sz_rank"), "rlist": rank_list},
-            "Rainmaker": {"aliases": ("rm", "rainmaker", "rm_rank"), "rlist": rank_list},
-            "Tower Control": {"aliases": ("tc", "towercontrol", "tc_rank"), "rlist": rank_list},
-            "Clam Blitz": {"aliases": ("cb", "clamblitz", "cb_rank"), "rlist": rank_list},
+            "Splat Zones": {
+                "aliases": ("sz", "splatzones", "sz_rank"),
+                "rlist": rank_list,
+            },
+            "Rainmaker": {
+                "aliases": ("rm", "rainmaker", "rm_rank"),
+                "rlist": rank_list,
+            },
+            "Tower Control": {
+                "aliases": ("tc", "towercontrol", "tc_rank"),
+                "rlist": rank_list,
+            },
+            "Clam Blitz": {
+                "aliases": ("cb", "clamblitz", "cb_rank"),
+                "rlist": rank_list,
+            },
             "Salmon Run": {
                 "aliases": ("sr", "salmonrun", "sr_rank"),
                 "rlist": (
@@ -218,13 +236,9 @@ class Profiler(commands.Cog):
                         await ctx.send(f"{key} rank updated!")
                     break
             else:
-                await ctx.send("Command Failed - Gamemode was not and/or incorrectly specified.")
-
-
-class Loadout(commands.Cog):
-
-    def __init__(self, client):
-        self.client = client
+                await ctx.send(
+                    "Command Failed - Gamemode was not and/or incorrectly specified."
+                )
 
 
 def setup(client):

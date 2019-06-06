@@ -47,7 +47,8 @@ async def on_ready():
     """Execute on bot login."""
     global task_starter  # pylint: disable=global-statement, invalid-name
     logging.basicConfig(
-        level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
+        level=logging.INFO,
+        format="%(name)s - %(levelname)s - %(asctime)s - %(message)s",
     )
     if task_starter == 0:
         stat_change.start()

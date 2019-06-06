@@ -156,7 +156,7 @@ async def stat_change():
 
 
 for filename in os.listdir("./modules"):
-    if filename.endswith(".py"):
+    if filename.endswith(".py") and filename[:-3] != "decoder":
         CLIENT.load_extension(f"modules.{filename[:-3]}")
 
 CLIENT.run(CONFIG["token"])

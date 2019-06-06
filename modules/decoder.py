@@ -11,14 +11,14 @@ Format:
 Version number |       |
   | |  |       |       |
   Weapon set   |       |
- |  |       |       |
- Weapon ID  |       |
-    |       |       |
-    Encoded Hat     |
-            |       |
-            Encoded Clothes
-                    |
-                    Encoded Shoes
+    |  |       |       |
+    Weapon ID  |       |
+       |       |       |
+       Encoded Hat     |
+               |       |
+               Encoded Clothes
+                       |
+                       Encoded Shoes
 Example:
 0 0 00 241084e 0000000 07c8000
 Gears (hats, clothes, shoes) are all encoded the same way.
@@ -28,8 +28,8 @@ XX XXXXX
 ^  ^
 |  |
 Gear id
-|
-Abilities
+   |
+   Abilities
 Example:
 07c8000
 Abilities format:
@@ -38,9 +38,9 @@ XXXXX XXXXX XXXXX XXXXX (there is a trick here: hexa to binaries are then groupp
 ^    ^    ^    ^
 |    |    |    |
 Main |    |    |
-  Sub 1|    |
-       Sub 2|
-            Sub 3
+Sub 1|    |    |
+     Sub 2|    |
+          Sub 3|
 Example:
 c8000 => 11001 00000 00000 00000
 """
@@ -48,32 +48,29 @@ c8000 => 11001 00000 00000 00000
 
 def decode_gear(code):
     """Convert a gear code into a dictionary."""
-    gearid = int(code[0:2])
+    gearid = int(code[0:2], 16)
     raw_abilities = code[2:8]
     bin_abilities = hex_to_binary(raw_abilities)["result"]
-    main = int(bin_abilities[0:5])
+    main = int(bin_abilities[0:5], 2)
     subs = []
     i = 5
     while i < len(bin_abilities):
-        subs.append(int(bin_abilities[i:i+5]))
-        i = i + 5
+        subs.append(int(bin_abilities[i:i+5], 2))
+        i += 5
 
     return {"gear": gearid, "main": main, "subs": subs}
 
 
 def decode(code):
-    """Convert a loadout.ink code into a dictionaary."""
+    """Convert a loadout.ink code into a dictionary."""
     if code[0] != '0':
         raise KeyError("invalid code")
-    try:
-        weaponset = int(code[1])
-        weaponid = int(code[2:4])
-        head = decode_gear(code[4:11])
-        clothes = decode_gear(code[11:18])
-        shoes = decode_gear(code[18:25])
-    except Exception as err:
-        print(err)
-        return False
+    weaponset = int(code[1])
+    weaponid = int(code[2:4], 16)
+    head = decode_gear(code[4:11])
+    clothes = decode_gear(code[11:18])
+    shoes = decode_gear(code[18:25])
+
     return {"set": weaponset, "weapon": weaponid, "head": head, "clothes": clothes, "shoes": shoes}
 
 
@@ -108,7 +105,7 @@ def hex_to_binary(s):
     i = 0
     while i != len(s):
         if s[i] in lookup_table:
-            ret += lookup_table[s[i]]
+            ret = ret + lookup_table[s[i]]
         else:
             return {"valid": False}
         i += 1

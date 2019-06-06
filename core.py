@@ -128,12 +128,12 @@ async def credits(ctx):
         title="The Credits",
         description="""This command exists to commemorate and properly credit those who have assisted, inspired, or otherwise contributed to the creation of Project Prismarine.
 
-    <@274983796414349313> - For initially inspiring me to learn Python and persue Computer Science and programming in a serious manner, as well as for his open-source Splatoon bot, from which I referenced frequently in Project Prismarine's development.
+    :military_medal: <@274983796414349313> - For initially inspiring me to learn Python and persue Computer Science and programming in a serious manner, as well as for his open-source Splatoon bot, from which I referenced frequently in Project Prismarine's development.
 
-    <@196470965402730507> - For reviewing Project Prismarine's code and general assistance in my code endeavors.
-    <@323922433654390784> - For aiding me in fixing several commands and showing me just how much of a newbie I am at Python.
+    :military_medal: <@196470965402730507> - For reviewing Project Prismarine's code and general assistance in my code endeavors.
+    :military_medal: <@323922433654390784> - For aiding me in fixing several commands and showing me just how much of a newbie I am at Python.
 
-    <@571494333090496514> - For his massive assistance in improving the backend of Project Prismarine and making a multitide of improvements in the bot.
+    :military_medal: <@571494333090496514> - For his massive assistance in improving the backend of Project Prismarine and making a multitide of improvements in the bot.
 
     To all of these people, I only have one thing to say:
     Thank you.

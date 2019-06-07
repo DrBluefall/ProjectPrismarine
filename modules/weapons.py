@@ -1,117 +1,1429 @@
-# format -> weapon = {'sub': sub, 'special': special}
+"""Module storing all weapons from Splatoon 2."""
+import os
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 
 
-class Shooters:
+class Weapons():
+    """Class containing all the weapons of Splatoon 2."""
 
-    splattershot_jr = {'sub': 'Splat Bomb', 'special': 'Ink Armor'}
-    custom_splattershot_jr = {'sub': 'Autobomb', 'special': 'Ink Storm'}
-    kensa_splattershot_jr = {'sub': 'Torpedo', 'special': 'Bubble Blower'}
+    engine = create_engine("sqlite:///ProjectPrismarine.db")
+    metadata = MetaData(engine)
+    weapons = Table(
+        "weapons",
+        metadata,
+        Column('id', Integer),
+        Column('set', Integer),
+        Column('weapon_id', String),
+        Column('weapon_name', String),
+        Column('weapon_image', String),
+        Column('sub', String),
+        Column('special', String),
+        Column('special_cost', Integer),
+        Column('level', Integer),
+        Column('price', Integer)
+    )
 
-    octo_shot_replica = {'sub': 'Splat Bomb', 'special': 'Inkjet'}
-    tentatek_splattershot = {'sub': 'Splat Bomb', 'special': 'Inkjet'}
-    hero_shot_replica = {'sub': 'Burst Bomb', 'special': 'Splashdown'}
-    splattershot = {'sub': 'Burst Bomb', 'special': 'Splashdown'}
-    kensa_splattershot = {'sub': 'Suction Bomb', 'special': 'Tenta Missiles'}
+    metadata.create_all()
+    c = engine.connect()
 
-    splattershot_pro = {'sub': 'Point Sensor', 'special': 'Ink Storm'}
-    forge_splattershot_pro = {'sub': 'Suction Bomb', 'special': 'Ink Storm'}
-    kensa_splattershot_pro = {'sub': 'Splat Bomb', 'special': 'Booyah Bomb'}
+    asset_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets/main_weapons")
 
-    _52_gal = {'sub': 'Point Sensor', 'special': 'Baller'}
-    _52_gal_deco = {'sub': 'Curling Bomb', 'special': 'Stingray'}
-    kensa_52_gal = {'sub': 'Splash Wall', 'special': 'Booyah Bomb'}
-
-    ninety_six_gal = {'sub': 'Sprinkler', 'special': 'Ink Armor'}
-    ninety_six_gal_deco = {'sub': 'Splash Wall', 'special': 'Splashdown'}
-
-    aerospray_mg = {'sub': 'Suction Bomb', 'special': 'Curling Bomb Launcher'}
-    aerospray_rg = {'sub': 'Sprinkler', 'special': 'Baller'}
-    aerospray_pg = {'sub': 'Burst Bomb', 'special': 'Booyah Bomb'}
-
-    nzap_85 = {'sub': 'Suction Bomb', 'special': 'Ink Armor'}
-    nzap_89 = {'sub': 'Autobomb', 'special': 'Tenta Missiles'}
-    nzap_83 = {'sub': 'Sprinkler', 'special': 'Ink Storm'}
-
-    splash_o_matic = {'sub': 'Toxic Mist', 'special': 'Inkjet'}
-    neo_splash_o_matic = {'sub': 'Burst Bomb', 'special': 'Suction Bomb Launcher'}
-
-    sploosh_o_matic = {'sub': 'Curling Bomb', 'special': 'Splashdown'}
-    neo_sploosh_o_matic = {'sub': 'Squid Beakon', 'special': 'Tenta Missiles'}
-    sploosh_o_matic_7 = {'sub': 'Splat Bomb', 'special': 'Ultra Stamp'}
-
-    jet_squelcher = {'sub': 'Toxic Mist', 'special': 'Tenta Missiles'}
-    custom_jet_squelcher = {'sub': 'Burst Bomb', 'special': 'Sting Ray'}
-
-    l_3_nozzlenose = {'sub': 'Curling Bomb', 'special': 'Baller'}
-    l_3_nozzlenose_d = {'sub': 'Burst Bomb', 'special': 'Inkjet'}
-    kensa_l_3_nozzlenose = {'sub': 'Splash Wall', 'special': 'Ultra Stamp'}
-
-    h_3_nozzlenose = {'sub': 'Point Sensor', 'special': 'Tenta Missiles'}
-    h_3_nozzlenose_d = {'sub': 'Suction Bomb', 'special': 'Ink Armor'}
-    cherry_h_3_nozzlenose = {'sub': 'Splash Wall', 'special': 'Bubble Blower'}
-
-    squeezer = {'sub': 'Splash Wall', 'special': 'Sting Ray'}
-    foil_squeezer = {'sub': 'Splat Bomb', 'special': 'Bubble Blower'}
-
-
-class Dualies:
-
-    splat_dualies = {'sub': 'Burst Bomb', 'special': 'Tenta Missiles'}
-    hero_dualie_replicas = {'sub': 'Burst Bomb', 'special': 'Tenta Missiles'}
-    enperry_splat_dualies = {'sub': 'Curling Bomb', 'special': 'Inkjet'}
-    kensa_splat_dualies = {'sub': 'Suction Bomb', 'special': 'Baller'}
-
-    dapple_dualies = {'sub': 'Squid Beakon', 'special': 'Suction Bomb Launcher'}
-    dapple_dualies_nouveau = {'sub': 'Toxic Mist', 'special': 'Ink Storm'}
-    clear_dapple_dualies = {'sub': 'Torpedo', 'special': 'Splashdown'}
-
-    dualie_squelchers = {'sub': 'Squid Beakon', 'special': 'Suction Bomb Launcher'}
-    custom_dualie_squelchers = {'sub': 'Squid Beakon', 'special': 'Suction Bomb Launcher'}
-
-    glooga_dualies = {'sub': 'Ink Mine', 'special': 'Inkjet'}
-    glooga_dualies_deco = {'sub': 'Splash Wall', 'special': 'Baller'}
-    kensa_glooga_dualies = {'sub': 'Fizzy Bomb', 'special': 'Ink Armor'}
-
-    dark_tetra_dualies = {'sub': 'Autobomb', 'special': 'Splashdown'}
-    light_tetra_dualies = {'sub': 'Sprinkler', 'special': 'Autobomb Launcher'}
-
-
-class Sloshers:
-
-    slosher = {'sub': 'Suction Bomb', 'special': 'Tenta Missiles'}
-    hero_slosher_replica = {'sub': 'Suction Bomb', 'special': 'Tenta Missiles'}
-    slosher_deco = {'sub': 'Sprinkler', 'special': 'Baller'}
-    soda_slosher = {'sub': 'Splat Bomb', 'special': 'Burst Bomb Launcher'}
-
-    tri_slosher = {'sub': 'Burst Bomb', 'special': 'Ink Armor'}
-    tri_slosher_nouveau = {'sub': 'Splat Bomb', 'special': 'Ink Storm'}
-
-    sloshing_machine = {'sub': 'Autobomb', 'special': 'Sting Ray'}
-    sloshing_machine_neo = {'sub': 'Point Sensor', 'special': 'Splat Bomb Launcher'}
-    kensa_sloshing_machine = {'sub': 'Fizzy Bomb', 'special': 'Splashdown'}
-
-    explosher = {'sub': 'Sprinkler', 'special': 'Bubble Blower'}
-    custom_explosher = {'sub': 'Point Sensor', 'special': 'Baller'}
-
-    bloblobber = {'sub': 'Splash Wall', 'special': 'Ink Storm'}
-    bloblobber_deco = {'sub': 'Sprinkler', 'special': 'Suction Bomb Launcher'}
-
-
-class Splatlings:
-
-    mini_splatling = {'sub': 'Burst Bomb', 'special': 'Tenta Missiles'}
-    zink_mini_splatling = {'sub': 'Curling Bomb', 'special': 'Tenta Missiles'}
-    kensa_mini_splatling = {'sub': 'Toxic Mist', 'special': 'Ultra Stamp'}
-
-    heavy_splatling = {'sub': 'Sprinkler', 'special': 'Sting Ray'}
-    heavy_splatling_deco = {'sub': 'Splash Wall', 'special': 'Bubble Blower'}
-    heavy_splatling_remix = {'sub': 'Point Sensor', 'special': 'Booyah Bomb'}
-
-    hydra_splatling = {'sub': 'Autobomb', 'special': 'Splashdown'}
-    custom_hydra_splatling = {'sub': 'Ink Mine', 'special': 'Ink Armor'}
-
-    ballpoint_splatling = {'sub': 'Toxic Mist', 'special': 'Inkjet'}
-    ballpoint_splatling_nouveau = {'sub': 'Squid Beakon', 'special': 'Ink Storm'}
-
-    nautilus_47 = {'sub': 'Point Sensor', 'special': 'Baller'}
-    nautilus_79 = {'sub': 'Suction Bomb', 'special': 'Inkjet'}
+    @staticmethod
+    def __init__():
+        ins_0 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost=160,
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=1,
+            weapon_name='Neo Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Neo_Sploosh-o-matic.png',
+            sub='Squid Beakon',
+            special='Tenta Missiles',
+            special_cost=170,
+            level=18,
+            price=12200
+        )
+        ins_2 = __class__.weapons.insert(None).values(
+            set=0,
+            id=2,
+            weapon_name='Sploosh-o-matic 7',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic_7.png',
+            sub='Splat Bomb',
+            special='Ultra Stamp',
+            special_cost=180,
+            level=23,
+            price=14600
+        )
+        ins_3 = __class__.weapons.insert(None).values(
+            set=0,
+            id=3,
+            weapon_name='Splattershot Jr.',
+            weapon_image='S2_Weapon_Main_Splattershot_Jr..png',
+            sub='Splat Bomb',
+            special='Ink Armor',
+            special_cost=180,
+            level=1,
+            price=0
+        )
+        ins_4 = __class__.weapons.insert(None).values(
+            set=0,
+            id=4,
+            weapon_name='Custom Splattershot Jr.',
+            weapon_image='S2_Weapon_Main_Custom_Splattershot_Jr..png',
+            sub='Autobomb',
+            special='Ink Storm',
+            special_cost=160,
+            level=4,
+            price=1900
+        )
+        ins_5 = __class__.weapons.insert(None).values(
+            set=0,
+            id=5,
+            weapon_name='Kensa Splattershot Jr.',
+            weapon_image='S2_Weapon_Main_Kensa_Splattershot_Jr..png',
+            sub='Torpedo',
+            special='Bubble Blower',
+            special_cost=200,
+            level=9,
+            price=8700
+        )
+        ins_6 = __class__.weapons.insert(None).values(
+            set=0,
+            id=6,
+            weapon_name='Splash-o-matic',
+            weapon_image='S2_Weapon_Main_Splash-o-matic.png',
+            sub='Toxic Mist',
+            special='Inkjet',
+            special_cost=170,
+            level=25,
+            price=11200
+        )
+        ins_7 = __class__.weapons.insert(None).values(
+            set=0,
+            id=7,
+            weapon_name='Neo Splash-o-matic',
+            weapon_image='S2_Weapon_Main_Neo_Splash-o-matic.png',
+            sub='Burst Bomb',
+            special='Suction-Bomb Launcher',
+            special_cost=210,
+            level=27,
+            price=16800
+        )
+        ins_8 = __class__.weapons.insert(None).values(
+            set=0,
+            id=8,
+            weapon_name='Aerospray MG',
+            weapon_image='S2_Weapon_Main_Aerospray_MG.png',
+            sub='Suction Bomb',
+            special='Curling-Bomb Launcher',
+            special_cost=160,
+            level=6,
+            price=4900
+        )
+        ins_9 = __class__.weapons.insert(None).values(
+            set=0,
+            id=9,
+            weapon_name='Aerospray RG',
+            weapon_image='S2_Weapon_Main_Aerospray_RG.png',
+            sub='Sprinkler',
+            special='Baller',
+            special_cost=180,
+            level=28,
+            price=16900
+        )
+        ins_10 = __class__.weapons.insert(None).values(
+            set=0,
+            id=10,
+            weapon_name='Aerospray PG',
+            weapon_image='S2_Weapon_Main_Aerospray_PG.png',
+            sub='Burst Bomb',
+            special='Booyah Bomb',
+            special_cost=190,
+            level=29,
+            price=19000
+        )
+        ins_11 = __class__.weapons.insert(None).values(
+            set=0,
+            id=11,
+            weapon_name='Splattershot',
+            weapon_image='S2_Weapon_Main_Splattershot.png',
+            sub='Burst Bomb',
+            special='Splashdown',
+            special_cost=180,
+            level=2,
+            price=900
+        )
+        ins_12 = __class__.weapons.insert(None).values(
+            set=0,
+            id=12,
+            weapon_name='Tentatek Splattershot',
+            weapon_image='S2_Weapon_Main_Tentatek_Splattershot.png',
+            sub='Splat Bomb',
+            special='Inkjet',
+            special_cost=210,
+            level=4,
+            price=2100
+        )
+        ins_13 = __class__.weapons.insert(None).values(
+            set=0,
+            id=13,
+            weapon_name='Kensa Splattershot',
+            weapon_image='S2_Weapon_Main_Kensa_Splattershot.png',
+            sub='Suction Bomb',
+            special='Tenta Missiles',
+            special_cost=180,
+            level=6,
+            price=5300
+        )
+        ins_14 = __class__.weapons.insert(None).values(
+            set=0,
+            id=14,
+            weapon_name='Hero Shot Replica',
+            weapon_image='S2_Weapon_Main_Hero_Shot_Replica.png',
+            sub='Burst Bomb',
+            special='Splashdown',
+            special_cost='180',
+            level=2,
+            price=1500
+        )
+        ins_15 = __class__.weapons.insert(None).values(
+            set=0,
+            id=15,
+            weapon_name='Octo Shot Replica',
+            weapon_image='S2_Weapon_Main_Octo_Shot_Replica.png',
+            sub='Splat Bomb',
+            special='Inkjet',
+            special_cost=210,
+            level=1,
+            price=0
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )
+        ins_1 = __class__.weapons.insert(None).values(
+            set=0,
+            id=0,
+            weapon_name='Sploosh-o-matic',
+            weapon_image='S2_Weapon_Main_Sploosh-o-matic.png',
+            sub='Curling Bomb',
+            special='Splashdown',
+            special_cost='160',
+            level=10,
+            price=9700
+        )

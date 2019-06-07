@@ -1,4 +1,4 @@
-# format _> weapon = {'sub': sub, 'special': special}
+# format -> weapon = {'sub': sub, 'special': special}
 
 
 class Shooters:

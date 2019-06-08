@@ -133,15 +133,12 @@ class Profiler(commands.Cog):
     async def fc(self, ctx, friend: int = None, code: int = None, here: int = None):
         """Update someone's Friend Code."""
         message = None
-        if None in (friend, code, here) or not all(
-            x == 4
-            for x in (
-                (len(str(friend)) + len(str(code)) + len(str(here))) / 4,
-                len(str(code)),
-                len(str(here)),
-                len(str(friend)),
-            )
-        ):
+        if None in (friend, code, here) or not {
+            (len(str(code)) + len(str(here)) + len(str(friend))) / 4,
+            len(str(code)),
+            len(str(here)),
+            len(str(friend)),
+        } == {4}:
             message = "Command Failed - Friend Code must be 12 characters long, grouped into 3 sets of 4. /n Example: `-profile fc 1234 5678 9101`."
 
         else:

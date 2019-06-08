@@ -125,9 +125,8 @@ class Profiler(commands.Cog):
     @profile.command()
     async def fc(self, ctx, friend: int = None, code: int = None, here: int = None):
         """Update someone's Friend Code."""
-        message = None
-        if None in (friend, code, here) or not {
-            (len(str(code)) + len(str(here)) + len(str(friend))) / 4,
+        if (None in (friend, code, here)) or not {
+            int((len(str(code)) + len(str(here)) + len(str(friend))) / 4),
             len(str(code)),
             len(str(here)),
             len(str(friend)),

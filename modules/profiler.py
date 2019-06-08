@@ -136,7 +136,7 @@ class Profiler(commands.Cog):
         if None in (friend, code, here) or not all(
             x == 4
             for x in (
-                (len(friend) + len(code) + len(here)) / 4,
+                (len(str(friend)) + len(str(code)) + len(str(here))) / 4,
                 len(str(code)),
                 len(str(here)),
                 len(str(friend)),

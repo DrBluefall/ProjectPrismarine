@@ -132,7 +132,7 @@ class Profiler(commands.Cog):
             len(str(here)),
             len(str(friend)),
         } == {4}:
-            message = "Command Failed - Friend Code must be 12 characters long, grouped into 3 sets of 4. /n Example: `-profile fc 1234 5678 9101`."
+            message = "Command Failed - Friend Code must be 12 characters long, grouped into 3 sets of 4.\nExample: `-profile fc 1234 5678 9101`."
 
         else:
             fc = (

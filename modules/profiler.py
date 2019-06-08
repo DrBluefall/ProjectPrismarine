@@ -1,5 +1,6 @@
 """Holds the profile cog."""
 import logging
+import re
 import discord
 from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
@@ -123,23 +124,22 @@ class Profiler(commands.Cog):
             await ctx.send("Command Failed - No IGN specified.")
 
     @profile.command()
-    async def fc(self, ctx, friend: int = None, code: int = None, here: int = None):
+    async def fc(self, ctx, *, friend_code):
         """Update someone's Friend Code."""
-        if (None in (friend, code, here)) or not {
-            int((len(str(code)) + len(str(here)) + len(str(friend))) / 4),
-            len(str(code)),
-            len(str(here)),
-            len(str(friend)),
-        } == {4}:
-            message = "Command Failed - Friend Code must be 12 characters long, grouped into 3 sets of 4.\nExample: `-profile fc 1234 5678 9101`."
-
+        friend_code = re.sub('[^0-9]', '', friend_code)
+        print(friend_code)
+        if len(friend_code) != 12:
+            message = "Command Failed - Friend Code must be 12 characters long, grouped into 3 sets of 4.\nExample: `-profile fc SW-1234-1234-1234`."
         else:
-            fc = (
+            p_1 = friend_code[0] + friend_code[1] + friend_code[2] + friend_code[3]
+            p_2 = friend_code[4] + friend_code[5] + friend_code[6] + friend_code[7]
+            p_3 = friend_code[8] + friend_code[9] + friend_code[10] + friend_code[11]
+            friend_code = (
                 __class__.table.update(None)
                 .where(__class__.table.c.user_id == ctx.message.author.id)
-                .values(fc=f"SW-{str(friend)}-{str(code)}-{str(here)}")
+                .values(fc=f"SW-{p_1}-{p_2}-{p_3}")
             )
-            __class__.c.execute(fc)
+            __class__.c.execute(friend_code)
             message = "Friend Code successfully updated!"
         await ctx.send(message)
 

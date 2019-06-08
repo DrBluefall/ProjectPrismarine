@@ -127,7 +127,6 @@ class Profiler(commands.Cog):
     async def fc(self, ctx, *, friend_code):
         """Update someone's Friend Code."""
         friend_code = re.sub('[^0-9]', '', friend_code)
-        print(friend_code)
         if len(friend_code) != 12:
             message = "Command Failed - Friend Code must be 12 characters long, grouped into 3 sets of 4.\nExample: `-profile fc SW-1234-1234-1234`."
         else:

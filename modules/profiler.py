@@ -132,25 +132,27 @@ class Profiler(commands.Cog):
     @profile.command()
     async def fc(self, ctx, friend: int = None, code: int = None, here: int = None):
         """Update someone's Friend Code."""
-        if friend is not None and code is not None and here is not None:
-            friend, code, here = str(friend), str(code), str(here)
-            fc_len = len(friend) + len(code) + len(here)
-            if fc_len == 12 and len(friend) == 4 and len(code) == 4 and len(here) == 4:
-                fc = (
-                    __class__.table.update(None)
-                    .where(__class__.table.c.user_id == ctx.message.author.id)
-                    .values(fc=f"SW-{friend}-{code}-{here}")
-                )
-                __class__.c.execute(fc)
-                await ctx.send("Friend Code successfully updated!")
-            else:
-                await ctx.send(
-                    """Command Failed - Friend Code must be 12 characters long, grouped into 3 sets of 4. /n Example: `-profile fc 1234 5678 9101`"""
-                )
-        else:
-            await ctx.send(
-                "Command Failed - Friend Code must be 12 characters long, grouped into 3 sets of 4. /n Example: `-profile fc 1234 5678 9101`."
+        message = None
+        if None in (friend, code, here) or not all(
+            x == 4
+            for x in (
+                (len(friend) + len(code) + len(here)) / 4,
+                len(str(code)),
+                len(str(here)),
+                len(str(friend)),
             )
+        ):
+            message = "Command Failed - Friend Code must be 12 characters long, grouped into 3 sets of 4. /n Example: `-profile fc 1234 5678 9101`."
+
+        else:
+            fc = (
+                __class__.table.update(None)
+                .where(__class__.table.c.user_id == ctx.message.author.id)
+                .values(fc=f"SW-{str(friend)}-{str(code)}-{str(here)}")
+            )
+            __class__.c.execute(fc)
+            message = "Friend Code successfully updated!"
+        await ctx.send(message)
 
     @profile.command()
     async def level(self, ctx, *, level: int = None):

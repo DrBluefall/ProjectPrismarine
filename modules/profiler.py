@@ -53,7 +53,7 @@ class Profiler(commands.Cog):
             if user is None:
                 user = ctx.message.author
                 if check_profile_exists(ctx.message.author.id) is False:
-                    ctx.send(
+                    await ctx.send(
                         "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. Please use `pr.profile init` to create a profile."
                     )
             else:
@@ -61,11 +61,11 @@ class Profiler(commands.Cog):
                     user = int(user)
                     user = self.client.get_user(user)
                     if user is None:
-                        ctx.send(
+                        await ctx.send(
                             "QA Tester profile does not exist within PrismarineCo. Ltd.'s database."
                         )
                     elif check_profile_exists(user.id) is False:
-                        ctx.send(
+                        await ctx.send(
                             "QA Tester profile does not exist within PrismarineCo. Ltd.'s database."
                         )
                 except ValueError:
@@ -144,8 +144,10 @@ class Profiler(commands.Cog):
             else:
                 await ctx.send("Command Failed - No IGN specified.")
         except AssertionError:
-            ctx.send(
-                "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `pr.profile init`.'"
+            await ctx.send(
+                "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{}profile init`.'".format(
+                    ctx.prefix
+                )
             )
 
     @profile.command()
@@ -157,9 +159,9 @@ class Profiler(commands.Cog):
             if len(friend_code) != 12:
                 message = "Command Failed - Friend Code must be 12 characters long, grouped into 3 sets of 4.\nExample: `-profile fc SW-1234-1234-1234`."
             else:
-                p_1 = friend_code[0:3]
-                p_2 = friend_code[4:7]
-                p_3 = friend_code[8:11]
+                p_1 = friend_code[0:4]
+                p_2 = friend_code[4:8]
+                p_3 = friend_code[8:12]
                 friend_code = (
                     __class__.table.update(None)
                     .where(__class__.table.c.user_id == ctx.message.author.id)
@@ -169,8 +171,10 @@ class Profiler(commands.Cog):
                 message = "Friend Code successfully updated!"
             await ctx.send(message)
         except AssertionError:
-            ctx.send(
-                "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `pr.profile init`.'"
+            await ctx.send(
+                "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{}profile init`.'".format(
+                    ctx.prefix
+                )
             )
 
     @profile.command()
@@ -189,8 +193,10 @@ class Profiler(commands.Cog):
             else:
                 await ctx.send("Command Failed - No level specified.")
         except AssertionError:
-            ctx.send(
-                "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `pr.profile init`.'"
+            await ctx.send(
+                "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{}profile init`.'".format(
+                    ctx.prefix
+                )
             )
 
     @profile.command()
@@ -269,8 +275,10 @@ class Profiler(commands.Cog):
                             "Command Failed - Gamemode was not and/or incorrectly specified."
                         )
         except AssertionError:
-            ctx.send(
-                "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `pr.profile init`.'"
+            await ctx.send(
+                "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{}profile init`.'".format(
+                    ctx.prefix
+                )
             )
 
 

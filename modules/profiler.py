@@ -40,17 +40,10 @@ class Profiler(commands.Cog):
         if ctx.invoked_subcommand is None:
             if user is None:
                 user = ctx.message.author
-                if __class__.check_profile_exists(ctx.message.author.id) is False:
-                    ctx.send(
-                        "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. Please use `pr.profile init` to create a profile.")
             else:
                 try:
                     user = int(user)
                     user = self.client.get_user(user)
-                    if user is None:
-                        ctx.send("QA Tester profile does not exist within PrismarineCo. Ltd.'s database.")
-                    elif __class__.check_profile_exists(user.id) is False:
-                        ctx.send("QA Tester profile does not exist within PrismarineCo. Ltd.'s database.")
                 except ValueError:
                     user = ctx.message.mentions[0]
             profile_select = select([__class__.table]).where(
@@ -80,7 +73,6 @@ class Profiler(commands.Cog):
                 embed.add_field(name=name, value=profile[index + 1])
             await ctx.send(embed=embed)
 
-    @commands.check(check_profile_exists)
     @profile.command()
     async def init(self, ctx):
         """Initialize a user profile."""
@@ -109,7 +101,18 @@ class Profiler(commands.Cog):
         else:
             await ctx.send("Existing QA Profile detected. Aborting initialization...")
 
-    @commands.check(check_profile_exists)
+    @staticmethod
+    def check_profile_exists(user_id):
+        """Check if a profile exists in the database or not."""
+        profile = __class__.c.execute(
+            select([__class__.table]).where(__class__.table.c.user_id == user_id)
+        ).fetchone()
+        if profile is None:
+            output = False
+        else:
+            output = True
+        return output
+
     @profile.command()
     async def ign(self, ctx, *, name: str = None):
         """Update someone's IGN."""
@@ -127,7 +130,6 @@ class Profiler(commands.Cog):
         else:
             await ctx.send("Command Failed - No IGN specified.")
 
-    @commands.check(check_profile_exists)
     @profile.command()
     async def fc(self, ctx, *, friend_code):
         """Update someone's Friend Code."""
@@ -147,7 +149,6 @@ class Profiler(commands.Cog):
             message = "Friend Code successfully updated!"
         await ctx.send(message)
 
-    @commands.check(check_profile_exists)
     @profile.command()
     async def level(self, ctx, *, level: int = None):
         """Update someone's level."""
@@ -162,7 +163,6 @@ class Profiler(commands.Cog):
         else:
             await ctx.send("Command Failed - No level specified.")
 
-    @commands.check(check_profile_exists)
     @profile.command()
     async def rank(self, ctx, gamemode: str = None, rank: str = None):
         """Update a person's rank in the database."""

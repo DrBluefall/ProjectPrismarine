@@ -29,7 +29,9 @@ class Moderation(commands.Cog):
         """Purge a number of messages."""
         channel = self.client.get_channel(ctx.channel.id)
         deleted = await channel.purge(limit=amount)
-        await ctx.send("{} message(s) have been deleted.".format(len(deleted)), delete_after=10)
+        await ctx.send(
+            "{} message(s) have been deleted.".format(len(deleted)), delete_after=10
+        )
 
     @delete.error
     async def delete_error(self, ctx, error):
@@ -49,7 +51,9 @@ class Moderation(commands.Cog):
             banned_user = int(banned_user)
             banned_user = self.client.get_user(banned_user)
         try:
-            await ctx.guild.ban(user=banned_user, reason=reason, delete_message_days=time)
+            await ctx.guild.ban(
+                user=banned_user, reason=reason, delete_message_days=time
+            )
             await ctx.send(f"The ban hammer has been dropped on {banned_user}!")
         except asyncio.TimeoutError:
             await ctx.send(
@@ -80,7 +84,9 @@ class Moderation(commands.Cog):
     @kick.error
     async def kick_error(self, ctx, error):
         """Error when kick doesn't work."""
-        if isinstance(error, (commands.MissingRequiredArgument, commands.MissingPermissions)):
+        if isinstance(
+            error, (commands.MissingRequiredArgument, commands.MissingPermissions)
+        ):
             await ctx.send(
                 "Command failed. Make sure you have the `kick_members` permission in order to use this command, or have specified the user you want to kick using an @mention."
             )

@@ -47,7 +47,9 @@ class System(commands.Cog):
         )
         embed.add_field(name="Discord ID:", value=name, inline=True)
         embed.add_field(name="User ID:", value=f"`{member.id}`", inline=True)
-        embed.add_field(name="Account Created At:", value=f"`{member.created_at}`", inline=True)
+        embed.add_field(
+            name="Account Created At:", value=f"`{member.created_at}`", inline=True
+        )
         embed.add_field(name="Account Type:", value=user_type, inline=True)
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(
@@ -83,7 +85,8 @@ class System(commands.Cog):
         )
         embed.set_author(name="Unit 10008-RSP", icon_url=self.client.user.avatar_url)
         embed.set_footer(
-            text=f"Solidarity, {ctx.message.author.display_name}.", icon_url=ctx.author.avatar_url
+            text=f"Solidarity, {ctx.message.author.display_name}.",
+            icon_url=ctx.author.avatar_url,
         )
         announce_channel = self.client.get_channel(583704659080773642)
         if ctx.message.mention_everyone:

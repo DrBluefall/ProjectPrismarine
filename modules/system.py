@@ -1,6 +1,7 @@
 """Module containing all adminitstrative commands. DEVELOPER-ONLY."""
 import logging
 import json
+import asyncio
 import discord
 from discord.ext import commands, tasks
 import dbl
@@ -20,12 +21,11 @@ class System(commands.Cog):
     def __init__(self, client):
         """Initialize the System cog."""
         self.client = client
+        self.dbl = dbl.Client(self.client, CONFIG["dbl_token"])
+        if discord.ClientUser.id == 568469437284614174:
+            self.update = self.update_stats.start()
 
-        self.dbl_token = CONFIG["dbl_token"]
-        self.dbl = dbl.Client(self.client, self.dbl_token)
-        self.update = self.update_stats.start()  # <- start() literally doesnt exist.
-
-    @tasks.loop(minutes=15)
+    @tasks.loop()
     async def update_stats(self):
         """Update tje stats of the server count."""
         while not self.client.is_closed():
@@ -33,8 +33,9 @@ class System(commands.Cog):
             try:
                 await self.dbl.post_guild_count()
                 logging.info("Posted server count: %s", self.dbl.guild_count())
-            except Exception as err:
-                logging.exception("Failed to post server count\n%s:,", (type(err).__name__, err))
+            except Exception as e:
+                logging.exception("Failed to post server count\n%s: %s", type(e).__name__, e)
+            await asyncio.sleep(900)
 
     @commands.command()
     async def ping(self, ctx):

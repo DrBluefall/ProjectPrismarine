@@ -59,7 +59,7 @@ async def on_ready():
 @CLIENT.event
 async def on_command_error(ctx, error):
     """Log the error."""
-    logging.error("%i - %s", ctx.guild.id, error)
+    logging.exception("%i - %s", ctx.guild.id, error)
 
 
 # --- Bot Commands

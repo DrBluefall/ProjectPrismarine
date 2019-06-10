@@ -55,7 +55,7 @@ def decode_gear(code):
     subs = []
     i = 5
     while i < len(bin_abilities):
-        subs.append(int(bin_abilities[i:i+5], 2))
+        subs.append(int(bin_abilities[i : i + 5], 2))
         i += 5
 
     return {"gear": gearid, "main": main, "subs": subs}
@@ -63,7 +63,7 @@ def decode_gear(code):
 
 def decode(code):
     """Convert a loadout.ink code into a dictionary."""
-    if code[0] != '0':
+    if code[0] != "0":
         raise KeyError("invalid code")
     weaponset = int(code[1])
     weaponid = int(code[2:4], 16)

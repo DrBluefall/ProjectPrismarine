@@ -16,7 +16,7 @@ with open("config.json", "r") as infile:
 
     except (KeyError, FileNotFoundError):
         raise EnvironmentError(
-            "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token', 'owner','dbl_token', and 'prefix'."
+            "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token', 'owner', 'dbl_token', and 'prefix'."
         )
 
 STATUS = cycle(
@@ -28,7 +28,7 @@ STATUS = cycle(
         "with Agent 3 and her Pokemon!",
         "with Python and waifus!",
         "with SCIENCE!",
-        "with atomic bo-I MEAN TOYS! Toys. Yeah. That's a thing bots do, right?",
+        "with an atomic bo-I MEAN TOYS! Toys. Yeah. That's a thing bots do, right?",
     ]
 )
 
@@ -48,8 +48,7 @@ async def on_ready():
     """Execute on bot login."""
     global task_starter  # pylint: disable=global-statement, invalid-name
     logging.basicConfig(
-        level=logging.INFO,
-        format="%(name)s - %(levelname)s - %(asctime)s - %(message)s",
+        level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
     )
     if task_starter == 0:
         stat_change.start()
@@ -157,7 +156,7 @@ async def stat_change():
 
 
 for filename in os.listdir("./modules"):
-    if filename.endswith(".py") and filename[:-3] != 'decoder' and filename[:-3] != 'weapons':
+    if filename.endswith(".py") and filename[:-3] != "decoder" and filename[:-3] != "weapons":
         CLIENT.load_extension(f"modules.{filename[:-3]}")
 
 CLIENT.run(CONFIG["token"])

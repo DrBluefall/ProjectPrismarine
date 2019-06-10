@@ -3,6 +3,7 @@ import logging
 import json
 import dbl
 import discord
+import asyncio
 from discord.ext import commands, tasks
 
 
@@ -19,11 +20,12 @@ class System(commands.Cog):
         self.client = client
         with open("config.json", "r") as infile:
             CONFIG = json.load(infile)
-            self.dbl_token = CONFIG["dbl_token"]
-        self.dbl = dbl.Client(self.client, self.dbl_token)
-        self.update = self.update_stats.start()
+            _ = CONFIG["dbl_token"]
+        self.dbl = dbl.Client(self.client, CONFIG["dbl_token"])
+        if discord.ClientUser.id == 568469437284614174:
+            self.update = self.update_stats.start()
 
-    @tasks.loop(minutes=15)
+    @tasks.loop()
     async def update_stats(self):
         """Update tje stats of the server count."""
         while not self.client.is_closed():
@@ -35,6 +37,7 @@ class System(commands.Cog):
                 logging.exception(
                     "Failed to post server count\n{}: {}".format(type(e).__name__, e)
                 )
+            await asyncio.sleep(900)
 
     @commands.command()
     async def ping(self, ctx):

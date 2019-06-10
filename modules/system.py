@@ -1,9 +1,12 @@
 """Module containing all adminitstrative commands. DEVELOPER-ONLY."""
 import logging
 import json
-import dbl
 import discord
 from discord.ext import commands, tasks
+import dbl
+
+with open("config.json", "r") as infile:
+    CONFIG = json.load(infile)
 
 
 def is_main_guild(ctx):
@@ -17,11 +20,10 @@ class System(commands.Cog):
     def __init__(self, client):
         """Initialize the System cog."""
         self.client = client
-        with open("config.json", "r") as infile:
-            CONFIG = json.load(infile)
-            self.dbl_token = CONFIG["dbl_token"]
+
+        self.dbl_token = CONFIG["dbl_token"]
         self.dbl = dbl.Client(self.client, self.dbl_token)
-        self.update = self.update_stats.start()
+        self.update = self.update_stats.start()  # <- start() literally doesnt exist.
 
     @tasks.loop(minutes=15)
     async def update_stats(self):
@@ -30,11 +32,9 @@ class System(commands.Cog):
             logging.info("Posting server count...")
             try:
                 await self.dbl.post_guild_count()
-                logging.info("Posted server count: {}".format(self.dbl.guild_count()))
-            except Exception as e:
-                logging.exception(
-                    "Failed to post server count\n{}: {}".format(type(e).__name__, e)
-                )
+                logging.info("Posted server count: %s", self.dbl.guild_count())
+            except Exception as err:
+                logging.exception("Failed to post server count\n%s:,", (type(err).__name__, err))
 
     @commands.command()
     async def ping(self, ctx):

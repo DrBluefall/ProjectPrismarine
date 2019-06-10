@@ -1,7 +1,9 @@
 """Module containing all adminitstrative commands. DEVELOPER-ONLY."""
 import logging
+import json
+import dbl
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 
 def is_main_guild(ctx):
@@ -15,6 +17,21 @@ class System(commands.Cog):
     def __init__(self, client):
         """Initialize the System cog."""
         self.client = client
+        with open('config.json', 'r') as infile:
+            CONFIG = json.load(infile)
+            self.dbl_token = CONFIG['dbl_token']
+        self.dbl = dbl.Client(self.client, self.dbl_token)
+        self.update = self.update_stats.start()
+
+    @tasks.loop(minutes=15)
+    async def update_stats(self):
+        while not self.client.is_closed():
+            logging.info('Posting server count...')
+            try:
+                await self.dbl.post_guild_count()
+                logging.info('Posted server count: {}'.format(self.dbl.guild_count()))
+            except Exception as e:
+                logging.exception('Failed to post server count\n{}: {}'.format(type(e).__name__, e))
 
     @commands.command()
     async def ping(self, ctx):
@@ -100,6 +117,14 @@ class System(commands.Cog):
             await ctx.send(":warning: *You're not authorized to use this!* :warning:")
         else:
             print(error)
+
+    @commands.command()
+    async def info(self, ctx):
+        embed = discord.Embed(
+            title='Project Statistics'
+        )
+        embed.set_image(url=await self.dbl.generate_widget_large(bot_id='568469437284614174'))
+        await ctx.send(embed=embed)
 
     @commands.is_owner()
     @commands.command()

@@ -12,10 +12,11 @@ with open("config.json", "r") as infile:
         _ = CONFIG["token"]
         _ = CONFIG["owner"]
         _ = CONFIG["prefix"]
+        _ = CONFIG["dbl_token"]
 
     except (KeyError, FileNotFoundError):
         raise EnvironmentError(
-            "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token', 'owner', and  'prefix'."
+            "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token', 'owner','dbl_token', and 'prefix'."
         )
 
 STATUS = cycle(
@@ -59,7 +60,7 @@ async def on_ready():
 @CLIENT.event
 async def on_command_error(ctx, error):
     """Log the error."""
-    logging.info("%i - %s", ctx.guild.id, error)
+    logging.error("%i - %s", ctx.guild.id, error)
 
 
 # --- Bot Commands
@@ -156,7 +157,7 @@ async def stat_change():
 
 
 for filename in os.listdir("./modules"):
-    if filename.endswith(".py") and filename[:-3] != "decoder":
+    if filename.endswith(".py") and filename[:-3] != 'decoder' and filename[:-3] != 'weapons':
         CLIENT.load_extension(f"modules.{filename[:-3]}")
 
 CLIENT.run(CONFIG["token"])

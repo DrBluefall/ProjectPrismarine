@@ -17,21 +17,24 @@ class System(commands.Cog):
     def __init__(self, client):
         """Initialize the System cog."""
         self.client = client
-        with open('config.json', 'r') as infile:
+        with open("config.json", "r") as infile:
             CONFIG = json.load(infile)
-            self.dbl_token = CONFIG['dbl_token']
+            self.dbl_token = CONFIG["dbl_token"]
         self.dbl = dbl.Client(self.client, self.dbl_token)
         self.update = self.update_stats.start()
 
     @tasks.loop(minutes=15)
     async def update_stats(self):
+        """Update tje stats of the server count."""
         while not self.client.is_closed():
-            logging.info('Posting server count...')
+            logging.info("Posting server count...")
             try:
                 await self.dbl.post_guild_count()
-                logging.info('Posted server count: {}'.format(self.dbl.guild_count()))
+                logging.info("Posted server count: {}".format(self.dbl.guild_count()))
             except Exception as e:
-                logging.exception('Failed to post server count\n{}: {}'.format(type(e).__name__, e))
+                logging.exception(
+                    "Failed to post server count\n{}: {}".format(type(e).__name__, e)
+                )
 
     @commands.command()
     async def ping(self, ctx):
@@ -64,9 +67,7 @@ class System(commands.Cog):
         )
         embed.add_field(name="Discord ID:", value=name, inline=True)
         embed.add_field(name="User ID:", value=f"`{member.id}`", inline=True)
-        embed.add_field(
-            name="Account Created At:", value=f"`{member.created_at}`", inline=True
-        )
+        embed.add_field(name="Account Created At:", value=f"`{member.created_at}`", inline=True)
         embed.add_field(name="Account Type:", value=user_type, inline=True)
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(
@@ -102,8 +103,7 @@ class System(commands.Cog):
         )
         embed.set_author(name="Unit 10008-RSP", icon_url=self.client.user.avatar_url)
         embed.set_footer(
-            text=f"Solidarity, {ctx.message.author.display_name}.",
-            icon_url=ctx.author.avatar_url,
+            text=f"Solidarity, {ctx.message.author.display_name}.", icon_url=ctx.author.avatar_url
         )
         announce_channel = self.client.get_channel(583704659080773642)
         if ctx.message.mention_everyone:
@@ -120,10 +120,9 @@ class System(commands.Cog):
 
     @commands.command()
     async def info(self, ctx):
-        embed = discord.Embed(
-            title='Project Statistics'
-        )
-        embed.set_image(url=await self.dbl.generate_widget_large(bot_id='568469437284614174'))
+        """Show info from dbl in an embed."""
+        embed = discord.Embed(color=diiscord.Color.blurple())
+        embed.set_image(url=await self.dbl.generate_widget_large(bot_id="568469437284614174"))
         await ctx.send(embed=embed)
 
     @commands.is_owner()

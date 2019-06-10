@@ -1,7 +1,10 @@
 """Module containing all adminitstrative commands. DEVELOPER-ONLY."""
 import logging
+import json
+import dbl
 import discord
-from discord.ext import commands
+import asyncio
+from discord.ext import commands, tasks
 
 
 def is_main_guild(ctx):
@@ -15,6 +18,26 @@ class System(commands.Cog):
     def __init__(self, client):
         """Initialize the System cog."""
         self.client = client
+        with open("config.json", "r") as infile:
+            CONFIG = json.load(infile)
+            _ = CONFIG["dbl_token"]
+        self.dbl = dbl.Client(self.client, CONFIG["dbl_token"])
+        if discord.ClientUser.id == 568469437284614174:
+            self.update = self.update_stats.start()
+
+    @tasks.loop()
+    async def update_stats(self):
+        """Update tje stats of the server count."""
+        while not self.client.is_closed():
+            logging.info("Posting server count...")
+            try:
+                await self.dbl.post_guild_count()
+                logging.info("Posted server count: {}".format(self.dbl.guild_count()))
+            except Exception as e:
+                logging.exception(
+                    "Failed to post server count\n{}: {}".format(type(e).__name__, e)
+                )
+            await asyncio.sleep(900)
 
     @commands.command()
     async def ping(self, ctx):
@@ -47,9 +70,7 @@ class System(commands.Cog):
         )
         embed.add_field(name="Discord ID:", value=name, inline=True)
         embed.add_field(name="User ID:", value=f"`{member.id}`", inline=True)
-        embed.add_field(
-            name="Account Created At:", value=f"`{member.created_at}`", inline=True
-        )
+        embed.add_field(name="Account Created At:", value=f"`{member.created_at}`", inline=True)
         embed.add_field(name="Account Type:", value=user_type, inline=True)
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(
@@ -85,8 +106,7 @@ class System(commands.Cog):
         )
         embed.set_author(name="Unit 10008-RSP", icon_url=self.client.user.avatar_url)
         embed.set_footer(
-            text=f"Solidarity, {ctx.message.author.display_name}.",
-            icon_url=ctx.author.avatar_url,
+            text=f"Solidarity, {ctx.message.author.display_name}.", icon_url=ctx.author.avatar_url
         )
         announce_channel = self.client.get_channel(583704659080773642)
         if ctx.message.mention_everyone:
@@ -100,6 +120,13 @@ class System(commands.Cog):
             await ctx.send(":warning: *You're not authorized to use this!* :warning:")
         else:
             print(error)
+
+    @commands.command()
+    async def info(self, ctx):
+        """Show info from dbl in an embed."""
+        embed = discord.Embed(color=discord.Color.blurple())
+        embed.set_image(url=await self.dbl.generate_widget_large(bot_id="568469437284614174"))
+        await ctx.send(embed=embed)
 
     @commands.is_owner()
     @commands.command()

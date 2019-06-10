@@ -12,10 +12,11 @@ with open("config.json", "r") as infile:
         _ = CONFIG["token"]
         _ = CONFIG["owner"]
         _ = CONFIG["prefix"]
+        _ = CONFIG["dbl_token"]
 
     except (KeyError, FileNotFoundError):
         raise EnvironmentError(
-            "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token', 'owner', and  'prefix'."
+            "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token', 'owner', 'dbl_token', and 'prefix'."
         )
 
 STATUS = cycle(
@@ -27,7 +28,7 @@ STATUS = cycle(
         "with Agent 3 and her Pokemon!",
         "with Python and waifus!",
         "with SCIENCE!",
-        "with an atomic bo- ...I mean toys",
+        "with an atomic bo-I MEAN TOYS! Toys. Yeah. That's a thing bots do, right?",
     ]
 )
 
@@ -58,7 +59,7 @@ async def on_ready():
 @CLIENT.event
 async def on_command_error(ctx, error):
     """Log the error."""
-    logging.info("%i - %s", ctx.guild.id, error)
+    logging.exception("%i - %s", ctx.guild.id, error)
 
 
 # --- Bot Commands
@@ -127,12 +128,12 @@ async def credits(ctx):
         title="The Credits",
         description="""This command exists to commemorate and properly credit those who have assisted, inspired, or otherwise contributed to the creation of Project Prismarine.
 
-    <@274983796414349313> - For initially inspiring me to learn Python and persue Computer Science and programming in a serious manner, as well as for his open-source Splatoon bot, from which I referenced frequently in Project Prismarine's development.
+    :military_medal: <@274983796414349313> - For initially inspiring me to learn Python and persue Computer Science and programming in a serious manner, as well as for his open-source Splatoon bot, from which I referenced frequently in Project Prismarine's development.
 
-    <@196470965402730507> - For reviewing Project Prismarine's code and general assistance in my code endeavors.
-    <@323922433654390784> - For aiding me in fixing several commands and showing me just how much of a newbie I am at Python.
+    :military_medal: <@196470965402730507> - For reviewing Project Prismarine's code and general assistance in my code endeavors.
+    :military_medal: <@323922433654390784> - For aiding me in fixing several commands and showing me just how much of a newbie I am at Python.
 
-    <@571494333090496514> - For his massive assistance in improving the backend of Project Prismarine and making a multitide of improvements in the bot.
+    :military_medal: <@571494333090496514> - For his massive assistance in improving the backend of Project Prismarine and making a multitide of improvements in the bot.
 
     To all of these people, I only have one thing to say:
     Thank you.
@@ -155,7 +156,7 @@ async def stat_change():
 
 
 for filename in os.listdir("./modules"):
-    if filename.endswith(".py"):
+    if filename.endswith(".py") and filename[:-3] != "decoder" and filename[:-3] != "weapons":
         CLIENT.load_extension(f"modules.{filename[:-3]}")
 
 CLIENT.run(CONFIG["token"])

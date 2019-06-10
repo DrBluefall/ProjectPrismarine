@@ -121,7 +121,7 @@ class System(commands.Cog):
     @commands.command()
     async def info(self, ctx):
         """Show info from dbl in an embed."""
-        embed = discord.Embed(color=diiscord.Color.blurple())
+        embed = discord.Embed(color=discord.Color.blurple())
         embed.set_image(url=await self.dbl.generate_widget_large(bot_id="568469437284614174"))
         await ctx.send(embed=embed)
 

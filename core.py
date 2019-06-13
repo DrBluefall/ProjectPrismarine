@@ -56,12 +56,6 @@ async def on_ready():
     logging.info("Log successfuly launched. Project Prismarine is online.")
 
 
-@CLIENT.event
-async def on_command_error(ctx, error):
-    """Log the error."""
-    logging.exception("%i - %s", ctx.guild.id, error)
-
-
 # --- Bot Commands
 
 

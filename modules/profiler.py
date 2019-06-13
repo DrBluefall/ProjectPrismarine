@@ -12,10 +12,9 @@ def check_profile_exists(user_id):
         select([Profiler.table]).where(Profiler.table.c.user_id == user_id)
     ).fetchone()
     if profile is None:
-        output = False
+        return False
     else:
-        output = True
-    return output
+        return True
 
 
 class Profiler(commands.Cog):
@@ -79,8 +78,8 @@ class Profiler(commands.Cog):
             for name, index in zip(
                 (
                     "In-Game Name:",
-                    "Level:",
                     "Friend Code:",
+                    "Level:",
                     "Rainmaker Rank:",
                     "Tower Control Rank:",
                     "Splat Zones Rank:",
@@ -244,22 +243,17 @@ class Profiler(commands.Cog):
                             )
                         else:
                             eval(  # pylint: disable=eval-used
-                                str(__class__)
-                                + """.c.execute((Profiler.table.update(None).where(Profiler.table.c.user_id == ctx.message.author.id).values("""
+                                """Profiler.c.execute((Profiler.table.update(None).where(Profiler.table.c.user_id == ctx.message.author.id).values("""
                                 + value["aliases"][-1]
                                 + """=changed_rank)))"""
                             )
                             await ctx.send(f"{key} rank updated!")
-                            break
-                    else:
-                        await ctx.send(
-                            "Command Failed - Gamemode was not and/or incorrectly specified."
-                        )
+                        break
+                else:
+                    await ctx.send("Command Failed - Gamemode was not and/or incorrectly specified.")
         except AssertionError:
             await ctx.send(
-                "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{}profile init`.'".format(
-                    ctx.prefix
-                )
+                f"QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{ctx.prefix}profile init`."
             )
 
 

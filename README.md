@@ -7,6 +7,7 @@ An experimental moderation and Splatoon 2 discord bot!
 ## Dependencies:
 - discord.py (1.1.0 or later)
 - SQLAlchemy (1.3.4 or later)
+- dblpy (0.3.0)
 
 ## Running:
 1. Create a `config.json` file in the project root directory.
@@ -15,12 +16,3 @@ An experimental moderation and Splatoon 2 discord bot!
 4. Add the key `prefix` with the prefix of your choice.
 5. Initialize the bot by running `core.py`.
 6. Profit!
-
-## TODO:
-### Top Priority:
-- [ ] Fix load, unload, and reload commands so that they actually work
-
-### Planned for the Future:
-- [ ] Implement loadout System
-    - [ ] Decide on a means of getting loadouts into the bot (loadout.ink, through discord, or standalone app)
-    - [ ] Design a way of how that info is to be displayed (probably using PIL in some way)

@@ -1,0 +1,3 @@
+discord
+sqlalchemy
+dblpy==0.3.0

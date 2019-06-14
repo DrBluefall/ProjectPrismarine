@@ -22,7 +22,7 @@ class System(commands.Cog):
         """Initialize the System cog."""
         self.client = client
         self.dbl = dbl.Client(self.client, CONFIG["dbl_token"])
-        if discord.ClientUser.id == 568469437284614174:
+        if client.id == 568469437284614174:
             self.update = self.update_stats.start()
 
     @tasks.loop()
@@ -33,7 +33,7 @@ class System(commands.Cog):
             try:
                 await self.dbl.post_guild_count()
                 logging.info("Posted server count: %s", self.dbl.guild_count())
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except, invalid-name
                 logging.exception("Failed to post server count\n%s: %s", type(e).__name__, e)
             await asyncio.sleep(900)
 

@@ -6,21 +6,11 @@ from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 
 
-def check_profile_exists(user_id):
-    """Check if a profile exists in the database or not."""
-    profile = Profiler.c.execute(
-        select([Profiler.table]).where(Profiler.table.c.user_id == user_id)
-    ).fetchone()
-    if profile is None:
-        return False
-    return True
-
-
-class Profiler(commands.Cog):
-    """Module containing commands pertaining to managing and querying user profiles."""
+class SQLEngine:
+    """Class containing the SQLEngine."""
 
     def __init__(self, client):
-        """Initialize the Profiler cog."""
+        """Initialize the SQLEngine cog."""
         self.client = client
 
     engine = create_engine("sqlite:///ProjectPrismarine.db")
@@ -42,223 +32,276 @@ class Profiler(commands.Cog):
     metadata.create_all()
     c = engine.connect()
 
+    @staticmethod
+    def check_profile_exists(user_id):
+        """Check if a profile exists in the database or not."""
+        profile = __class__.c.execute(
+            select([__class__.table]).where(__class__.table.c.user_id == user_id)
+        ).fetchone()
+
+        return profile is not None
+
+    @staticmethod
+    def setup(client):
+        """Add the module to the bot."""
+        client.add_cog(__class__(client))
+        logging.info("%s Module Online.", __class__.__name__)
+
+
+class Profiler(commands.Cog, SQLEngine):
+    """Module containing commands pertaining to managing and querying user profiles."""
+
     @commands.group(invoke_without_command=True, case_insensitive=True, ignore_extra=False)
     async def profile(self, ctx, user=None):
         """Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user."""
-        if ctx.invoked_subcommand is None:
-            if user is None:
-                user = ctx.message.author
-                if check_profile_exists(ctx.message.author.id) is False:
-                    await ctx.send(
-                        "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. Please use `pr.profile init` to create a profile."
-                    )
-            else:
-                try:
-                    user = int(user)
-                    user = self.client.get_user(user)
-                    if user is None:
-                        await ctx.send(
-                            "QA Tester profile does not exist within PrismarineCo. Ltd.'s database."
-                        )
-                    elif check_profile_exists(user.id) is False:
-                        await ctx.send(
-                            "QA Tester profile does not exist within PrismarineCo. Ltd.'s database."
-                        )
-                except ValueError:
-                    user = ctx.message.mentions[0]
-            profile_select = select([__class__.table]).where(__class__.table.c.user_id == user.id)
-            profile = __class__.c.execute(profile_select)
-            profile = profile.fetchone()
-            embed = discord.Embed(
-                title=f"QA Tester #{profile[0]}'s Profile", color=discord.Color.dark_red()
-            )
+        if not ctx.invoked_subcommand:
+            return
 
-            embed.set_thumbnail(url=user.avatar_url)
-            for name, index in zip(
-                (
-                    "In-Game Name:",
-                    "Friend Code:",
-                    "Level:",
-                    "Rainmaker Rank:",
-                    "Tower Control Rank:",
-                    "Splat Zones Rank:",
-                    "Clam Blitz Rank:",
-                    "Salmon Run Rank:",
-                ),
-                range(8),
-            ):
-                embed.add_field(name=name, value=profile[index + 1])
-            await ctx.send(embed=embed)
+        if user is None:
+            user = ctx.message.author
+        else:
+            try:
+                user = self.client.get_user(int(user))
+            except ValueError:
+                user = ctx.message.mentions[0]
+
+        if user is None or __class__.check_profile_exists(user.id) is False:
+            await no_profile(ctx)
+        else:
+            await ctx.send(embed=__class__.create_profile_embed(user))
 
     @profile.command()
     async def init(self, ctx):
         """Initialize a user profile."""
-        profile = __class__.c.execute(
-            select([__class__.table]).where(__class__.table.c.user_id == ctx.message.author.id)
-        )
-        profile = profile.fetchone()
-        if profile is None:
-            ins = __class__.table.insert(None).values(
-                user_id=ctx.message.author.id,
-                ign="N/A",
-                fc="SW-0000-0000-0000",
-                level=1,
-                rm_rank="C-",
-                tc_rank="C-",
-                sz_rank="C-",
-                cb_rank="C-",
-                sr_rank="Intern",
-            )
-            __class__.c.execute(ins)
-            await ctx.send(
-                "Quality Assurance Tester Profile initialized. Thank you for choosing PrismarineCo. Laboratories."
-            )
+        if __class__.check_profile_exists(ctx.message.author.id):
+            message = "Existing QA Profile detected. Aborting initialization..."
         else:
-            await ctx.send("Existing QA Profile detected. Aborting initialization...")
+            Record.init_entry(ctx)
+            message = "Quality Assurance Tester Profile initialized. Thank you for choosing PrismarineCo. Laboratories."
+
+        await ctx.send(message)
 
     @profile.command()
     async def ign(self, ctx, *, name: str = None):
         """Update someone's IGN."""
-        try:
-            assert check_profile_exists(ctx.message.author.id) is True
-            if name is not None:
-                if not len(name) > 10:
-                    ign = (
-                        __class__.table.update(None)
-                        .where(__class__.table.c.user_id == ctx.message.author.id)
-                        .values(ign=name)
-                    )
-                    __class__.c.execute(ign)
-                    await ctx.send("IGN successfully updated!")
-                else:
-                    await ctx.send("Command Failed - IGN character limit is set at 10.")
+        if __class__.check_profile_exists(ctx.message.author.id):
+            if name is None:
+                message = "Command Failed - No IGN specified."
+
+            elif 1 <= len(name) <= 10:
+                Record.ign_entry(ctx, name)
+                message = "IGN successfully updated!"
+
             else:
-                await ctx.send("Command Failed - No IGN specified.")
-        except AssertionError:
-            await ctx.send(
-                "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{}profile init`.'".format(
-                    ctx.prefix
-                )
-            )
+                message = "Command Failed - IGN character limit is set at 10."
+
+            await ctx.send(message)
+        else:
+            await no_profile(ctx)
 
     @profile.command()
     async def fc(self, ctx, *, friend_code):  # pylint: disable=invalid-name
         """Update someone's Friend Code."""
-        try:
-            assert check_profile_exists(ctx.message.author.id) is True
+        if __class__.check_profile_exists(ctx.message.author.id):
             friend_code = re.sub(r"\D", "", friend_code)
+
             if len(friend_code) != 12:
                 message = "Command Failed - Friend Code must be 12 characters long, grouped into 3 sets of 4.\nExample: `-profile fc SW-1234-1234-1234`."
+
             else:
-                p_1 = friend_code[0:4]
-                p_2 = friend_code[4:8]
-                p_3 = friend_code[8:12]
-                friend_code = (
-                    __class__.table.update(None)
-                    .where(__class__.table.c.user_id == ctx.message.author.id)
-                    .values(fc=f"SW-{p_1}-{p_2}-{p_3}")
-                )
-                __class__.c.execute(friend_code)
+                Record.fc_entry(ctx, friend_code)
                 message = "Friend Code successfully updated!"
+
             await ctx.send(message)
-        except AssertionError:
-            await ctx.send(
-                "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{}profile init`.'".format(
-                    ctx.prefix
-                )
-            )
+        else:
+            await no_profile(ctx)
 
     @profile.command()
     async def level(self, ctx, *, level: int = None):
         """Update someone's level."""
-        try:
-            assert check_profile_exists(ctx.message.author.id) is True
-            if level is not None:
-                level = (
-                    __class__.table.update(None)
-                    .where(__class__.table.c.user_id == ctx.message.author.id)
-                    .values(level=level)
-                )
-                __class__.c.execute(level)
-                await ctx.send("Level successfully updated!")
+        if __class__.check_profile_exists(ctx.message.author.id):
+
+            if level is None:
+                message = "Command Failed - No level specified."
+
             else:
-                await ctx.send("Command Failed - No level specified.")
-        except AssertionError:
-            await ctx.send(
-                "QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{}profile init`.'".format(
-                    ctx.prefix
-                )
-            )
+                Record.level_entry(ctx, level)
+                message = "Level successfully updated!"
+
+            await ctx.send(message)
+        else:
+            await no_profile(ctx)
 
     @profile.command()
     async def rank(self, ctx, gamemode: str = None, rank: str = None):
         """Update a person's rank in the database."""
-        # fmt: off
-        rank_list = (
-            "C-", "C", "C+",
-            "B-", "B", "B+",
-            "A-", "A", "A+",
-            "S", "S+0", "S+1",
-            "S+2", "S+3", "S+4",
-            "S+5", "S+6", "S+7",
-            "S+8", "S+9", "X",
-        )
-        # fmt: on
-        modes = {
-            "Splat Zones": {"aliases": ("sz", "splatzones", "sz_rank"), "rlist": rank_list},
-            "Rainmaker": {"aliases": ("rm", "rainmaker", "rm_rank"), "rlist": rank_list},
-            "Tower Control": {"aliases": ("tc", "towercontrol", "tc_rank"), "rlist": rank_list},
-            "Clam Blitz": {"aliases": ("cb", "clamblitz", "cb_rank"), "rlist": rank_list},
-            "Salmon Run": {
-                "aliases": ("sr", "salmonrun", "sr_rank"),
-                "rlist": (
-                    "Intern",
-                    "Apprentice",
-                    "Part-timer",
-                    "Go-getter",
-                    "Overachiever",
-                    "Profreshional",
-                ),
-            },
-        }
-        try:
-            assert check_profile_exists(ctx.message.author.id) is True
+        modes = get_modes()
+
+        if __class__.check_profile_exists(ctx.message.author.id):
             if gamemode is None:
-                await ctx.send("Command Failed - Argument not specified.")
+                message = "Command Failed - Argument not specified."
             else:
                 for key, value in modes.items():
-                    if gamemode.lower() in value["aliases"]:
-
-                        if rank.upper() in value["rlist"]:
-                            changed_rank = rank.upper()
-                        elif rank.capitalize() in value["rlist"]:
-                            changed_rank = rank.capitalize()
-                        else:
-                            changed_rank = None
-
-                        if changed_rank is None:
-                            await ctx.send(
-                                "Command Failed - Rank was not and/or incorrectly specified."
-                            )
-                        else:
-                            eval(  # pylint: disable=eval-used
-                                "{}.c.execute((Profiler.table.update(None).where(Profiler.table.c.user_id==ctx.message.author.id).values({}=changed_rank)))".format(
-                                    __class__, value["aliases"][-1]
-                                )
-                            )
-                            await ctx.send(f"{key} rank updated!")
+                    found, message = Record.try_rank_entry(gamemode, key, value, rank)
+                    if found:
                         break
                 else:
-                    await ctx.send(
-                        "Command Failed - Gamemode was not and/or incorrectly specified."
+                    message = "Command Failed - Gamemode was not and/or incorrectly specified."
+
+            await ctx.send(message)
+        else:
+            await no_profile(ctx)
+
+    @staticmethod
+    def create_profile_embed(user):
+        """Create profile embed."""
+        profile_select = select([__class__.table]).where(__class__.table.c.user_id == user.id)
+        profile = __class__.c.execute(profile_select)
+        profile = profile.fetchone()
+
+        embed = discord.Embed(
+            title=f"QA Tester #{profile[0]}'s Profile", color=discord.Color.dark_red()
+        )
+
+        embed.set_thumbnail(url=user.avatar_url)
+        for name, index in zip(
+            (
+                "In-Game Name:",
+                "Friend Code:",
+                "Level:",
+                "Rainmaker Rank:",
+                "Tower Control Rank:",
+                "Splat Zones Rank:",
+                "Clam Blitz Rank:",
+                "Salmon Run Rank:",
+            ),
+            range(8),
+        ):
+            embed.add_field(name=name, value=profile[index + 1])
+        return embed
+
+
+class Record(Profiler):
+    """Holds the staticmethods that record profile options into the database."""
+
+    @staticmethod
+    def init_entry(ctx):
+        """Record the new profile in the database."""
+        ins = __class__.table.insert(None).values(
+            user_id=ctx.message.author.id,
+            ign="N/A",
+            fc="SW-0000-0000-0000",
+            level=1,
+            rm_rank="C-",
+            tc_rank="C-",
+            sz_rank="C-",
+            cb_rank="C-",
+            sr_rank="Intern",
+        )
+        __class__.c.execute(ins)
+
+    @staticmethod
+    def ign_entry(ctx, name):
+        """Record the ign in the database."""
+        ign = (
+            __class__.table.update(None)
+            .where(__class__.table.c.user_id == ctx.message.author.id)
+            .values(ign=name)
+        )
+        __class__.c.execute(ign)
+
+    @staticmethod
+    def fc_entry(ctx, friend_code):
+        """Record the fc in the database."""
+        p_1, p_2, p_3 = friend_code[0:4], friend_code[4:8], friend_code[8:12]
+        friend_code = (
+            __class__.table.update(None)
+            .where(__class__.table.c.user_id == ctx.message.author.id)
+            .values(fc=f"SW-{p_1}-{p_2}-{p_3}")
+        )
+        __class__.c.execute(friend_code)
+
+    @staticmethod
+    def level_entry(ctx, level):
+        """Record the level in the database."""
+        level = (
+            __class__.table.update(None)
+            .where(__class__.table.c.user_id == ctx.message.author.id)
+            .values(level=level)
+        )
+        __class__.c.execute(level)
+
+    @staticmethod
+    def try_rank_entry(gamemode, key, value, rank):
+        """Record the rank in the database."""
+        if gamemode.lower() in value["aliases"]:
+
+            if rank.upper() in value["rlist"]:
+                changed_rank = rank.upper()
+            elif rank.capitalize() in value["rlist"]:
+                changed_rank = rank.capitalize()
+            else:
+                changed_rank = None
+                message = "Command Failed - Rank was not and/or incorrectly specified."
+
+            if changed_rank is not None:
+                eval(  # pylint: disable=eval-used
+                    "{0}.c.execute(({0}.table.update(None).where({0}.table.c.user_id==ctx.message.author.id).values({1}=changed_rank)))".format(
+                        __class__, value["aliases"][-1]
                     )
-        except AssertionError:
-            await ctx.send(
-                f"QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{ctx.prefix}profile init`."
-            )
+                )
+                message = f"{key} rank updated!"
+            return True, message
+        return False, None
 
 
-def setup(client):
-    """Add the module to the bot."""
-    client.add_cog(Profiler(client))
-    logging.info("Profiler Module Online.")
+async def no_profile(ctx):
+    """Help function that sends a message telling the user they have no profile."""
+    await ctx.send(
+        f"QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{ctx.prefix}profile init`.'"
+    )
+
+
+def get_modes():
+    """Get modes."""
+    rank_list = (
+        "C-",
+        "C",
+        "C+",
+        "B-",
+        "B",
+        "B+",
+        "A-",
+        "A",
+        "A+",
+        "S",
+        "S+0",
+        "S+1",
+        "S+2",
+        "S+3",
+        "S+4",
+        "S+5",
+        "S+6",
+        "S+7",
+        "S+8",
+        "S+9",
+        "X",
+    )
+    modes = {
+        "Splat Zones": {"aliases": ("sz", "splatzones", "sz_rank"), "rlist": rank_list},
+        "Rainmaker": {"aliases": ("rm", "rainmaker", "rm_rank"), "rlist": rank_list},
+        "Tower Control": {"aliases": ("tc", "towercontrol", "tc_rank"), "rlist": rank_list},
+        "Clam Blitz": {"aliases": ("cb", "clamblitz", "cb_rank"), "rlist": rank_list},
+        "Salmon Run": {
+            "aliases": ("sr", "salmonrun", "sr_rank"),
+            "rlist": (
+                "Intern",
+                "Apprentice",
+                "Part-timer",
+                "Go-getter",
+                "Overachiever",
+                "Profreshional",
+            ),
+        },
+    }
+    return modes

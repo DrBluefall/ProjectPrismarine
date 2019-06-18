@@ -22,7 +22,7 @@ class System(commands.Cog):
         """Initialize the System cog."""
         self.client = client
         self.dbl = dbl.Client(self.client, CONFIG["dbl_token"])
-        if client.id == 568469437284614174:
+        if discord.ClientUser.id == 568469437284614174:
             self.update = self.update_stats.start()
 
     @tasks.loop()

@@ -1,14 +1,11 @@
 """Module that stores all weapons from Splatoon 2."""
-import json
+import all_weapons
 
 
 def main():
     """."""
-    with open("./all_weapons.json", "r") as infile:
-        json_weapons = json.load(infile)
-
-    for key, value in json_weapons.items():
-        print(key, value)
+    for key in all_weapons.weapons:
+        print(key)
 
 
 if __name__ == "__main__":

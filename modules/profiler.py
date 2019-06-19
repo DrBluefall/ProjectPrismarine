@@ -100,8 +100,8 @@ class Profiler(commands.Cog, SQLEngine):
         else:
             await ctx.send(embed=cls.create_profile_embed(user))
 
-    @classmethod
     @profile.command()
+    @classmethod
     async def init(cls, ctx):
         """Initialize a user profile."""
         if cls.check_profile_exists(ctx.message.author.id):

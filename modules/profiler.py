@@ -82,7 +82,7 @@ class Profiler(commands.Cog, SQLEngine):
         self.client = client
 
     @commands.group(invoke_without_command=True, case_insensitive=True, ignore_extra=False)
-    async def profile(self, cls, ctx, user=None):
+    async def profile(self, ctx, user=None):
         """Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user."""
         if not ctx.invoked_subcommand:
             return
@@ -95,16 +95,16 @@ class Profiler(commands.Cog, SQLEngine):
             except ValueError:
                 user = ctx.message.mentions[0]
 
-        if user is None or cls.check_profile_exists(user.id) is False:
-            await cls.no_profile(ctx)
+        if user is None or __class__.check_profile_exists(user.id) is False:
+            await __class__.no_profile(ctx)
         else:
-            await ctx.send(embed=cls.create_profile_embed(user))
+            await ctx.send(embed=__class__.create_profile_embed(user))
 
+    @staticmethod
     @profile.command()
-    @classmethod
-    async def init(cls, ctx):
+    async def init(ctx):
         """Initialize a user profile."""
-        if cls.check_profile_exists(ctx.message.author.id):
+        if __class__.check_profile_exists(ctx.message.author.id):
             message = "Existing QA Profile detected. Aborting initialization..."
         else:
             Record.init_entry(ctx)
@@ -112,9 +112,9 @@ class Profiler(commands.Cog, SQLEngine):
 
         await ctx.send(message)
 
-    @classmethod
+    @staticmethod
     @profile.command()
-    async def ign(cls, ctx, *, name: str = None):
+    async def ign(ctx, *, name: str = None):
         """Update someone's IGN."""
         if cls.check_profile_exists(ctx.message.author.id):
             if name is None:
@@ -131,9 +131,9 @@ class Profiler(commands.Cog, SQLEngine):
         else:
             await cls.no_profile(ctx)
 
-    @classmethod
+    @staticmethod
     @profile.command()
-    async def fc(cls, ctx, *, friend_code):  # pylint: disable=invalid-name
+    async def fc(ctx, *, friend_code):  # pylint: disable=invalid-name
         """Update someone's Friend Code."""
         if cls.check_profile_exists(ctx.message.author.id):
             friend_code = re.sub(r"\D", "", friend_code)
@@ -149,9 +149,9 @@ class Profiler(commands.Cog, SQLEngine):
         else:
             await cls.no_profile(ctx)
 
-    @classmethod
+    @staticmethod
     @profile.command()
-    async def level(cls, ctx, *, level: int = None):
+    async def level(ctx, *, level: int = None):
         """Update someone's level."""
         if cls.check_profile_exists(ctx.message.author.id):
 
@@ -166,9 +166,9 @@ class Profiler(commands.Cog, SQLEngine):
         else:
             await cls.no_profile(ctx)
 
-    @classmethod
+    @staticmethod
     @profile.command()
-    async def rank(cls, ctx, gamemode: str = None, rank: str = None):
+    async def rank(ctx, gamemode: str = None, rank: str = None):
         """Update a person's rank in the database."""
         modes = get_modes()
 

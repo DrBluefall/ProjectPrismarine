@@ -112,7 +112,7 @@ class Profiler(commands.Cog, SQLEngine):
         await ctx.send(message)
 
     @profile.command()
-    async def ign(self, ctx, *, name: str=None):
+    async def ign(self, ctx, *, name: str = None):
         """Update someone's IGN."""
         if __class__.check_profile_exists(ctx.message.author.id):
             if name is None:
@@ -147,7 +147,7 @@ class Profiler(commands.Cog, SQLEngine):
             await __class__.no_profile(ctx)
 
     @profile.command()
-    async def level(self, ctx, *, level: int=None):
+    async def level(self, ctx, *, level: int = None):
         """Update someone's level."""
         if __class__.check_profile_exists(ctx.message.author.id):
 
@@ -163,7 +163,7 @@ class Profiler(commands.Cog, SQLEngine):
             await __class__.no_profile(ctx)
 
     @profile.command()
-    async def rank(self, ctx, gamemode: str=None, rank: str=None):
+    async def rank(self, ctx, gamemode: str = None, rank: str = None):
         """Update a person's rank in the database."""
         modes = get_modes()
 

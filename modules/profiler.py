@@ -84,7 +84,7 @@ class Profiler(commands.Cog, SQLEngine):
     @commands.group(invoke_without_command=True, case_insensitive=True, ignore_extra=False)
     async def profile(self, ctx, user=None):
         """Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user."""
-        if not ctx.invoked_subcommand:
+        if ctx.invoked_subcommand:
             return
 
         if user is None:

@@ -20,5 +20,5 @@ An experimental moderation and Splatoon 2 discord bot!
 6. Initialize the bot by running `core.py`.
 7. Profit!
 
-## Footnote:
+#### Footnote:
 - Make sure any file you run is ran from the project root directory *(ex. `python bin/create_asset_db.py`)*

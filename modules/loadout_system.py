@@ -21,4 +21,4 @@ class Loadout(commands.Cog):
 
         weapon = AssetDB.c.execute(
             select([AssetDB.weapons_table]).where(AssetDB.weapons_table.c.class_id == loadout["set"] and AssetDB.weapons_table.c.loadout_ink_id == loadout["weapon"])
-        )
+        ).fetchone()

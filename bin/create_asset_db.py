@@ -4,7 +4,6 @@
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
 from data import abilities, clothing, headgear, shoes, specials, subs, weapons
 
-
 class AssetDB:
     """Class containing all tables with assets for the bot."""
 
@@ -54,6 +53,7 @@ class AssetDB:
         Column("level", Integer),
         Column("cost", String))
 
+    metadata.drop_all()
     metadata.create_all()
     c = engine.connect()
 
@@ -101,7 +101,7 @@ class AssetDB:
         for special in specials:
             ins = cls.specials_table.insert(None).values(
                 name=special["name"],
-                image="assets/img/specials/"+special["image"][28:])  # this was after, so that isnt the issue
+                image="assets/img/specials/"+special["image"][28:])
 
             cls.c.execute(ins)
             print(f"Inserted: {special['name']}")
@@ -139,5 +139,3 @@ class AssetDB:
 
 if __name__ == "__main__":
     AssetDB.asset_inserter()
-
-# TODO: change weapons to be class with weapon subclass

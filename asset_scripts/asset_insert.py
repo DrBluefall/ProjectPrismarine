@@ -113,7 +113,6 @@ def asset_inserter():
 
         asset_database.c.execute(ins)
         print(f"{item['name']} inserted!")
-    
     for item in clothing.clothes:
         image = item["image"][34:]
         ins = asset_database.clothing_table.insert(None).values(
@@ -125,7 +124,6 @@ def asset_inserter():
 
         asset_database.c.execute(ins)
         print(f"{item['name']} inserted!")
-    
     for item in shoes.shoes:
         image = item["image"][32:]
         ins = asset_database.shoes_table.insert(None).values(
@@ -147,7 +145,6 @@ def asset_inserter():
 
         asset_database.c.execute(ins)
         print(f"{sub['name']} inserted!")
-    
     for special in specials.specials:
         ins = asset_database.sub_table.insert(None).values(
             name=special["name"],
@@ -156,7 +153,6 @@ def asset_inserter():
 
         asset_database.c.execute(ins)
         print(f"{special['name']} inserted!")
-    
     for ability in gear_abilities.skills:
         ins = asset_database.ability_table.insert(None).values(
             name=ability["name"],

@@ -26,3 +26,26 @@ class Loadout(commands.Cog):
             select([AssetDB.weapons_table]).where(AssetDB.weapons_table.c.class_id ==
                                                   loadout["set"] and AssetDB.weapons_table.c.loadout_ink_id == loadout["weapon"])
         ).fetchone()
+
+        headgear = {
+        "gear": AssetDB.c.execute(
+                    select([AssetDB.headgear_table]).where(AssetDB.headgear_table.c.id == loadout["head"]["gear"] )
+                ).fetchone(),
+        "main": AssetDB.c.execute(
+                    select([AssetDB.abilities_table]).where(AssetDB.abilities_table.c.id == loadout["head"]["main"])
+                ).fetchone(),
+        "subs": [
+            AssetDB.c.execute(
+                select([AssetDB.abilities_table]).where(
+                    AssetDB.abilities_table.c.id == loadout["head"]["subs"][1])
+            ).fetchone(),
+            AssetDB.c.execute(
+                select([AssetDB.abilities_table]).where(
+                    AssetDB.abilities_table.c.id == loadout["head"]["subs"][2])
+            ).fetchone(),
+            AssetDB.c.execute(
+                select([AssetDB.abilities_table]).where(
+                    AssetDB.abilities_table.c.id == loadout["head"]["subs"][3])
+            ).fetchone()
+        ]
+        }

@@ -3,6 +3,11 @@ config.json
 .DS_Store
 .pylintrc
 ProjectPrismarine.db
+assets_scripts/
+
+#Visual Studio Code files
+Project-Prismarine\.code-workspace
+\.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -127,9 +132,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-*.db
-
-Project-Prismarine\.code-workspace
-
-\.vscode/

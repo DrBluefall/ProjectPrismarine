@@ -1,5 +1,7 @@
 PrismarineCo. Ltd. Presents...
 # Project Prismarine!
+*`ProjectPrismarine`*
+
 An experimental moderation and Splatoon 2 discord bot!
 
 [![Discord Bots](https://discordbots.org/api/widget/568469437284614174.svg)](https://discordbots.org/bot/568469437284614174)

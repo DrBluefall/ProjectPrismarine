@@ -9,8 +9,8 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
 class SQLEngine:
     """Class containing the SQLEngine."""
 
-    engine = create_engine("sqlite:///ProjectPrismarine.db")
-    metadata = MetaData(engine)
+    main_db = create_engine("sqlite:///ProjectPrismarine.db")
+    metadata = MetaData(main_db)
     table = Table(
         "profile",
         metadata,
@@ -23,10 +23,11 @@ class SQLEngine:
         Column("sz_rank", String),
         Column("cb_rank", String),
         Column("sr_rank", String),
+        Column("loadout_string", String),
     )
 
     metadata.create_all()
-    c = engine.connect()
+    c = main_db.connect()
 
     @classmethod
     def check_profile_exists(cls, user_id):

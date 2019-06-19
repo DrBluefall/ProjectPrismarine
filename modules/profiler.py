@@ -32,131 +32,26 @@ class SQLEngine:
     metadata.create_all()
     c = engine.connect()
 
-    @staticmethod
-    def check_profile_exists(user_id):
+    @classmethod
+    def setup(cls, client):
+        """Add the module to the bot."""
+        client.add_cog(cls(client))
+        logging.info("%s Module Online.", cls.__name__)
+
+    @classmethod
+    def check_profile_exists(cls, user_id):
         """Check if a profile exists in the database or not."""
-        profile = __class__.c.execute(
-            select([__class__.table]).where(__class__.table.c.user_id == user_id)
+        profile = cls.c.execute(
+            select([cls.table]).where(cls.table.c.user_id == user_id)
         ).fetchone()
 
         return profile is not None
 
-    @staticmethod
-    def setup(client):
-        """Add the module to the bot."""
-        client.add_cog(__class__(client))
-        logging.info("%s Module Online.", __class__.__name__)
-
-
-class Profiler(commands.Cog, SQLEngine):
-    """Module containing commands pertaining to managing and querying user profiles."""
-
-    @commands.group(invoke_without_command=True, case_insensitive=True, ignore_extra=False)
-    async def profile(self, ctx, user=None):
-        """Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user."""
-        if not ctx.invoked_subcommand:
-            return
-
-        if user is None:
-            user = ctx.message.author
-        else:
-            try:
-                user = self.client.get_user(int(user))
-            except ValueError:
-                user = ctx.message.mentions[0]
-
-        if user is None or __class__.check_profile_exists(user.id) is False:
-            await no_profile(ctx)
-        else:
-            await ctx.send(embed=__class__.create_profile_embed(user))
-
-    @profile.command()
-    async def init(self, ctx):
-        """Initialize a user profile."""
-        if __class__.check_profile_exists(ctx.message.author.id):
-            message = "Existing QA Profile detected. Aborting initialization..."
-        else:
-            Record.init_entry(ctx)
-            message = "Quality Assurance Tester Profile initialized. Thank you for choosing PrismarineCo. Laboratories."
-
-        await ctx.send(message)
-
-    @profile.command()
-    async def ign(self, ctx, *, name: str = None):
-        """Update someone's IGN."""
-        if __class__.check_profile_exists(ctx.message.author.id):
-            if name is None:
-                message = "Command Failed - No IGN specified."
-
-            elif 1 <= len(name) <= 10:
-                Record.ign_entry(ctx, name)
-                message = "IGN successfully updated!"
-
-            else:
-                message = "Command Failed - IGN character limit is set at 10."
-
-            await ctx.send(message)
-        else:
-            await no_profile(ctx)
-
-    @profile.command()
-    async def fc(self, ctx, *, friend_code):  # pylint: disable=invalid-name
-        """Update someone's Friend Code."""
-        if __class__.check_profile_exists(ctx.message.author.id):
-            friend_code = re.sub(r"\D", "", friend_code)
-
-            if len(friend_code) != 12:
-                message = "Command Failed - Friend Code must be 12 characters long, grouped into 3 sets of 4.\nExample: `-profile fc SW-1234-1234-1234`."
-
-            else:
-                Record.fc_entry(ctx, friend_code)
-                message = "Friend Code successfully updated!"
-
-            await ctx.send(message)
-        else:
-            await no_profile(ctx)
-
-    @profile.command()
-    async def level(self, ctx, *, level: int = None):
-        """Update someone's level."""
-        if __class__.check_profile_exists(ctx.message.author.id):
-
-            if level is None:
-                message = "Command Failed - No level specified."
-
-            else:
-                Record.level_entry(ctx, level)
-                message = "Level successfully updated!"
-
-            await ctx.send(message)
-        else:
-            await no_profile(ctx)
-
-    @profile.command()
-    async def rank(self, ctx, gamemode: str = None, rank: str = None):
-        """Update a person's rank in the database."""
-        modes = get_modes()
-
-        if __class__.check_profile_exists(ctx.message.author.id):
-            if gamemode is None:
-                message = "Command Failed - Argument not specified."
-            else:
-                for key, value in modes.items():
-                    found, message = Record.try_rank_entry(gamemode, key, value, rank)
-                    if found:
-                        break
-                else:
-                    message = "Command Failed - Gamemode was not and/or incorrectly specified."
-
-            await ctx.send(message)
-        else:
-            await no_profile(ctx)
-
-    @staticmethod
-    def create_profile_embed(user):
+    @classmethod
+    def create_profile_embed(cls, user):
         """Create profile embed."""
-        profile_select = select([__class__.table]).where(__class__.table.c.user_id == user.id)
-        profile = __class__.c.execute(profile_select)
+        profile_select = select([cls.table]).where(cls.table.c.user_id == user.id)
+        profile = cls.c.execute(profile_select)
         profile = profile.fetchone()
 
         embed = discord.Embed(
@@ -181,13 +76,123 @@ class Profiler(commands.Cog, SQLEngine):
         return embed
 
 
+class Profiler(commands.Cog, SQLEngine):
+    """Module containing commands pertaining to managing and querying user profiles."""
+
+    @commands.group(invoke_without_command=True, case_insensitive=True, ignore_extra=False)
+    async def profile(self, cls, ctx, user=None):
+        """Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user."""
+        if not ctx.invoked_subcommand:
+            return
+
+        if user is None:
+            user = ctx.message.author
+        else:
+            try:
+                user = self.client.get_user(int(user))
+            except ValueError:
+                user = ctx.message.mentions[0]
+
+        if user is None or cls.check_profile_exists(user.id) is False:
+            await no_profile(ctx)
+        else:
+            await ctx.send(embed=cls.create_profile_embed(user))
+
+    @classmethod
+    @profile.command()
+    async def init(cls, ctx):
+        """Initialize a user profile."""
+        if cls.check_profile_exists(ctx.message.author.id):
+            message = "Existing QA Profile detected. Aborting initialization..."
+        else:
+            Record.init_entry(ctx)
+            message = "Quality Assurance Tester Profile initialized. Thank you for choosing PrismarineCo. Laboratories."
+
+        await ctx.send(message)
+
+    @classmethod
+    @profile.command()
+    async def ign(cls, ctx, *, name: str = None):
+        """Update someone's IGN."""
+        if cls.check_profile_exists(ctx.message.author.id):
+            if name is None:
+                message = "Command Failed - No IGN specified."
+
+            elif 1 <= len(name) <= 10:
+                Record.ign_entry(ctx, name)
+                message = "IGN successfully updated!"
+
+            else:
+                message = "Command Failed - IGN character limit is set at 10."
+
+            await ctx.send(message)
+        else:
+            await no_profile(ctx)
+
+    @classmethod
+    @profile.command()
+    async def fc(cls, ctx, *, friend_code):  # pylint: disable=invalid-name
+        """Update someone's Friend Code."""
+        if cls.check_profile_exists(ctx.message.author.id):
+            friend_code = re.sub(r"\D", "", friend_code)
+
+            if len(friend_code) != 12:
+                message = "Command Failed - Friend Code must be 12 characters long, grouped into 3 sets of 4.\nExample: `-profile fc SW-1234-1234-1234`."
+
+            else:
+                Record.fc_entry(ctx, friend_code)
+                message = "Friend Code successfully updated!"
+
+            await ctx.send(message)
+        else:
+            await no_profile(ctx)
+
+    @classmethod
+    @profile.command()
+    async def level(cls, ctx, *, level: int = None):
+        """Update someone's level."""
+        if cls.check_profile_exists(ctx.message.author.id):
+
+            if level is None:
+                message = "Command Failed - No level specified."
+
+            else:
+                Record.level_entry(ctx, level)
+                message = "Level successfully updated!"
+
+            await ctx.send(message)
+        else:
+            await no_profile(ctx)
+
+    @classmethod
+    @profile.command()
+    async def rank(cls, ctx, gamemode: str = None, rank: str = None):
+        """Update a person's rank in the database."""
+        modes = get_modes()
+
+        if cls.check_profile_exists(ctx.message.author.id):
+            if gamemode is None:
+                message = "Command Failed - Argument not specified."
+            else:
+                for key, value in modes.items():
+                    found, message = Record.try_rank_entry(gamemode, key, value, rank)
+                    if found:
+                        break
+                else:
+                    message = "Command Failed - Gamemode was not and/or incorrectly specified."
+
+            await ctx.send(message)
+        else:
+            await no_profile(ctx)
+
+
 class Record(Profiler):
     """Holds the staticmethods that record profile options into the database."""
 
-    @staticmethod
-    def init_entry(ctx):
+    @classmethod
+    def init_entry(cls, ctx):
         """Record the new profile in the database."""
-        ins = __class__.table.insert(None).values(
+        ins = cls.table.insert(None).values(
             user_id=ctx.message.author.id,
             ign="N/A",
             fc="SW-0000-0000-0000",
@@ -198,41 +203,41 @@ class Record(Profiler):
             cb_rank="C-",
             sr_rank="Intern",
         )
-        __class__.c.execute(ins)
+        cls.c.execute(ins)
 
-    @staticmethod
-    def ign_entry(ctx, name):
+    @classmethod
+    def ign_entry(cls, ctx, name):
         """Record the ign in the database."""
         ign = (
-            __class__.table.update(None)
-            .where(__class__.table.c.user_id == ctx.message.author.id)
+            cls.table.update(None)
+            .where(cls.table.c.user_id == ctx.message.author.id)
             .values(ign=name)
         )
-        __class__.c.execute(ign)
+        cls.c.execute(ign)
 
-    @staticmethod
-    def fc_entry(ctx, friend_code):
+    @classmethod
+    def fc_entry(cls, ctx, friend_code):
         """Record the fc in the database."""
         p_1, p_2, p_3 = friend_code[0:4], friend_code[4:8], friend_code[8:12]
         friend_code = (
-            __class__.table.update(None)
-            .where(__class__.table.c.user_id == ctx.message.author.id)
+            cls.table.update(None)
+            .where(cls.table.c.user_id == ctx.message.author.id)
             .values(fc=f"SW-{p_1}-{p_2}-{p_3}")
         )
-        __class__.c.execute(friend_code)
+        cls.c.execute(friend_code)
 
-    @staticmethod
-    def level_entry(ctx, level):
+    @classmethod
+    def level_entry(cls, ctx, level):
         """Record the level in the database."""
         level = (
-            __class__.table.update(None)
-            .where(__class__.table.c.user_id == ctx.message.author.id)
+            cls.table.update(None)
+            .where(cls.table.c.user_id == ctx.message.author.id)
             .values(level=level)
         )
-        __class__.c.execute(level)
+        cls.c.execute(level)
 
-    @staticmethod
-    def try_rank_entry(gamemode, key, value, rank):
+    @classmethod
+    def try_rank_entry(cls, gamemode, key, value, rank):
         """Record the rank in the database."""
         if gamemode.lower() in value["aliases"]:
 
@@ -247,7 +252,7 @@ class Record(Profiler):
             if changed_rank is not None:
                 eval(  # pylint: disable=eval-used
                     "{0}.c.execute(({0}.table.update(None).where({0}.table.c.user_id==ctx.message.author.id).values({1}=changed_rank)))".format(
-                        __class__, value["aliases"][-1]
+                        cls, value["aliases"][-1]
                     )
                 )
                 message = f"{key} rank updated!"

@@ -1,12 +1,8 @@
-# Project specific files
+# Project-specific files
 config.json
 .DS_Store
 .pylintrc
 ProjectPrismarine.db
-
-#Visual Studio Code files
-Project-Prismarine\.code-workspace
-\.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -120,6 +116,10 @@ venv.bak/
 
 # Rope project settings
 .ropeproject
+
+# VSC project settings
+Project-Prismarine\.code-workspace
+\.vscode/
 
 # mkdocs documentation
 /site

@@ -100,9 +100,8 @@ class Profiler(commands.Cog, SQLEngine):
         else:
             await ctx.send(embed=__class__.create_profile_embed(user))
 
-    @staticmethod
     @profile.command()
-    async def init(ctx):
+    async def init(self, ctx):
         """Initialize a user profile."""
         if __class__.check_profile_exists(ctx.message.author.id):
             message = "Existing QA Profile detected. Aborting initialization..."
@@ -112,11 +111,10 @@ class Profiler(commands.Cog, SQLEngine):
 
         await ctx.send(message)
 
-    @staticmethod
     @profile.command()
-    async def ign(ctx, *, name: str = None):
+    async def ign(self, ctx, *, name: str = None):
         """Update someone's IGN."""
-        if cls.check_profile_exists(ctx.message.author.id):
+        if __class__.check_profile_exists(ctx.message.author.id):
             if name is None:
                 message = "Command Failed - No IGN specified."
 
@@ -129,13 +127,12 @@ class Profiler(commands.Cog, SQLEngine):
 
             await ctx.send(message)
         else:
-            await cls.no_profile(ctx)
+            await __class__.no_profile(ctx)
 
-    @staticmethod
     @profile.command()
-    async def fc(ctx, *, friend_code):  # pylint: disable=invalid-name
+    async def fc(self, ctx, *, friend_code):  # pylint: disable=invalid-name
         """Update someone's Friend Code."""
-        if cls.check_profile_exists(ctx.message.author.id):
+        if __class__.check_profile_exists(ctx.message.author.id):
             friend_code = re.sub(r"\D", "", friend_code)
 
             if len(friend_code) != 12:
@@ -147,13 +144,12 @@ class Profiler(commands.Cog, SQLEngine):
 
             await ctx.send(message)
         else:
-            await cls.no_profile(ctx)
+            await __class__.no_profile(ctx)
 
-    @staticmethod
     @profile.command()
-    async def level(ctx, *, level: int = None):
+    async def level(self, ctx, *, level: int = None):
         """Update someone's level."""
-        if cls.check_profile_exists(ctx.message.author.id):
+        if __class__.check_profile_exists(ctx.message.author.id):
 
             if level is None:
                 message = "Command Failed - No level specified."
@@ -164,15 +160,14 @@ class Profiler(commands.Cog, SQLEngine):
 
             await ctx.send(message)
         else:
-            await cls.no_profile(ctx)
+            await __class__.no_profile(ctx)
 
-    @staticmethod
     @profile.command()
-    async def rank(ctx, gamemode: str = None, rank: str = None):
+    async def rank(self, ctx, gamemode: str = None, rank: str = None):
         """Update a person's rank in the database."""
         modes = get_modes()
 
-        if cls.check_profile_exists(ctx.message.author.id):
+        if __class__.check_profile_exists(ctx.message.author.id):
             if gamemode is None:
                 message = "Command Failed - Argument not specified."
             else:
@@ -185,7 +180,7 @@ class Profiler(commands.Cog, SQLEngine):
 
             await ctx.send(message)
         else:
-            await cls.no_profile(ctx)
+            await __class__.no_profile(ctx)
 
 
 class Record(Profiler):

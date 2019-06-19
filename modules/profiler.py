@@ -32,8 +32,7 @@ class SQLEngine:
     metadata.create_all()
     c = engine.connect()
 
-    @classmethod
-    def setup(cls, client):
+    def setup(self, cls, client):
         """Add the module to the bot."""
         client.add_cog(cls(client))
         logging.info("%s Module Online.", cls.__name__)

@@ -48,30 +48,54 @@ c8000 => 11001 00000 00000 00000
 
 def decode_gear(code):
     """Convert a gear code into a dictionary."""
-    gearid = int(code[0:2], 16)
+    id = int(code[0:2], 16)
     raw_abilities = code[2:8]
     bin_abilities = hex_to_binary(raw_abilities)["result"]
     main = int(bin_abilities[0:5], 2)
     subs = []
     i = 5
     while i < len(bin_abilities):
-        subs.append(int(bin_abilities[i : i + 5], 2))
+        subs.append(int(bin_abilities[i: i + 5], 2))
         i += 5
 
-    return {"gear": gearid, "main": main, "subs": subs}
+    return {"gear": id, "main": main, "subs": subs}
 
 
 def decode(code):
-    """Convert a loadout.ink code into a dictionary."""
+    """
+    Convert a loadout.ink code into a dictionary.
+
+    Returns:
+        {
+            "class": The weapon class id
+            "weapon": The weapon id
+            "headgear": {
+                "gear": The gear id
+                "main": The main ability
+                "subs": [The, 3, subs]
+            }
+            "clothing": {
+                "gear": The gear id
+                "main": The main ability
+                "subs": [The, 3, subs]
+            }
+            "shoes": {
+                "gear": The gear id
+                "main": The main ability
+                "subs": [The, 3, subs]
+            }
+        }
+
+    """
     if code[0] != "0":
         raise KeyError("invalid code")
-    weaponset = int(code[1])
-    weaponid = int(code[2:4], 16)
-    head = decode_gear(code[4:11])
-    clothes = decode_gear(code[11:18])
+    class_id = int(code[1])
+    id = int(code[2:4], 16)
+    headgear = decode_gear(code[4:11])
+    clothing = decode_gear(code[11:18])
     shoes = decode_gear(code[18:25])
 
-    return {"set": weaponset, "weapon": weaponid, "head": head, "clothes": clothes, "shoes": shoes}
+    return {"class": class_id, "weapon": id, "headgear": headgear, "clothing": clothing, "shoes": shoes}
 
 
 def hex_to_binary(s):

@@ -28,24 +28,26 @@ class Loadout(commands.Cog):
         ).fetchone()
 
         headgear = {
-        "gear": AssetDB.c.execute(
-                    select([AssetDB.headgear_table]).where(AssetDB.headgear_table.c.id == loadout["head"]["gear"] )
-                ).fetchone(),
-        "main": AssetDB.c.execute(
-                    select([AssetDB.abilities_table]).where(AssetDB.abilities_table.c.id == loadout["head"]["main"])
-                ).fetchone(),
-        "subs": [
-            AssetDB.c.execute(
-                select([AssetDB.abilities_table]).where(
-                    AssetDB.abilities_table.c.id == loadout["head"]["subs"][1])
+            "gear": AssetDB.c.execute(
+                select([AssetDB.headgear_table]).where(
+                    AssetDB.headgear_table.c.id == loadout["head"]["gear"])
             ).fetchone(),
-            AssetDB.c.execute(
+            "main": AssetDB.c.execute(
                 select([AssetDB.abilities_table]).where(
-                    AssetDB.abilities_table.c.id == loadout["head"]["subs"][2])
+                    AssetDB.abilities_table.c.id == loadout["head"]["main"])
             ).fetchone(),
-            AssetDB.c.execute(
-                select([AssetDB.abilities_table]).where(
-                    AssetDB.abilities_table.c.id == loadout["head"]["subs"][3])
-            ).fetchone()
-        ]
+            "subs": [
+                AssetDB.c.execute(
+                    select([AssetDB.abilities_table]).where(
+                        AssetDB.abilities_table.c.id == loadout["head"]["subs"][1])
+                ).fetchone(),
+                AssetDB.c.execute(
+                    select([AssetDB.abilities_table]).where(
+                        AssetDB.abilities_table.c.id == loadout["head"]["subs"][2])
+                ).fetchone(),
+                AssetDB.c.execute(
+                    select([AssetDB.abilities_table]).where(
+                        AssetDB.abilities_table.c.id == loadout["head"]["subs"][3])
+                ).fetchone()
+            ]
         }

@@ -16,3 +16,6 @@ An experimental moderation and Splatoon 2 discord bot!
 4. Add the key `prefix` with the prefix of your choice.
 5. Initialize the bot by running `core.py`.
 6. Profit!
+
+## Footnote:
+- Make sure any file you run is ran from the project root directory *(ex. `python bin/create_asset_db.py`)*

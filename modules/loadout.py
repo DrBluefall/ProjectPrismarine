@@ -1,7 +1,9 @@
 """Module contaning all loadout-related functionality of the bot."""
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
+
 import discord
 from discord.ext import commands
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
+
 from bin import decoder
 from bin.create_asset_db import AssetDB
 

@@ -13,12 +13,12 @@ class Loadout(commands.Cog):
         """Initialize the Loadout Cog."""
         self.client = client
 
-    def parse_loadout_string(self, loadout_string: str = None):
+    def parse_string(self, string: str = None):
         """Convert the loadout string into usable data for generation."""
-        if loadout_string is None:
+        if string is None:
             raise ValueError("Loadout string not specified.")
 
-        loadout = decoder.decode(loadout_string)
+        loadout = decoder.decode(string)
 
         weapon = AssetDB.c.execute(
             select([AssetDB.weapons_table]).where(AssetDB.weapons_table.c.class_id ==

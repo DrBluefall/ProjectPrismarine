@@ -9,10 +9,6 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
 class SQLEngine:
     """Class containing the SQLEngine."""
 
-    def __init__(self, client):
-        """Initialize the SQLEngine cog."""
-        self.client = client
-
     engine = create_engine("sqlite:///ProjectPrismarine.db")
     metadata = MetaData(engine)
     table = Table(
@@ -32,24 +28,58 @@ class SQLEngine:
     metadata.create_all()
     c = engine.connect()
 
-    @staticmethod
-    def check_profile_exists(user_id):
+    @classmethod
+    def check_profile_exists(cls, user_id):
         """Check if a profile exists in the database or not."""
-        profile = __class__.c.execute(
-            select([__class__.table]).where(__class__.table.c.user_id == user_id)
+        profile = cls.c.execute(
+            select([cls.table]).where(cls.table.c.user_id == user_id)
         ).fetchone()
 
         return profile is not None
 
+    @classmethod
+    def create_profile_embed(cls, user):
+        """Create profile embed."""
+        profile_select = select([cls.table]).where(cls.table.c.user_id == user.id)
+        profile = cls.c.execute(profile_select)
+        profile = profile.fetchone()
+
+        embed = discord.Embed(
+            title=f"QA Tester #{profile[0]}'s Profile", color=discord.Color.dark_red()
+        )
+
+        embed.set_thumbnail(url=user.avatar_url)
+        for name, index in zip(
+            (
+                "In-Game Name:",
+                "Friend Code:",
+                "Level:",
+                "Rainmaker Rank:",
+                "Tower Control Rank:",
+                "Splat Zones Rank:",
+                "Clam Blitz Rank:",
+                "Salmon Run Rank:",
+            ),
+            range(8),
+        ):
+            embed.add_field(name=name, value=profile[index + 1])
+        return embed
+
     @staticmethod
-    def setup(client):
-        """Add the module to the bot."""
-        client.add_cog(__class__(client))
-        logging.info("%s Module Online.", __class__.__name__)
+    async def no_profile(ctx):
+        """Help function that sends a message telling the user they have no profile."""
+        await ctx.send(
+            f"QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{ctx.prefix}profile init`.'"
+        )
 
 
 class Profiler(commands.Cog, SQLEngine):
     """Module containing commands pertaining to managing and querying user profiles."""
+
+    def __init__(self, client):
+        """Initialize the Profiler cog."""
+        super().__init__()
+        self.client = client
 
     @commands.group(invoke_without_command=True, case_insensitive=True, ignore_extra=False)
     async def profile(self, ctx, user=None):
@@ -66,7 +96,7 @@ class Profiler(commands.Cog, SQLEngine):
                 user = ctx.message.mentions[0]
 
         if user is None or __class__.check_profile_exists(user.id) is False:
-            await no_profile(ctx)
+            await __class__.no_profile(ctx)
         else:
             await ctx.send(embed=__class__.create_profile_embed(user))
 
@@ -97,7 +127,7 @@ class Profiler(commands.Cog, SQLEngine):
 
             await ctx.send(message)
         else:
-            await no_profile(ctx)
+            await __class__.no_profile(ctx)
 
     @profile.command()
     async def fc(self, ctx, *, friend_code):  # pylint: disable=invalid-name
@@ -114,7 +144,7 @@ class Profiler(commands.Cog, SQLEngine):
 
             await ctx.send(message)
         else:
-            await no_profile(ctx)
+            await __class__.no_profile(ctx)
 
     @profile.command()
     async def level(self, ctx, *, level: int = None):
@@ -130,7 +160,7 @@ class Profiler(commands.Cog, SQLEngine):
 
             await ctx.send(message)
         else:
-            await no_profile(ctx)
+            await __class__.no_profile(ctx)
 
     @profile.command()
     async def rank(self, ctx, gamemode: str = None, rank: str = None):
@@ -150,44 +180,16 @@ class Profiler(commands.Cog, SQLEngine):
 
             await ctx.send(message)
         else:
-            await no_profile(ctx)
-
-    @staticmethod
-    def create_profile_embed(user):
-        """Create profile embed."""
-        profile_select = select([__class__.table]).where(__class__.table.c.user_id == user.id)
-        profile = __class__.c.execute(profile_select)
-        profile = profile.fetchone()
-
-        embed = discord.Embed(
-            title=f"QA Tester #{profile[0]}'s Profile", color=discord.Color.dark_red()
-        )
-
-        embed.set_thumbnail(url=user.avatar_url)
-        for name, index in zip(
-            (
-                "In-Game Name:",
-                "Friend Code:",
-                "Level:",
-                "Rainmaker Rank:",
-                "Tower Control Rank:",
-                "Splat Zones Rank:",
-                "Clam Blitz Rank:",
-                "Salmon Run Rank:",
-            ),
-            range(8),
-        ):
-            embed.add_field(name=name, value=profile[index + 1])
-        return embed
+            await __class__.no_profile(ctx)
 
 
 class Record(Profiler):
     """Holds the staticmethods that record profile options into the database."""
 
-    @staticmethod
-    def init_entry(ctx):
+    @classmethod
+    def init_entry(cls, ctx):
         """Record the new profile in the database."""
-        ins = __class__.table.insert(None).values(
+        ins = cls.table.insert(None).values(
             user_id=ctx.message.author.id,
             ign="N/A",
             fc="SW-0000-0000-0000",
@@ -198,41 +200,41 @@ class Record(Profiler):
             cb_rank="C-",
             sr_rank="Intern",
         )
-        __class__.c.execute(ins)
+        cls.c.execute(ins)
 
-    @staticmethod
-    def ign_entry(ctx, name):
+    @classmethod
+    def ign_entry(cls, ctx, name):
         """Record the ign in the database."""
         ign = (
-            __class__.table.update(None)
-            .where(__class__.table.c.user_id == ctx.message.author.id)
+            cls.table.update(None)
+            .where(cls.table.c.user_id == ctx.message.author.id)
             .values(ign=name)
         )
-        __class__.c.execute(ign)
+        cls.c.execute(ign)
 
-    @staticmethod
-    def fc_entry(ctx, friend_code):
+    @classmethod
+    def fc_entry(cls, ctx, friend_code):
         """Record the fc in the database."""
         p_1, p_2, p_3 = friend_code[0:4], friend_code[4:8], friend_code[8:12]
         friend_code = (
-            __class__.table.update(None)
-            .where(__class__.table.c.user_id == ctx.message.author.id)
+            cls.table.update(None)
+            .where(cls.table.c.user_id == ctx.message.author.id)
             .values(fc=f"SW-{p_1}-{p_2}-{p_3}")
         )
-        __class__.c.execute(friend_code)
+        cls.c.execute(friend_code)
 
-    @staticmethod
-    def level_entry(ctx, level):
+    @classmethod
+    def level_entry(cls, ctx, level):
         """Record the level in the database."""
         level = (
-            __class__.table.update(None)
-            .where(__class__.table.c.user_id == ctx.message.author.id)
+            cls.table.update(None)
+            .where(cls.table.c.user_id == ctx.message.author.id)
             .values(level=level)
         )
-        __class__.c.execute(level)
+        cls.c.execute(level)
 
-    @staticmethod
-    def try_rank_entry(gamemode, key, value, rank):
+    @classmethod
+    def try_rank_entry(cls, gamemode, key, value, rank):
         """Record the rank in the database."""
         if gamemode.lower() in value["aliases"]:
 
@@ -247,7 +249,7 @@ class Record(Profiler):
             if changed_rank is not None:
                 eval(  # pylint: disable=eval-used
                     "{0}.c.execute(({0}.table.update(None).where({0}.table.c.user_id==ctx.message.author.id).values({1}=changed_rank)))".format(
-                        __class__, value["aliases"][-1]
+                        cls, value["aliases"][-1]
                     )
                 )
                 message = f"{key} rank updated!"
@@ -255,11 +257,10 @@ class Record(Profiler):
         return False, None
 
 
-async def no_profile(ctx):
-    """Help function that sends a message telling the user they have no profile."""
-    await ctx.send(
-        f"QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{ctx.prefix}profile init`.'"
-    )
+def setup(client):
+    """Add the module to the bot."""
+    client.add_cog(Profiler(client))
+    logging.info("%s Module Online.", Profiler.__name__)
 
 
 def get_modes():

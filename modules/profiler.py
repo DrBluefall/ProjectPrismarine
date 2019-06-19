@@ -9,10 +9,6 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
 class SQLEngine:
     """Class containing the SQLEngine."""
 
-    def __init__(self, client):
-        """Initialize the SQLEngine cog."""
-        self.client = client
-
     engine = create_engine("sqlite:///ProjectPrismarine.db")
     metadata = MetaData(engine)
     table = Table(
@@ -31,11 +27,6 @@ class SQLEngine:
 
     metadata.create_all()
     c = engine.connect()
-
-    def setup(self, cls, client):
-        """Add the module to the bot."""
-        client.add_cog(cls(client))
-        logging.info("%s Module Online.", cls.__name__)
 
     @classmethod
     def check_profile_exists(cls, user_id):
@@ -74,9 +65,21 @@ class SQLEngine:
             embed.add_field(name=name, value=profile[index + 1])
         return embed
 
+    @staticmethod
+    async def no_profile(ctx):
+        """Help function that sends a message telling the user they have no profile."""
+        await ctx.send(
+            f"QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{ctx.prefix}profile init`.'"
+        )
+
 
 class Profiler(commands.Cog, SQLEngine):
     """Module containing commands pertaining to managing and querying user profiles."""
+
+    def __init__(self, client):
+        """Initialize the Profiler cog."""
+        super().__init__()
+        self.client = client
 
     @commands.group(invoke_without_command=True, case_insensitive=True, ignore_extra=False)
     async def profile(self, cls, ctx, user=None):
@@ -93,7 +96,7 @@ class Profiler(commands.Cog, SQLEngine):
                 user = ctx.message.mentions[0]
 
         if user is None or cls.check_profile_exists(user.id) is False:
-            await no_profile(ctx)
+            await cls.no_profile(ctx)
         else:
             await ctx.send(embed=cls.create_profile_embed(user))
 
@@ -126,7 +129,7 @@ class Profiler(commands.Cog, SQLEngine):
 
             await ctx.send(message)
         else:
-            await no_profile(ctx)
+            await cls.no_profile(ctx)
 
     @classmethod
     @profile.command()
@@ -144,7 +147,7 @@ class Profiler(commands.Cog, SQLEngine):
 
             await ctx.send(message)
         else:
-            await no_profile(ctx)
+            await cls.no_profile(ctx)
 
     @classmethod
     @profile.command()
@@ -161,7 +164,7 @@ class Profiler(commands.Cog, SQLEngine):
 
             await ctx.send(message)
         else:
-            await no_profile(ctx)
+            await cls.no_profile(ctx)
 
     @classmethod
     @profile.command()
@@ -182,7 +185,7 @@ class Profiler(commands.Cog, SQLEngine):
 
             await ctx.send(message)
         else:
-            await no_profile(ctx)
+            await cls.no_profile(ctx)
 
 
 class Record(Profiler):
@@ -259,11 +262,10 @@ class Record(Profiler):
         return False, None
 
 
-async def no_profile(ctx):
-    """Help function that sends a message telling the user they have no profile."""
-    await ctx.send(
-        f"QA Tester profile does not exist within PrismarineCo. Ltd.'s database. To create a profile, use `{ctx.prefix}profile init`.'"
-    )
+def setup(client):
+    """Add the module to the bot."""
+    client.add_cog(Profiler(client))
+    logging.info("%s Module Online.", Profiler.__name__)
 
 
 def get_modes():

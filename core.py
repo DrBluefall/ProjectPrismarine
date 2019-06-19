@@ -19,24 +19,23 @@ with open("config.json", "r") as infile:
             "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token', 'owner', 'dbl_token', and 'prefix'."
         )
 
-STATUS = cycle(
-    [
-        "with my creator!",
-        "with life, the universe, and everything.",
-        "with my ROBOT ARMY!",
-        "with a rubber ducky :)",
-        "with Agent 3 and her Pokemon!",
-        "with Python and waifus!",
-        "with SCIENCE!",
-        "with an atomic bo-I MEAN TOYS! Toys. Yeah. That's a thing bots do, right?",
-    ]
-)
+STATUS = cycle([
+    "with my creator!",
+    "with life, the universe, and everything.",
+    "with my ROBOT ARMY!",
+    "with a rubber ducky :)",
+    "with Agent 3 and her Pokemon!",
+    "with Python and waifus!",
+    "with SCIENCE!",
+    "with an atomic bo-I MEAN TOYS! Toys. Yeah. That's a thing bots do, right?",
+])
 
-CLIENT = commands.Bot(command_prefix=CONFIG["prefix"], status=discord.Status.online)
+CLIENT = commands.Bot(command_prefix=CONFIG["prefix"],
+                      status=discord.Status.online)
 
 logging.basicConfig(
-    level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
-)
+    level=logging.INFO,
+    format="%(name)s - %(levelname)s - %(asctime)s - %(message)s")
 
 # --- Client Events
 
@@ -48,8 +47,8 @@ async def on_ready():
     """Execute on bot login."""
     global task_starter  # pylint: disable=global-statement, invalid-name
     logging.basicConfig(
-        level=logging.INFO, format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
-    )
+        level=logging.INFO,
+        format="%(name)s - %(levelname)s - %(asctime)s - %(message)s")
     if task_starter == 0:
         stat_change.start()
         task_starter += 1
@@ -120,7 +119,8 @@ async def credits(ctx):
     """Credits the people who have contributed to the bot."""
     embed = discord.Embed(
         title="The Credits",
-        description="""This command exists to commemorate and properly credit those who have assisted, inspired, or otherwise contributed to the creation of Project Prismarine.
+        description=
+        """This command exists to commemorate and properly credit those who have assisted, inspired, or otherwise contributed to the creation of Project Prismarine.
 
     :military_medal: <@274983796414349313> - For initially inspiring me to learn Python and persue Computer Science and programming in a serious manner, as well as for his open-source Splatoon bot, from which I referenced frequently in Project Prismarine's development.
 
@@ -150,7 +150,9 @@ async def stat_change():
 
 
 for filename in os.listdir("./modules"):
-    if filename.endswith(".py") and filename[:-3] != "decoder" and filename[:-3] != "weapons":
+    if filename.endswith(
+            ".py"
+    ) and filename[:-3] != "decoder" and filename[:-3] != "weapons":
         CLIENT.load_extension(f"modules.{filename[:-3]}")
 
 CLIENT.run(CONFIG["token"])

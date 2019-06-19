@@ -1,5 +1,6 @@
-"""Loadout.ink's encoding and decoding module, translated into Python."""
 """
+Loadout.ink's encoding and decoding module, translated into Python.
+
 Encoding allows to encode a set of gears and abilities into a single string and vice-versa.
 The encoded string is composed of 25 hexadecimal characters (from 0 to 9 and from A to F).
 The first digit is the version number of the encoding mechanism and is 0 at the moment.
@@ -55,7 +56,7 @@ def decode_gear(code):
     subs = []
     i = 5
     while i < len(bin_abilities):
-        subs.append(int(bin_abilities[i: i + 5], 2))
+        subs.append(int(bin_abilities[i:i + 5], 2))
         i += 5
 
     return {"gear": id, "main": main, "subs": subs}
@@ -95,7 +96,13 @@ def decode(code):
     clothing = decode_gear(code[11:18])
     shoes = decode_gear(code[18:25])
 
-    return {"class": class_id, "weapon": id, "headgear": headgear, "clothing": clothing, "shoes": shoes}
+    return {
+        "class": class_id,
+        "weapon": id,
+        "headgear": headgear,
+        "clothing": clothing,
+        "shoes": shoes
+    }
 
 
 def hex_to_binary(s):

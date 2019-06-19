@@ -21,7 +21,8 @@ class Moderation(commands.Cog):
             name_user = int(name_user)
             name_user = ctx.guild.get_member(name_user)
         await name_user.edit(reason=None, nick=nickname)
-        await ctx.send(f"`{name_user}`'s nickname has been changed to `{nickname}`.")
+        await ctx.send(
+            f"`{name_user}`'s nickname has been changed to `{nickname}`.")
 
     @commands.has_permissions(manage_messages=True)
     @commands.command()
@@ -29,7 +30,8 @@ class Moderation(commands.Cog):
         """Purge a number of messages."""
         channel = self.client.get_channel(ctx.channel.id)
         deleted = await channel.purge(limit=amount)
-        await ctx.send("{} message(s) have been deleted.".format(len(deleted)), delete_after=10)
+        await ctx.send("{} message(s) have been deleted.".format(len(deleted)),
+                       delete_after=10)
 
     @delete.error
     async def delete_error(self, ctx, error):
@@ -41,7 +43,8 @@ class Moderation(commands.Cog):
 
     @commands.has_permissions(ban_members=True)
     @commands.command()
-    async def ban(self, ctx, banned_user, time: int = 0, *, reason: str = None):
+    async def ban(self, ctx, banned_user, time: int = 0, *,
+                  reason: str = None):
         """Ban a user."""
         try:
             banned_user = ctx.message.mentions[0]
@@ -49,8 +52,11 @@ class Moderation(commands.Cog):
             banned_user = int(banned_user)
             banned_user = self.client.get_user(banned_user)
         try:
-            await ctx.guild.ban(user=banned_user, reason=reason, delete_message_days=time)
-            await ctx.send(f"The ban hammer has been dropped on {banned_user}!")
+            await ctx.guild.ban(user=banned_user,
+                                reason=reason,
+                                delete_message_days=time)
+            await ctx.send(f"The ban hammer has been dropped on {banned_user}!"
+                           )
         except asyncio.TimeoutError:
             await ctx.send(
                 "Command failed. Make sure all necessary arguments are provided and/or correct."
@@ -59,7 +65,8 @@ class Moderation(commands.Cog):
     @ban.error
     async def ban_error(self, ctx, error):
         """Error when ban doesn't work."""
-        if isinstance(error, (commands.BadArgument, commands.MissingPermissions)):
+        if isinstance(error,
+                      (commands.BadArgument, commands.MissingPermissions)):
             await ctx.send(
                 "Command failed. Make sure you have the `ban_members` permission in order to use this command, or have specified the correct arguments."
             )
@@ -80,7 +87,9 @@ class Moderation(commands.Cog):
     @kick.error
     async def kick_error(self, ctx, error):
         """Error when kick doesn't work."""
-        if isinstance(error, (commands.MissingRequiredArgument, commands.MissingPermissions)):
+        if isinstance(
+                error,
+            (commands.MissingRequiredArgument, commands.MissingPermissions)):
             await ctx.send(
                 "Command failed. Make sure you have the `kick_members` permission in order to use this command, or have specified the user you want to kick using an @mention."
             )
@@ -90,7 +99,8 @@ class Moderation(commands.Cog):
     @commands.command()
     async def prune(self, ctx, time: int = 30):
         """Prunes the server. By default, it prunes all users who have been inactive for the past 30 days."""
-        pruned = await ctx.guild.prune_members(days=time, compute_prune_count="False")
+        pruned = await ctx.guild.prune_members(days=time,
+                                               compute_prune_count="False")
         # await ctx.send("Prune executed.")
         await ctx.send(f"{pruned} member(s) have been pruned from the server.")
 

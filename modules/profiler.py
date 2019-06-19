@@ -33,21 +33,21 @@ class SQLEngine:
     def check_profile_exists(cls, user_id):
         """Check if a profile exists in the database or not."""
         profile = cls.c.execute(
-            select([cls.table]).where(cls.table.c.user_id == user_id)
-        ).fetchone()
+            select([cls.table
+                    ]).where(cls.table.c.user_id == user_id)).fetchone()
 
         return profile is not None
 
     @classmethod
     def create_profile_embed(cls, user):
         """Create profile embed."""
-        profile_select = select([cls.table]).where(cls.table.c.user_id == user.id)
+        profile_select = select([cls.table
+                                 ]).where(cls.table.c.user_id == user.id)
         profile = cls.c.execute(profile_select)
         profile = profile.fetchone()
 
-        embed = discord.Embed(
-            title=f"QA Tester #{profile[0]}'s Profile", color=discord.Color.dark_red()
-        )
+        embed = discord.Embed(title=f"QA Tester #{profile[0]}'s Profile",
+                              color=discord.Color.dark_red())
 
         embed.set_thumbnail(url=user.avatar_url)
         for name, index in zip(
@@ -61,7 +61,7 @@ class SQLEngine:
                 "Clam Blitz Rank:",
                 "Salmon Run Rank:",
             ),
-            range(8),
+                range(8),
         ):
             embed.add_field(name=name, value=profile[index + 1])
         return embed
@@ -82,7 +82,9 @@ class Profiler(commands.Cog, SQLEngine):
         super().__init__()
         self.client = client
 
-    @commands.group(invoke_without_command=True, case_insensitive=True, ignore_extra=False)
+    @commands.group(invoke_without_command=True,
+                    case_insensitive=True,
+                    ignore_extra=False)
     async def profile(self, ctx, user=None):
         """Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user."""
         if ctx.invoked_subcommand:
@@ -173,7 +175,8 @@ class Profiler(commands.Cog, SQLEngine):
                 message = "Command Failed - Argument not specified."
             else:
                 for key, value in modes.items():
-                    found, message = Record.try_rank_entry(gamemode, key, value, rank)
+                    found, message = Record.try_rank_entry(
+                        gamemode, key, value, rank)
                     if found:
                         break
                 else:
@@ -206,32 +209,24 @@ class Record(Profiler):
     @classmethod
     def ign_entry(cls, ctx, name):
         """Record the ign in the database."""
-        ign = (
-            cls.table.update(None)
-            .where(cls.table.c.user_id == ctx.message.author.id)
-            .values(ign=name)
-        )
+        ign = (cls.table.update(None).where(
+            cls.table.c.user_id == ctx.message.author.id).values(ign=name))
         cls.c.execute(ign)
 
     @classmethod
     def fc_entry(cls, ctx, friend_code):
         """Record the fc in the database."""
         p_1, p_2, p_3 = friend_code[0:4], friend_code[4:8], friend_code[8:12]
-        friend_code = (
-            cls.table.update(None)
-            .where(cls.table.c.user_id == ctx.message.author.id)
-            .values(fc=f"SW-{p_1}-{p_2}-{p_3}")
-        )
+        friend_code = (cls.table.update(None).where(
+            cls.table.c.user_id == ctx.message.author.id).values(
+                fc=f"SW-{p_1}-{p_2}-{p_3}"))
         cls.c.execute(friend_code)
 
     @classmethod
     def level_entry(cls, ctx, level):
         """Record the level in the database."""
-        level = (
-            cls.table.update(None)
-            .where(cls.table.c.user_id == ctx.message.author.id)
-            .values(level=level)
-        )
+        level = (cls.table.update(None).where(
+            cls.table.c.user_id == ctx.message.author.id).values(level=level))
         cls.c.execute(level)
 
     @classmethod
@@ -249,10 +244,8 @@ class Record(Profiler):
 
             if changed_rank is not None:
                 eval(  # pylint: disable=eval-used
-                    "{0}.c.execute(({0}.table.update(None).where({0}.table.c.user_id==ctx.message.author.id).values({1}=changed_rank)))".format(
-                        cls, value["aliases"][-1]
-                    )
-                )
+                    "{0}.c.execute(({0}.table.update(None).where({0}.table.c.user_id==ctx.message.author.id).values({1}=changed_rank)))"
+                    .format(cls, value["aliases"][-1]))
                 message = f"{key} rank updated!"
             return True, message
         return False, None
@@ -290,10 +283,22 @@ def get_modes():
         "X",
     )
     modes = {
-        "Splat Zones": {"aliases": ("sz", "splatzones", "sz_rank"), "rlist": rank_list},
-        "Rainmaker": {"aliases": ("rm", "rainmaker", "rm_rank"), "rlist": rank_list},
-        "Tower Control": {"aliases": ("tc", "towercontrol", "tc_rank"), "rlist": rank_list},
-        "Clam Blitz": {"aliases": ("cb", "clamblitz", "cb_rank"), "rlist": rank_list},
+        "Splat Zones": {
+            "aliases": ("sz", "splatzones", "sz_rank"),
+            "rlist": rank_list
+        },
+        "Rainmaker": {
+            "aliases": ("rm", "rainmaker", "rm_rank"),
+            "rlist": rank_list
+        },
+        "Tower Control": {
+            "aliases": ("tc", "towercontrol", "tc_rank"),
+            "rlist": rank_list
+        },
+        "Clam Blitz": {
+            "aliases": ("cb", "clamblitz", "cb_rank"),
+            "rlist": rank_list
+        },
         "Salmon Run": {
             "aliases": ("sr", "salmonrun", "sr_rank"),
             "rlist": (

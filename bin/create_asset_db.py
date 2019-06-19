@@ -1,5 +1,7 @@
 """Module that stores all weapons from Splatoon 2."""
 # pylint: disable=all
+# yapf: disable
+
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
 from assets.data import abilities, clothing, headgear, shoes, specials, subs, weapons
 

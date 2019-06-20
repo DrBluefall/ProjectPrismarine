@@ -1,11 +1,20 @@
 """Module contaning all loadout-related functionality of the bot."""
+import logging
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 
 import discord
 from discord.ext import commands
 
 from bin import decoder
-from bin.create_asset_db import AssetDB
+from bin import create_asset_db
+
+AssetDB = create_asset_db.AssetDB
+
+
+def setup(client):
+    """Add the module to the bot."""
+    client.add_cog(Loadout(client))
+    logging.info("%s Module Online.", Loadout.__name__)
 
 
 class Loadout(commands.Cog):
@@ -15,7 +24,17 @@ class Loadout(commands.Cog):
         """Initialize the Loadout Cog."""
         self.client = client
 
-    def parse_string(self, string: str = None):
+    @commands.group(case_insensitive=True, ignore_extra=True)
+    async def loadout(self, ctx):
+        pass
+
+    @loadout.command()
+    async def test(self, ctx, string = None):
+        print(string)
+        loadout = __class__.parse_string(string)
+        print(loadout)
+
+    def parse_string(self, string):
         """Convert the loadout string into usable data for generation."""
         if string is None:
             raise ValueError("Loadout string not specified.")
@@ -54,3 +73,5 @@ class Loadout(commands.Cog):
                                      loadout["head"]["subs"][3])).fetchone()
             ]
         }
+
+        return {"weapoon": weapon, "headgear": headgear}

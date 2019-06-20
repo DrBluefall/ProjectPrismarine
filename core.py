@@ -9,10 +9,8 @@ from discord.ext import commands, tasks
 with open("config.json", "r") as infile:
     try:
         CONFIG = json.load(infile)
-        _ = CONFIG["token"]
-        _ = CONFIG["owner"]
-        _ = CONFIG["prefix"]
-        _ = CONFIG["dbl_token"]
+        _ = (CONFIG["token"], CONFIG["owner"], CONFIG["dbl_token"],
+             CONFIG["prefix"])
 
     except (KeyError, FileNotFoundError):
         raise EnvironmentError(

@@ -1,14 +1,11 @@
 """Module contaning all loadout-related functionality of the bot."""
 import logging
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
-
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select, and_
+from pprint import pprint
 import discord
 from discord.ext import commands
 
 from bin import decoder
-from bin import create_asset_db
-
-AssetDB = create_asset_db.AssetDB
 
 
 def setup(client):
@@ -24,54 +21,26 @@ class Loadout(commands.Cog):
         """Initialize the Loadout Cog."""
         self.client = client
 
+        asset_db = create_engine("sqlite:///assets/assets.db")
+        self.asset_metadata = MetaData()
+        self.asset_metadata.reflect(asset_db)
+        main_db = create_engine("sqlite:///ProjectPrismarine.db")
+        self.main_metadata = MetaData()
+        self.main_metadata.reflect(main_db)
+
+        self.ac = asset_db.connect()
+        self.mc = main_db.connect()
+
     @commands.group(case_insensitive=True, ignore_extra=True)
     async def loadout(self, ctx):
         pass
 
-    @loadout.command()
-    async def test(self, ctx, string = None):
-        print(string)
-        loadout = __class__.parse_string(string)
-        print(loadout)
-
     def parse_string(self, string):
         """Convert the loadout string into usable data for generation."""
-        if string is None:
-            raise ValueError("Loadout string not specified.")
+        return decoder.decode(string)
 
-        loadout = decoder.decode(string)
+    def get_row(self, table, id, weapon_id=None):
+        if weapon_id is None:
+            return self.ac.execute(select([table]).where(table.ac.id == id)).fetchone()
 
-        weapon = AssetDB.c.execute(
-            select([AssetDB.weapons_table]).where(
-                AssetDB.weapons_table.c.class_id == loadout["set"]
-                and AssetDB.weapons_table.c.loadout_ink_id == loadout["weapon"]
-            )).fetchone()
-
-        headgear = {
-            "gear":
-            AssetDB.c.execute(
-                select([AssetDB.headgear_table
-                        ]).where(AssetDB.headgear_table.c.id == loadout["head"]
-                                 ["gear"])).fetchone(),
-            "main":
-            AssetDB.c.execute(
-                select([AssetDB.abilities_table
-                        ]).where(AssetDB.abilities_table.c.id ==
-                                 loadout["head"]["main"])).fetchone(),
-            "subs": [
-                AssetDB.c.execute(
-                    select([AssetDB.abilities_table
-                            ]).where(AssetDB.abilities_table.c.id ==
-                                     loadout["head"]["subs"][1])).fetchone(),
-                AssetDB.c.execute(
-                    select([AssetDB.abilities_table
-                            ]).where(AssetDB.abilities_table.c.id ==
-                                     loadout["head"]["subs"][2])).fetchone(),
-                AssetDB.c.execute(
-                    select([AssetDB.abilities_table
-                            ]).where(AssetDB.abilities_table.c.id ==
-                                     loadout["head"]["subs"][3])).fetchone()
-            ]
-        }
-
-        return {"weapoon": weapon, "headgear": headgear}
+        return self.ac.execute(select([table]).where(and_(table.ac.class_id == id, table.ac.loadout_ink_id == weapon_id))).fetchone()

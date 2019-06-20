@@ -192,6 +192,18 @@ class Profiler(commands.Cog, SQLEngine):
         else:
             await __class__.no_profile(ctx)
 
+    @profile.command()
+    async def loadout(self, ctx, string: str = None):
+        """Update a person's loadout with a loadout.ink link."""
+        if __class__.check_profile_exists(ctx.message.author.id):
+            if string is not None and len(string) == 58:
+                Record.loadout_string_entry(ctx, string[33:])
+                message = "Loadout updated!"
+            else:
+                message = "Command failed - Loadout link is invalid."
+            await ctx.send(message)
+        else:
+            await __class__.no_profile(ctx)
 
 class Record(Profiler):
     """Holds the staticmethods that record profile options into the database."""
@@ -255,6 +267,13 @@ class Record(Profiler):
                 message = f"{key} rank updated!"
             return True, message
         return False, None
+
+    @classmethod
+    def loadout_string_entry(cls, ctx, string: str = None):
+        """Record a user's loadout.ink string into the database."""
+        loadout_string = (cls.table.update(None).where(cls.table.c.user_id == ctx.message.author.id).values(loadout_string = string))
+        cls.c.execute(loadout_string)
+
 
 
 def get_modes():

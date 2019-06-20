@@ -33,6 +33,7 @@ class Loadout(commands.Cog):
 
     @commands.group(case_insensitive=True, ignore_extra=True)
     async def loadout(self, ctx):
+        """Loadout cog. Handles all loadout-related functionality in the bot."""
         pass
 
     def parse_string(self, string):
@@ -44,3 +45,6 @@ class Loadout(commands.Cog):
             return self.ac.execute(select([table]).where(table.ac.id == id)).fetchone()
 
         return self.ac.execute(select([table]).where(and_(table.ac.class_id == id, table.ac.loadout_ink_id == weapon_id))).fetchone()
+
+    def generate_loadout_image(self):
+        pass

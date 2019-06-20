@@ -1,4 +1,15 @@
-"""Run a script from inside of bin, without needing to install the package."""
+"""
+Run a script from inside of bin, without needing to install the package.
+
+Usage:
+    `python(v) run_bin.py mymodule myfolder.mymodule`
+
+    You import a module by passing in an argument of the filepath
+    (from inside of bin). It supports multiple file imports
+    and from within subfolders. The path is inside of bin, so the
+    argv "mymodule" will be imported at "bin/mymodule".
+
+"""
 import sys
 import importlib
 

@@ -6,6 +6,12 @@ from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 
 
+def setup(client):
+    """Add the module to the bot."""
+    client.add_cog(Profiler(client))
+    logging.info("%s Module Online.", Profiler.__name__)
+
+
 class SQLEngine:
     """Class containing the SQLEngine."""
 
@@ -244,17 +250,11 @@ class Record(Profiler):
 
             if changed_rank is not None:
                 eval(  # pylint: disable=eval-used
-                    "cls.c.execute((cls.table.update(None).where(cls.table.c.user_id==ctx.message.author.id).values({}=changed_rank)))"
-                    .format(value["aliases"][-1]))
+                    "{0}.c.execute(({0}.table.update(None).where({0}.table.c.user_id==ctx.message.author.id).values({1}=changed_rank)))"
+                    .format(cls.__name__, value["aliases"][-1]))
                 message = f"{key} rank updated!"
             return True, message
         return False, None
-
-
-def setup(client):
-    """Add the module to the bot."""
-    client.add_cog(Profiler(client))
-    logging.info("%s Module Online.", Profiler.__name__)
 
 
 def get_modes():

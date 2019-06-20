@@ -74,7 +74,7 @@ class AssetDB:
         print("\nInserting: 'clothing'...")
         for item in clothing:
             print(f"\tInserting: '{item['name']}'...")
-            ins = self.clothing_table.insert(None).values(id=item["splatnet"],
+            ins = self.clothing_table.insert(None).values(id=item["id"],
                 name=item["name"],
                 image="assets/img/clothing/"+item["image"][34:],
                 ablilty=item["main"],
@@ -84,7 +84,7 @@ class AssetDB:
         print("\nInserting: 'headgear'...")
         for item in headgear:
             print(f"\tInserting: '{item['name']}'...")
-            ins = self.headgear_table.insert(None).values(id=item["splatnet"],
+            ins = self.headgear_table.insert(None).values(id=item["id"],
                 name=item["name"],
                 image="assets/img/headgear/"+item["image"][31:],
                 ablilty=item["main"],
@@ -94,7 +94,7 @@ class AssetDB:
         print("\nInserting: 'shoes'...")
         for item in shoes:
             print(f"\tInserting: '{item['name']}'...")
-            ins = self.shoes_table.insert(None).values(id=item["splatnet"],
+            ins = self.shoes_table.insert(None).values(id=item["id"],
                 name=item["name"],
                 image="assets/img/shoes/"+item["image"][32:],
                 ablilty=item["main"],

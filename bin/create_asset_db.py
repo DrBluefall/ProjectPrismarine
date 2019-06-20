@@ -63,81 +63,78 @@ class AssetDB:
 
     def insert_assets(self):
         """Insert weapons, subs, specials, and abilities into the asset database."""
+        print("\nInserting: 'abilities'...")
         for ability in abilities:
+            print(f"\tInserting: {ability['name']}...")
             ins = self.abilities_table.insert(None).values(id=ability["id"],
                 name=ability["name"],
                 image="assets/img/abilities/"+ability["image"][28:])
-
             self.c.execute(ins)
-            print(f"Inserted: {ability['name']}")
 
+        print("\nInserting: 'clothing'...")
         for item in clothing:
+            print(f"\tInserting: '{item['name']}'...")
             ins = self.clothing_table.insert(None).values(id=item["splatnet"],
                 name=item["name"],
                 image="assets/img/clothing/"+item["image"][34:],
                 ablilty=item["main"],
                 brand=item["brand"])
-
             self.c.execute(ins)
-            print(f"Inserted: '{item['name']}'")
 
+        print("\nInserting: 'headgear'...")
         for item in headgear:
+            print(f"\tInserting: '{item['name']}'...")
             ins = self.headgear_table.insert(None).values(id=item["splatnet"],
                 name=item["name"],
                 image="assets/img/headgear/"+item["image"][31:],
                 ablilty=item["main"],
                 brand=item["brand"])
-
             self.c.execute(ins)
-            print(f"Inserted: '{item['name']}'")
 
+        print("\nInserting: 'shoes'...")
         for item in shoes:
+            print(f"\tInserting: '{item['name']}'...")
             ins = self.shoes_table.insert(None).values(id=item["splatnet"],
                 name=item["name"],
                 image="assets/img/shoes/"+item["image"][32:],
                 ablilty=item["main"],
                 brand=item["brand"])
-
             self.c.execute(ins)
-            print(f"Inserted: '{item['name']}'")
 
+        print("\nInserting: 'specials'...")
         for special in specials:
+            print(f"\tInserting: {special['name']}...")
             ins = self.specials_table.insert(None).values(
                 name=special["name"],
                 image="assets/img/specials/"+special["image"][28:])
-
             self.c.execute(ins)
-            print(f"Inserted: {special['name']}")
 
+        print("\nInserting: 'subs'...")
         for sub in subs:
+            print(f"\tInserting: {sub['name']}...")
             ins = self.subs_table.insert(None).values(
                 name=sub["name"],
                 image="assets/img/subs/"+sub["image"][28:],
                 cost=sub["cost"])
-
             self.c.execute(ins)
-            print(f"Inserted: {sub['name']}")
 
+        print("\nInserting: 'weapons'...")
         for weapon_class in weapons:
-            for key in weapon_class:
-                if key != "weapons":
-                    continue
-
-                for weapon in weapon_class["weapons"]:
-                    ins = self.weapons_table.insert(None).values(
-                        name=weapon["name"],
-                        image="assets/img/weapons/"+weapon["image"][29:],
-                        loadout_ink_id=weapon["id"],
-                        weapon_class=weapon["class"],
-                        class_id=weapon_class["id"],
-                        sub=weapon["sub"],
-                        special=weapon["special"],
-                        special_cost=weapon["specialCost"],
-                        level=weapon["level"],
-                        cost=weapon["price"])
-
-                    self.c.execute(ins)
-                    print(f"Inserted: '{weapon['name']}'")
+            print(f"\tInserting: {weapon_class['type']}...")
+            for weapon in weapon_class["weapons"]:
+                print(f"\t\tInserting: '{weapon['name']}'...")
+                ins = self.weapons_table.insert(None).values(
+                    name=weapon["name"],
+                    image="assets/img/weapons/"+weapon["image"][29:],
+                    loadout_ink_id=weapon["id"],
+                    weapon_class=weapon["class"],
+                    class_id=weapon_class["id"],
+                    sub=weapon["sub"],
+                    special=weapon["special"],
+                    special_cost=weapon["specialCost"],
+                    level=weapon["level"],
+                    cost=weapon["price"])
+                self.c.execute(ins)
 
 def main():
     """Create and insert assets into the DATABASE."""

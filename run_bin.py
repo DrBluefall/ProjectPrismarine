@@ -2,12 +2,11 @@
 Run a script from inside of bin, without needing to install the package.
 
 Usage:
-    `python(v) run_bin.py mymodule myfolder.mymodule`
+    `python(v) run_bin.py mymodule`
 
-    You import a module by passing in an argument of the filepath
-    (from inside of bin). It supports multiple file imports
-    and from within subfolders. The path is inside of bin, so the
-    argv "mymodule" will be imported at "bin/mymodule".
+    - You import a module by passing in an argument of the filepath (from inside of bin).
+    - It supports file imports and from within subfolders.
+    - The path is inside of bin, so the argv "mymodule" will be imported at "bin/mymodule".
 
 """
 import sys
@@ -16,11 +15,14 @@ import importlib
 
 def main():
     """Run the script inside of bin."""
-    for arg in sys.argv[1:]:
-        bin_module = importlib.import_module("bin." + arg)
+    try:
+        bin_module = importlib.import_module("bin." + sys.argv[1])
+    except TypeError:
+        raise AttributeError("You did not specify the module.")
 
+    print("Type the function you want to run.")
     while True:
-        function = input("Evaluate which function from the module: ")
+        function = input('> ')
         print(eval("bin_module." + function))
 
 

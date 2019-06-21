@@ -125,7 +125,7 @@ async def credits(ctx):
     :military_medal: <@196470965402730507> - For reviewing Project Prismarine's code and general assistance in my code endeavors, and a really interesting person to talk with in general, whether the topic be programming or otherwise.
     :military_medal: <@323922433654390784> - For aiding me in fixing several commands and showing me just how much of a newbie I am at Python.
 
-    :military_medal: <@571494333090496514> - For his massive assistance in improving the backend of Project Prismarine, as well as the endless refactoring of my bodged code, and seeing solutions to issues I genuinelyy would have never thought of to implement myself.
+    :military_medal: <@571494333090496514> - For his massive assistance in improving the backend of Project Prismarine, as well as the endless refactoring of my bodged code, and seeing solutions to issues I genuinely would have never thought of to implement myself.
 
     To all of these people, I only have one thing to say:
     Thank you.

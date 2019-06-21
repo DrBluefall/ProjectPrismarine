@@ -1,4 +1,4 @@
-"""Module contaning all loadout-related functionality of the bot."""
+"""Script to make dealing with loadouts in cogs easier."""
 from sqlalchemy import create_engine, MetaData, select, and_
 from . import decoder
 
@@ -13,7 +13,7 @@ class Loadout:
                 'meta': MetaData()
             },
             'main': {
-                'db': create_engine("sqlite://ProjectPrismarine.db"),
+                'db': create_engine("sqlite:///ProjectPrismarine.db"),
                 'meta': MetaData()
             }
         }
@@ -22,10 +22,6 @@ class Loadout:
 
         self.dbs['assets']['connect'] = self.dbs['assets']['db'].connect()
         self.dbs['main']['connect'] = self.dbs['main']['db'].connect()
-
-    async def loadout(self, string):
-        """Loadout cog. Handles all loadout-related functionality in the bot."""
-        string = decoder.decode(string)
 
     def get_row(self, table, id, weapon_id=None):
         """Return row in database given table and the id."""

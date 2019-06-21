@@ -17,7 +17,7 @@ def main():
     """Run the script inside of bin."""
     try:
         bin_module = importlib.import_module("bin." + sys.argv[1])
-    except TypeError:
+    except (TypeError, IndexError):
         raise AttributeError("You did not specify the module.")
 
     print("Type the function you want to run.")

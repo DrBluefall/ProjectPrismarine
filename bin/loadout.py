@@ -7,6 +7,7 @@ class Loadout:
     """Module containing all loadout-related functionality of the bot."""
 
     def __init__(self):
+        """Initialize the class."""
         self.dbs = {
             'assets': {
                 'db': create_engine("sqlite:///assets/assets.db"),
@@ -35,5 +36,6 @@ class Loadout:
                 and_(table.asset_c.class_id == id,
                      table.asset_c.loadout_ink_id == weapon_id))).fetchone()
 
-    def generate_loadout_image(self):
+    def generate_loadout_image(self, loadout):
+        """Generate an image from provided loadout data."""
         pass

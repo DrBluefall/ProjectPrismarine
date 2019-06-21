@@ -201,9 +201,11 @@ class Profiler(commands.Cog, SQLEngine):
                 message = "Loadout updated!"
             else:
                 message = "Command failed - Loadout link is invalid."
+
             await ctx.send(message)
         else:
             await __class__.no_profile(ctx)
+
 
 class Record(Profiler):
     """Holds the staticmethods that record profile options into the database."""
@@ -271,9 +273,10 @@ class Record(Profiler):
     @classmethod
     def loadout_string_entry(cls, ctx, string: str = None):
         """Record a user's loadout.ink string into the database."""
-        loadout_string = (cls.table.update(None).where(cls.table.c.user_id == ctx.message.author.id).values(loadout_string = string))
+        loadout_string = (cls.table.update(None).where(
+            cls.table.c.user_id == ctx.message.author.id).values(
+                loadout_string=string))
         cls.c.execute(loadout_string)
-
 
 
 def get_modes():

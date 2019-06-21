@@ -2,9 +2,6 @@
 import logging
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select, and_
 from pprint import pprint
-import discord
-from discord.ext import commands
-
 from bin import decoder
 
 
@@ -14,7 +11,7 @@ def setup(client):
     logging.info("%s Module Online.", Loadout.__name__)
 
 
-class Loadout(commands.Cog):
+class Loadout:
     """Module containing all loadout-related functionality of the bot."""
 
     def __init__(self, client):
@@ -31,8 +28,7 @@ class Loadout(commands.Cog):
         self.ac = asset_db.connect()
         self.mc = main_db.connect()
 
-    @commands.group(case_insensitive=True, ignore_extra=True)
-    async def loadout(self, ctx):
+    async def loadout(self):
         """Loadout cog. Handles all loadout-related functionality in the bot."""
         pass
 
@@ -42,9 +38,13 @@ class Loadout(commands.Cog):
 
     def get_row(self, table, id, weapon_id=None):
         if weapon_id is None:
-            return self.ac.execute(select([table]).where(table.ac.id == id)).fetchone()
+            return self.ac.execute(select(
+                [table]).where(table.ac.id == id)).fetchone()
 
-        return self.ac.execute(select([table]).where(and_(table.ac.class_id == id, table.ac.loadout_ink_id == weapon_id))).fetchone()
+        return self.ac.execute(
+            select([table]).where(
+                and_(table.ac.class_id == id,
+                     table.ac.loadout_ink_id == weapon_id))).fetchone()
 
     def generate_loadout_image(self):
         pass

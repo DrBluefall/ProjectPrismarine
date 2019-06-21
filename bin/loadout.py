@@ -1,22 +1,12 @@
 """Module contaning all loadout-related functionality of the bot."""
-import logging
 from sqlalchemy import create_engine, MetaData, select, and_
-from bin import decoder
-
-
-def setup(client):
-    """Add the module to the bot."""
-    client.add_cog(Loadout(client))
-    logging.info("%s Module Online.", Loadout.__name__)
+from . import decoder
 
 
 class Loadout:
     """Module containing all loadout-related functionality of the bot."""
 
-    def __init__(self, client):
-        """Initialize the Loadout Cog."""
-        self.client = client
-
+    def __init__(self):
         self.dbs = {
             'assets': {
                 'db': create_engine("sqlite:///assets/assets.db"),

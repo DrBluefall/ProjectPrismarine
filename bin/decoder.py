@@ -47,21 +47,6 @@ c8000 => 11001 00000 00000 00000
 """
 
 
-def decode_gear(code):
-    """Convert a gear code into a dictionary."""
-    id = int(code[0:2], 16)
-    raw_abilities = code[2:8]
-    bin_abilities = hex_to_binary(raw_abilities)["result"]
-    main = int(bin_abilities[0:5], 2)
-    subs = []
-    i = 5
-    while i < len(bin_abilities):
-        subs.append(int(bin_abilities[i:i + 5], 2))
-        i += 5
-
-    return {"gear": id, "main": main, "subs": subs}
-
-
 def decode(code):
     """
     Convert a loadout.ink code into a dictionary.
@@ -103,6 +88,30 @@ def decode(code):
         "clothing": clothing,
         "shoes": shoes
     }
+
+
+def decode_gear(code):
+    """
+    Convert a gear code into a dictionary.
+
+    Returns:
+        {
+            "gear": The gear id
+            "main": The main ability
+            "subs": [The, 3, subs]
+        }
+    """
+    id = int(code[0:2], 16)
+    raw_abilities = code[2:8]
+    bin_abilities = hex_to_binary(raw_abilities)["result"]
+    main = int(bin_abilities[0:5], 2)
+    subs = []
+    i = 5
+    while i < len(bin_abilities):
+        subs.append(int(bin_abilities[i:i + 5], 2))
+        i += 5
+
+    return {"gear": id, "main": main, "subs": subs}
 
 
 def hex_to_binary(s):

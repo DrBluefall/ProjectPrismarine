@@ -1,7 +1,6 @@
 """Module contaning all loadout-related functionality of the bot."""
 import logging
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select, and_
-from pprint import pprint
+from sqlalchemy import create_engine, MetaData, select, and_
 from bin import decoder
 
 
@@ -18,33 +17,37 @@ class Loadout:
         """Initialize the Loadout Cog."""
         self.client = client
 
-        asset_db = create_engine("sqlite:///assets/assets.db")
-        self.asset_metadata = MetaData()
-        self.asset_metadata.reflect(asset_db)
-        main_db = create_engine("sqlite:///ProjectPrismarine.db")
-        self.main_metadata = MetaData()
-        self.main_metadata.reflect(main_db)
+        self.dbs = {
+            'assets': {
+                'db': create_engine("sqlite:///assets/assets.db"),
+                'meta': MetaData()
+            },
+            'main': {
+                'db': create_engine("sqlite://ProjectPrismarine.db"),
+                'meta': MetaData()
+            }
+        }
+        self.dbs['assets']['meta'].reflect(self.dbs['assets']['db'])
+        self.dbs['main']['meta'].reflect(self.dbs['main']['db'])
 
-        self.ac = asset_db.connect()
-        self.mc = main_db.connect()
+        self.dbs['assets']['connect'] = self.dbs['assets']['db'].connect()
+        self.dbs['main']['connect'] = self.dbs['main']['db'].connect()
 
-    async def loadout(self):
+    async def loadout(self, string):
         """Loadout cog. Handles all loadout-related functionality in the bot."""
-        pass
-
-    def parse_string(self, string):
-        """Convert the loadout string into usable data for generation."""
-        return decoder.decode(string)
+        string = decoder.decode(string)
 
     def get_row(self, table, id, weapon_id=None):
+        """Return row in database given table and the id."""
+        asset_c = self.dbs['assets']['connect']
         if weapon_id is None:
-            return self.ac.execute(select(
-                [table]).where(table.ac.id == id)).fetchone()
+            return asset_c.execute(
+                select([table]).where(table.asset_c.id == id)).fetchone()
 
-        return self.ac.execute(
+        return asset_c.execute(
             select([table]).where(
-                and_(table.ac.class_id == id,
-                     table.ac.loadout_ink_id == weapon_id))).fetchone()
+                and_(table.asset_c.class_id == id,
+                     table.asset_c.loadout_ink_id == weapon_id))).fetchone()
 
     def generate_loadout_image(self):
         pass

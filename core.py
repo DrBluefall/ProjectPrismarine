@@ -29,18 +29,15 @@ STATUS = cycle([
     "with an atomic bo-I MEAN TOYS! Toys. Yeah. That's a thing bots do, right?",
 ])
 
-class PrefixHandler:
-    """Class handling the prefix for the bot."""
-
-    db = create_engine("sqlite:///ProjectPrismarine.db")
-    metadata = MetaData(db)
-    metadata.reflect()
-    c = db.connect()
+db = create_engine("sqlite:///ProjectPrismarine.db")
+metadata = MetaData(db)
+metadata.reflect()
+c = db.connect()
 
 def prefix(client, message):
     """Retrieve a guild's prefix."""
-    raw_prefix_data = PrefixHandler.c.execute(
-        select([PrefixHandler.metadata.tables["prefix"]])
+    raw_prefix_data = c.execute(
+        select([metadata.tables["prefix"]])
     ).fetchall()
     prefix_dict = {}
     for server in raw_prefix_data:

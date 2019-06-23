@@ -63,7 +63,7 @@ class ServerConfig(commands.Cog):
     async def reset_prefix(self, ctx):
         """Reset the bot's prefix within the server."""
         def check(m):
-            return True
+            return m.author == ctx.message.author
         prefix = self.c.execute(
             select([self.prefix_table])\
             .where(self.prefix_table.c.server_id == ctx.message.guild.id)

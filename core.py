@@ -71,10 +71,24 @@ async def on_ready():
     if task_starter == 0:
         stat_change.start()
         task_starter += 1
-    logging.info("Log successfuly launched. Project Prismarine is online.")
+    logging.info("Project Prismarine is online.")
 
 
 # --- Bot Commands
+
+
+
+@CLIENT.command()
+async def prefix(ctx):
+    """Get a server's prefix."""
+    prefix = c.execute(
+        select([metadata.tables["prefix"]])\
+        .where(metadata.tables["prefix"].c.server_id == ctx.message.guild.id)
+    ).fetchone()
+    if prefix is not None:
+        await ctx.send(f"Your prefix is `{prefix[1]}`")
+    else:
+        await ctx.send(f"Your prefix is `{CONFIG['prefix']}`")
 
 
 @commands.is_owner()

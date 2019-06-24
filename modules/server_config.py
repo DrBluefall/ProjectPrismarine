@@ -1,34 +1,54 @@
 """Module contining all server configurations for the bot (i.e. custom prefixes)."""
 import logging
 import json
-import discord
 from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 
-with open("config.json", "r") as infile:
-    CONFIG = json.load(infile)
+
+class DBcManager:
+
+    db = create_engine("sqlite:///ProjectPrismarine.db")
+    metadata = MetaData(db)
+    prefix_table = Table("prefix", metadata,
+                         Column("server_id", Integer, primary_key=True),
+                         Column("prefix", String))
+
+    metadata.create_all()
+    c = db.connect()
+
+    @classmethod
+    def get_server_prefix(cls, ctx):
+        return cls.c.execute(
+            select([cls.prefix_table]).where(cls.prefix_table.c.server_id ==
+                                             ctx.message.guild.id)).fetchone()
+
+    @classmethod
+    def insert_server_prefix(cls, ctx, prefix):
+        return cls.c.execute(
+            cls.prefix_table.insert(None).values(
+                server_id=ctx.message.guild.id, prefix=prefix))
+
+    @classmethod
+    def update_server_prefix(cls, ctx, prefix):
+        return cls.c.execute(
+            cls.prefix_table.update(None).where(
+                cls.prefix_table.c.server_id == ctx.message.guild.id).values(
+                    prefix=prefix))
+
+    @classmethod
+    def delete_server_prefix(cls, ctx):
+        return cls.c.execute(
+            cls.prefix_table.delete(None).where(
+                cls.prefix_table.c.server_id == ctx.message.guild.id))
 
 
-def setup(client):
-    """Add the module to the bot."""
-    client.add_cog(ServerConfig(client))
-    logging.info("%s Module Online.", ServerConfig.__name__)
-
-
-class ServerConfig(commands.Cog):
+class ServerConfig(commands.Cog, DBcManager):
     """Module conatining all server-configuraton related functionality of the bot."""
 
     def __init__(self, client):
         """Initialize the class."""
+        super().__init__()
         self.client = client
-        self.db = create_engine("sqlite:///ProjectPrismarine.db")
-        self.metadata = MetaData(self.db)
-        self.prefix_table = Table(
-            "prefix", self.metadata,
-            Column("server_id", Integer, primary_key=True),
-            Column("prefix", String))
-        self.metadata.create_all()
-        self.c = self.db.connect()
 
     @commands.has_permissions(administrator=True)
     @commands.group(case_insensitive=True)
@@ -42,15 +62,10 @@ class ServerConfig(commands.Cog):
             await ctx.send("Command failed - No prefix specified.")
 
         if self.get_server_prefix(ctx) is None:
-            self.c.execute(
-                self.prefix_table.insert(None).values(
-                    server_id=ctx.message.guild.id, prefix=prefix))
+            self.insert_server_prefix(ctx, prefix)
             await ctx.send(f"Your prefix has been set to `{prefix}`.")
         else:
-            self.c.execute(
-                self.prefix_table.update(None).where(
-                    self.prefix_table.c.server_id ==
-                    ctx.message.guild.id).values(prefix=prefix))
+            self.update_server_prefix(ctx, prefix)
             await ctx.send(f"Your prefix has been set to `{prefix}`.")
 
     @config.command()
@@ -59,14 +74,12 @@ class ServerConfig(commands.Cog):
         prefix = self.get_server_prefix(ctx)
         if prefix is not None:
             await ctx.send(
-                f"Your current prefix is: `{prefix[1]}`. \n \n Are you sure you wish to reset the bot's prefix to `{CONFIG['prefix']}`? (Y/N)"
+                f"Your current prefix is: `{prefix[1]}`.\n\nAre you sure you wish to reset the bot's prefix to `{CONFIG['prefix']}`? (Y/N)"
             )
             confirm = await self.client.wait_for(
                 "message", check=lambda m: m.author == ctx.message.author)
             if confirm.content.lower() == "y":
-                self.c.execute(
-                    self.prefix_table.delete(None).where(
-                        self.prefix_table.c.server_id == ctx.message.guild.id))
+                self.delete_server_prefix(ctx)
                 await ctx.send("Understood. Your prefix has been reset.")
             else:
                 await ctx.send("Understood. Aborting reset.")
@@ -74,8 +87,12 @@ class ServerConfig(commands.Cog):
             await ctx.send("Command failed - prefix is already set to default."
                            )
 
-    def get_server_prefix(self, ctx):
-        return self.c.execute(
-            select([self.prefix_table
-                    ]).where(self.prefix_table.c.server_id ==
-                             ctx.message.guild.id)).fetchone()
+
+with open("config.json", "r") as infile:
+    CONFIG = json.load(infile)
+
+
+def setup(client):
+    """Add the module to the bot."""
+    client.add_cog(ServerConfig(client))
+    logging.info("%s Module Online.", ServerConfig.__name__)

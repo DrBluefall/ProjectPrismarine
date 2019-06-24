@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timedelta
 import requests
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 
 def setup(client):
@@ -17,6 +17,44 @@ def setup(client):
 class Splatnet(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.data_retreval.start()
+        self.data = create_json_data(requests.get(
+                        "https://splatoon2.ink/data/schedules.json",
+                        headers={
+                            'User-Agent': 'Project Prismarine#6634'
+                        }).json(),
+                        requests.get(
+                    "https://splatoon2.ink/data/coop-schedules.json",
+                    headers={
+                            'User-Agent': 'Project Prismarine#6634'
+                        }).json()
+                        )
+
+    @tasks.loop(minutes=30)
+    async def data_retreval(self):
+        await self.client.wait_until_ready()
+        while True:
+            await asyncio.sleep(60)
+            if datetime.now().minute == 1:
+                logging.info("Retrieving data from Splatoon2.ink...")
+                schedule = requests.get(
+                        "https://splatoon2.ink/data/schedules.json",
+                        headers={
+                            'User-Agent': 'Project Prismarine#6634'
+                        }).json()
+
+                grizzco_schedule = requests.get(
+                    "https://splatoon2.ink/data/coop-schedules.json",
+                    headers={
+                            'User-Agent': 'Project Prismarine#6634'
+                        }).json()
+
+                # splatnet = requests.get(
+                #     "https://splatoon2.ink/data/merchandises.json").json()
+                schedule.raise_for_status()
+                grizzco_schedule.raise_for_status()
+
+                self.data = create_json_data(schedule, grizzco_schedule)
 
     @commands.group(case_insensitive=True)
     async def s2(self, ctx):
@@ -25,29 +63,13 @@ class Splatnet(commands.Cog):
             return
 
         async with ctx.typing():
-            schedule = requests.get(
-                "https://splatoon2.ink/data/schedules.json",
-                headers={
-                    'User-Agent': 'Project Prismarine#6634'
-                }).json()
 
-            grizzco_schedule = requests.get(
-                "https://splatoon2.ink/data/coop-schedules.json",
-                headers={
-                    'User-Agent': 'Project Prismarine#6634'
-                }).json()
+            await ctx.send(embed=SplatnetEmbeds.regular(self.data["regular"]))
+            await ctx.send(embed=SplatnetEmbeds.ranked(self.data["ranked"]))
+            await ctx.send(embed=SplatnetEmbeds.league(self.data["league"]))
 
-            # splatnet = requests.get(
-            #     "https://splatoon2.ink/data/merchandises.json").json()
-
-            data = create_json_data(schedule, grizzco_schedule)
-
-            await ctx.send(embed=SplatnetEmbeds.regular(data["regular"]))
-            await ctx.send(embed=SplatnetEmbeds.ranked(data["ranked"]))
-            await ctx.send(embed=SplatnetEmbeds.league(data["league"]))
-
-            if time.time() >= data["grizzco"]["time"]["start"]:
-                await ctx.send(embed=SplatnetEmbeds.league(data["salmon"]))
+            if datetime.now() > self.data["grizzco"]["time"]["start"]:
+                await ctx.send(embed=SplatnetEmbeds.salmon(self.data["grizzco"]))
 
 
 class SplatnetEmbeds:
@@ -55,7 +77,7 @@ class SplatnetEmbeds:
     def regular(data):
         embed = discord.Embed(
             title=
-            f'Current Turf War Rotation: {data["time"]["start"]} - {data["time"]["end"]}',
+            f'Current Turf War Rotation: {data["time"]["start"].ctime()} - {data["time"]["end"].ctime()}',
             color=discord.Color.from_rgb(199, 207, 32))
         embed.set_thumbnail(
             url=
@@ -64,14 +86,14 @@ class SplatnetEmbeds:
         embed.add_field(name="Map Set:",
                         value=f'{data["maps"][0]}, {data["maps"][1]}')
         embed.add_field(name="Time Left:",
-                        value=f'{data["time"]["remaining"]}')
+                        value=f'{data["time"]["end"] - datetime.now()}')
         return embed
 
     @staticmethod
     def ranked(data):
         embed = discord.Embed(
             title=
-            f'Current Ranked Battle Rotation: {data["time"]["start"]} - {data["time"]["end"]}',
+            f'Current Ranked Battle Rotation: {data["time"]["start"].ctime()} - {data["time"]["end"].ctime()}',
             color=discord.Color.from_rgb(243, 48, 0))
         embed.set_thumbnail(
             url=
@@ -80,28 +102,28 @@ class SplatnetEmbeds:
         embed.add_field(name="Current Mode:", value=data["mode"])
         embed.add_field(
             name="Map Set:",
-            value=f'{data["maps"][0]}, {data["ranked"]["maps"][1]}')
+            value=f'{data["maps"][0]}, {data["maps"][1]}')
         embed.add_field(name="Time Left:",
-                        value=f'{data["time"]["remaining"]}')
+                        value=f'{data["time"]["end"] - datetime.now()}')
         return embed
 
     @staticmethod
     def league(data):
         embed = discord.Embed(
             title=
-            f'Current League Rotation: {data["league"]["time"]["start"]} - {data["league"]["time"]["end"]}',
+            f'Current League Rotation: {data["time"]["start"].ctime()} - {data["time"]["end"].ctime()}',
             color=discord.Color.from_rgb(234, 0, 107))
         embed.set_thumbnail(
             url=
             "https://cdn.wikimg.net/en/splatoonwiki/images/9/9b/Symbol_LeagueF.png"
         )
         embed.add_field(name="Current Mode:",
-                        value=f'{data["league"]["mode"]}')
+                        value=f'{data["mode"]}')
         embed.add_field(
             name="Map Set:",
-            value=f'{data["league"]["maps"][0]}, {data["league"]["maps"][1]}')
+            value=f'{data["maps"][0]}, {data["maps"][1]}')
         embed.add_field(name="Time Left:",
-                        value=f'{data["league"]["time"]["remaining"]}')
+                        value=f'{data["time"]["end"] - datetime.now()}')
         return embed
 
     @staticmethod
@@ -116,14 +138,14 @@ class SplatnetEmbeds:
         embed.add_field(
             name="Current Recruitment Drive Time Window:",
             value=
-            f'From {data["grizzco"]["time"]["start"]}, to {data["grizzco"]["time"]["end"]}'
+            f'From {data["time"]["start"].ctime()}, to {data["time"]["end"].ctime()}'
         )
         embed.add_field(name="Current Location:",
-                        value=f'{data["grizzco"]["map"]}')
+                        value=f'{data["map"]}')
         embed.add_field(
             name="Available Weapon Pool:",
             value=
-            f'{data["grizzco"]["weapons"][0]}, {data["grizzco"]["weapons"][1]}, {data["grizzco"]["weapons"][2]}, and {data["grizzco"]["weapons"][3]}'
+            f'{data["weapons"][0]}, {data["weapons"][1]}, {data["weapons"][2]}, and {data["weapons"][3]}'
         )
         return embed
 
@@ -140,13 +162,10 @@ def create_json_data(schedule, grizzco_schedule):
             "time": {
                 "start":
                 datetime.fromtimestamp(
-                    schedule["regular"][0]["start_time"]).ctime(),
+                    schedule["regular"][0]["start_time"]),
                 "end":
                 datetime.fromtimestamp(
-                    schedule["regular"][0]["end_time"]).ctime(),
-                "remaining":
-                datetime.fromtimestamp(schedule["regular"][0]["end_time"]) -
-                datetime.fromtimestamp(schedule["regular"][0]["start_time"])
+                    schedule["regular"][0]["end_time"])
             }
         },
         "ranked": {
@@ -159,13 +178,10 @@ def create_json_data(schedule, grizzco_schedule):
             "time": {
                 "start":
                 datetime.fromtimestamp(
-                    schedule["gachi"][0]["start_time"]).ctime(),
+                    schedule["gachi"][0]["start_time"]),
                 "end":
                 datetime.fromtimestamp(
-                    schedule["gachi"][0]["end_time"]).ctime(),
-                "remaining":
-                datetime.fromtimestamp(schedule["gachi"][0]["end_time"]) -
-                datetime.now()
+                    schedule["gachi"][0]["end_time"]),
             }
         },
         "league": {
@@ -178,13 +194,10 @@ def create_json_data(schedule, grizzco_schedule):
             "time": {
                 "start":
                 datetime.fromtimestamp(
-                    schedule["league"][0]["start_time"]).ctime(),
+                    schedule["league"][0]["start_time"]),
                 "end":
                 datetime.fromtimestamp(
-                    schedule["league"][0]["end_time"]).ctime(),
-                "remaining":
-                datetime.fromtimestamp(schedule["league"][0]["end_time"]) -
-                datetime.now()
+                    schedule["league"][0]["end_time"]),
             }
         },
         "grizzco": {
@@ -201,14 +214,10 @@ def create_json_data(schedule, grizzco_schedule):
             "time": {
                 "start":
                 datetime.fromtimestamp(
-                    grizzco_schedule["details"][0]["start_time"]).ctime(),
+                    grizzco_schedule["details"][0]["start_time"]),
                 "end":
                 datetime.fromtimestamp(
-                    grizzco_schedule["details"][0]["end_time"]).ctime(),
-                "remaining":
-                datetime.fromtimestamp(
-                    grizzco_schedule["details"][0]["end_time"]) -
-                datetime.now()
+                    grizzco_schedule["details"][0]["end_time"]),
             }
         }
     }

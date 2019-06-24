@@ -59,33 +59,39 @@ class ServerConfig(commands.Cog, DBcManager):
     async def set_prefix(self, ctx, prefix: str = None):
         """Set the bot's prefix within the server. By default, it is 'pr.', and it also responds to being @ mentioned."""
         if prefix is None:
-            await ctx.send("Command failed - No prefix specified.")
+            message = "Command failed - No prefix specified."
 
-        if self.get_server_prefix(ctx) is None:
-            self.insert_server_prefix(ctx, prefix)
-            await ctx.send(f"Your prefix has been set to `{prefix}`.")
         else:
-            self.update_server_prefix(ctx, prefix)
-            await ctx.send(f"Your prefix has been set to `{prefix}`.")
+            if self.get_server_prefix(ctx) is None:
+                self.insert_server_prefix(ctx, prefix)
+            else:
+                self.update_server_prefix(ctx, prefix)
+            message = f"Your prefix has been set to `{prefix}`."
+
+        await ctx.send(message)
 
     @config.command()
     async def reset_prefix(self, ctx):
         """Reset the bot's prefix within the server."""
         prefix = self.get_server_prefix(ctx)
+
         if prefix is not None:
             await ctx.send(
                 f"Your current prefix is: `{prefix[1]}`.\n\nAre you sure you wish to reset the bot's prefix to `{CONFIG['prefix']}`? (Y/N)"
             )
             confirm = await self.client.wait_for(
                 "message", check=lambda m: m.author == ctx.message.author)
+
             if confirm.content.lower() == "y":
                 self.delete_server_prefix(ctx)
-                await ctx.send("Understood. Your prefix has been reset.")
+                message = "Understood. Your prefix has been reset."
             else:
-                await ctx.send("Understood. Aborting reset.")
+                message = "Understood. Aborting reset."
+
         else:
-            await ctx.send("Command failed - prefix is already set to default."
-                           )
+            message = "Command failed - prefix is already set to default."
+
+        await ctx.send(message)
 
 
 with open("config.json", "r") as infile:

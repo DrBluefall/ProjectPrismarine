@@ -38,4 +38,3 @@ class Loadout:
 
     def generate_loadout_image(self, loadout):
         """Generate an image from provided loadout data."""
-        pass

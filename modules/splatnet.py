@@ -6,7 +6,6 @@ import json
 import discord
 from datetime import datetime, timedelta
 from discord.ext import commands
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 
 def setup(client):
     """Add the module to the bot."""
@@ -27,8 +26,6 @@ class Splatnet(commands.Cog):
 
             grizzco_schedule = requests.get("https://splatoon2.ink/data/coop-schedules.json").json()
 
-            splatnet = requests.get("https://splatoon2.ink/data/merchandises.json").json()
-
             turf_map_1 = schedule["regular"][0]['stage_a']['name']
             turf_map_2 = schedule["regular"][0]['stage_b']['name']
             turf_start = datetime.fromtimestamp(schedule["regular"][0]["start_time"]).ctime()
@@ -39,11 +36,13 @@ class Splatnet(commands.Cog):
             ranked_map_2 = schedule["gachi"][0]['stage_b']['name']
             ranked_start = datetime.fromtimestamp(schedule["gachi"][0]["start_time"]).ctime()
             ranked_end = datetime.fromtimestamp(schedule["gachi"][0]["end_time"]).ctime()
+            ranked_time_left = datetime.fromtimestamp(schedule["gachi"][0]["end_time"]) - datetime.fromtimestamp(schedule["gachi"][0]["start_time"])
             league_mode = schedule["league"][0]["rule"]["name"]
             league_map_1 = schedule["league"][0]['stage_a']['name']
             league_map_2 = schedule["league"][0]['stage_b']['name']
             league_start = datetime.fromtimestamp(schedule["league"][0]["start_time"]).ctime()
             league_end = datetime.fromtimestamp(schedule["league"][0]["end_time"]).ctime()
+            league_time_left = datetime.fromtimestamp(schedule["league"][0]["end_time"]) - datetime.fromtimestamp(schedule["league"][0]["start_time"])
             grizzco_map = grizzco_schedule["details"][0]["stage"]["name"]
             grizzco_wep_1 = grizzco_schedule["details"][0]["weapons"][0]["weapon"]["name"]
             grizzco_wep_2 = grizzco_schedule["details"][0]["weapons"][1]["weapon"]["name"]

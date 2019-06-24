@@ -24,13 +24,13 @@ class Splatnet(commands.Cog):
             return
         async with ctx.typing():
             schedule = requests.get(
-                "https://splatoon2.ink/data/schedules.json").json()
+                "https://splatoon2.ink/data/schedules.json", headers={'User-Agent':'Project Prismarine#6634'}).json()
 
             grizzco_schedule = requests.get(
-                "https://splatoon2.ink/data/coop-schedules.json").json()
+                "https://splatoon2.ink/data/coop-schedules.json", headers={'User-Agent':'Project Prismarine#6634'}).json()
 
             splatnet = requests.get(
-                "https://splatoon2.ink/data/merchandises.json").json()
+                "https://splatoon2.ink/data/merchandises.json", headers={'User-Agent':'Project Prismarine#6634'}).json()
 
             data = {
                 "regular": {

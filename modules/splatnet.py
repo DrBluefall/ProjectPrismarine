@@ -1,10 +1,10 @@
 import logging
 import time
-import requests
 import asyncio
 import json
-import discord
 from datetime import datetime, timedelta
+import requests
+import discord
 from discord.ext import commands
 
 
@@ -69,7 +69,8 @@ class Splatnet(commands.Cog):
                         datetime.fromtimestamp(
                             schedule["gachi"][0]["end_time"]).ctime(),
                         "remaining":
-                        None
+                        datetime.fromtimestamp(
+                            schedule["gachi"][0]["end_time"]) - datetime.now()
                     }
                 },
                 "league": {
@@ -87,7 +88,9 @@ class Splatnet(commands.Cog):
                         datetime.fromtimestamp(
                             schedule["league"][0]["end_time"]).ctime(),
                         "remaining":
-                        None
+                        datetime.fromtimestamp(
+                            schedule["league"][0]["end_time"]) -
+                        datetime.now()
                     }
                 },
                 "grizzco": {
@@ -111,7 +114,9 @@ class Splatnet(commands.Cog):
                         datetime.fromtimestamp(grizzco_schedule["details"][0]
                                                ["end_time"]).ctime(),
                         "remaining":
-                        None
+                        datetime.fromtimestamp(
+                            grizzco_schedule["details"][0]["end_time"]) -
+                        datetime.now()
                     }
                 }
             }
@@ -128,6 +133,9 @@ class Splatnet(commands.Cog):
                 url=
                 "https://cdn.wikimg.net/en/splatoonwiki/images/4/4c/Mode_Icon_Regular_Battle_2.png"
             )
+            turf_embed.add_field(
+                name="Time Left:",
+                value=f'{data["regular"]["time"]["remaining"]}')
 
             ranked_embed = discord.Embed(
                 title=
@@ -143,6 +151,9 @@ class Splatnet(commands.Cog):
                 url=
                 "https://cdn.wikimg.net/en/splatoonwiki/images/2/2c/Mode_Icon_Ranked_Battle_2.png"
             )
+            ranked_embed.add_field(
+                name="Time Left:",
+                value=f'{data["ranked"]["time"]["remaining"]}')
 
             league_embed = discord.Embed(
                 title=
@@ -158,6 +169,9 @@ class Splatnet(commands.Cog):
                 url=
                 "https://cdn.wikimg.net/en/splatoonwiki/images/9/9b/Symbol_LeagueF.png"
             )
+            league_embed.add_field(
+                name="Time Left:",
+                value=f'{data["league"]["time"]["remaining"]}')
 
             salmon_embed = discord.Embed(
                 title=f"ADVERTISEMENT: Grizzco Industries is hiring!",

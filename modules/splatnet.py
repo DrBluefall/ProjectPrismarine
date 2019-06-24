@@ -20,8 +20,10 @@ class Splatnet(commands.Cog):
 
     @commands.group(case_insensitive=True)
     async def s2(self, ctx):
+
         if ctx.invoked_subcommand is not None:
             return
+
         async with ctx.typing():
             schedule = requests.get(
                 "https://splatoon2.ink/data/schedules.json").json()

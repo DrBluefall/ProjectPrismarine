@@ -51,8 +51,6 @@ class Splatnet(commands.Cog):
 
                 # splatnet = requests.get(
                 #     "https://splatoon2.ink/data/merchandises.json").json()
-                schedule.raise_for_status()
-                grizzco_schedule.raise_for_status()
 
                 self.data = create_json_data(schedule, grizzco_schedule)
 

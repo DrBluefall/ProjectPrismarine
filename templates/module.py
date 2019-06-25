@@ -30,6 +30,6 @@ class MyModule(commands.Cog):
 
 
 def setup(client):
-    """Add the cog to the bot."""
+    """Add the module to the bot."""
     client.add_cog(MyModule(client))
-    logging.info("MyModule online.")
+    logging.info("MyModule Module Online.")

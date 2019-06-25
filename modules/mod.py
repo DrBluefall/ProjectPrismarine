@@ -106,6 +106,6 @@ class Moderation(commands.Cog):
 
 
 def setup(client):
-    """Add the cog to the bot."""
+    """Add the module to the bot."""
     client.add_cog(Moderation(client))
     logging.info("Moderation Module online.")

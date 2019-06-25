@@ -248,4 +248,4 @@ def create_json_data(schedule, grizzco_schedule):
 def setup(client):
     """Add the module to the bot."""
     client.add_cog(Splatnet(client))
-    logging.info("%s Module Online.", Splatnet.__name__)
+    logging.info("Splatnet Module Online.")

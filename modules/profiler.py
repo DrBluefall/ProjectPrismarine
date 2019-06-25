@@ -304,4 +304,4 @@ def get_modes():
 def setup(client):
     """Add the module to the bot."""
     client.add_cog(Profiler(client))
-    logging.info("%s Module Online.", Profiler.__name__)
+    logging.info("Profiler Module Online.")

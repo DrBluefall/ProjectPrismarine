@@ -106,4 +106,4 @@ with open("config.json", "r") as infile:
 def setup(client):
     """Add the module to the bot."""
     client.add_cog(ServerConfig(client))
-    logging.info("%s Module Online.", ServerConfig.__name__)
+    logging.info("ServerConfig Module Online.")

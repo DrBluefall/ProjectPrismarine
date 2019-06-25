@@ -6,9 +6,6 @@ import discord
 from discord.ext import commands, tasks
 import dbl
 
-with open("config.json", "r") as infile:
-    CONFIG = json.load(infile)
-
 
 class System(commands.Cog):
     """Module containing all administrative commands. DEVELOPER-ONLY."""
@@ -143,6 +140,10 @@ class System(commands.Cog):
         if isinstance(error, (discord.ext.commands.errors.NotOwner)):
             await ctx.send(
                 ":warning: *You're not authorized to use this!* :warning:")
+
+
+with open("config.json", "r") as infile:
+    CONFIG = json.load(infile)
 
 
 def setup(client):

@@ -10,11 +10,6 @@ with open("config.json", "r") as infile:
     CONFIG = json.load(infile)
 
 
-def is_main_guild(ctx):
-    """Check if the guild is the main one."""
-    return ctx.guild.id == 561529218949971989
-
-
 class System(commands.Cog):
     """Module containing all administrative commands. DEVELOPER-ONLY."""
 
@@ -27,7 +22,7 @@ class System(commands.Cog):
 
     @tasks.loop()
     async def update_stats(self):
-        """Update tje stats of the server count."""
+        """Update the stats of the server count."""
         while not self.client.is_closed():
             logging.info("Posting server count...")
             try:
@@ -76,7 +71,7 @@ class System(commands.Cog):
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(
             text=
-            f"""Date Generated: {ctx.message.created_at}, Requested By: {ctx.message.author}"""
+            f"Date Generated: {ctx.message.created_at}, Requested By: {ctx.message.author}"
         )
         await ctx.channel.send(embed=embed)
 
@@ -97,7 +92,7 @@ class System(commands.Cog):
             await ctx.send(
                 ":warning: *You're not authorized to use this!* :warning:")
 
-    @commands.check(is_main_guild)
+    @commands.check(lambda ctx: ctx.guild.id == 561529218949971989)
     @commands.has_permissions(administrator=True)
     @commands.command()
     async def announce(self, ctx, *, text):

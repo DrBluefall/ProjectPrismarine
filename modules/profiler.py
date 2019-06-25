@@ -6,12 +6,6 @@ from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 
 
-def setup(client):
-    """Add the module to the bot."""
-    client.add_cog(Profiler(client))
-    logging.info("%s Module Online.", Profiler.__name__)
-
-
 class SQLEngine:
     """Class containing the SQLEngine."""
 
@@ -305,3 +299,9 @@ def get_modes():
         },
     }
     return modes
+
+
+def setup(client):
+    """Add the module to the bot."""
+    client.add_cog(Profiler(client))
+    logging.info("%s Module Online.", Profiler.__name__)

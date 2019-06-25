@@ -1,36 +1,19 @@
 """Module dealing with all SplatNet 2-related functions."""
 import logging
-import time
-import asyncio
-import json
-from datetime import datetime, timedelta
+from datetime import datetime
 import requests
 import discord
 from discord.ext import commands, tasks
-
-
-def setup(client):
-    """Add the module to the bot."""
-    client.add_cog(Splatnet(client))
-    logging.info("%s Module Online.", Splatnet.__name__)
 
 
 class Splatnet(commands.Cog):
     """Module dealing with all SplatNet 2-related functions."""
 
     def __init__(self, client):
-        """Initalize the class."""
+        """Init the class."""
         self.client = client
-        self.data_retrieval.start()
-        self.data = create_json_data(
-            requests.get("https://splatoon2.ink/data/schedules.json",
-                         headers={
-                             'User-Agent': 'Project Prismarine#6634'
-                         }).json(),
-            requests.get("https://splatoon2.ink/data/coop-schedules.json",
-                         headers={
-                             'User-Agent': 'Project Prismarine#6634'
-                         }).json())
+        self.request_data_loop.start()  # pylint: disable=no-member
+        self.request_data()
 
     @tasks.loop(minutes=30)
     async def data_retrieval(self):
@@ -92,6 +75,34 @@ class Splatnet(commands.Cog):
     async def salmon(self, ctx):
         """List the current Salmon Run rotation."""
         await ctx.send(embed=SplatnetEmbeds.salmon(self.data["grizzco"]))
+
+    @tasks.loop(minutes=30)
+    async def request_data_loop(self):
+        """Loop over requesting data function."""
+        await self.client.wait_until_ready()
+        logging.info("Retrieving data from Splatoon2.ink...")
+        self.request_data()
+
+    def request_data(self):
+        """Request and cache info from Splatoon2.ink."""
+        schedule = requests.get(
+            "https://splatoon2.ink/data/schedules.json",
+            headers={'User-Agent': 'Project Prismarine#6634'})
+        grizzco_schedule = requests.get(
+            "https://splatoon2.ink/data/coop-schedules.json",
+            headers={'User-Agent': 'Project Prismarine#6634'})
+        # splatnet = requests.get(
+        #     "https://splatoon2.ink/data/merchandises.json").json()
+
+        try:
+            schedule.raise_for_status()
+            grizzco_schedule.raise_for_status()
+        except requests.exceptions.HTTPError:
+            logging.info("Retrieving data failed.")
+        else:
+            self.data = create_json_data(schedule.json(),
+                                         grizzco_schedule.json())
+            logging.info("Retrieved data successfully.")
 
 
 class SplatnetEmbeds:

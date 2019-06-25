@@ -69,7 +69,7 @@ class Profiler(commands.Cog, SQLEngine):
     """Module containing commands pertaining to managing and querying user profiles."""
 
     def __init__(self, client):
-        """Initialize the Profiler cog."""
+        """Init the Profiler cog."""
         super().__init__()
         self.client = client
 

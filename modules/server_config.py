@@ -51,14 +51,14 @@ class ServerConfig(commands.Cog, DBcManager):
     """Module conatining all server-configuraton related functionality of the bot."""
 
     def __init__(self, client):
-        """Initialize the class."""
+        """Init the class."""
         super().__init__()
         self.client = client
 
     @commands.has_permissions(administrator=True)
     @commands.group(case_insensitive=True)
     async def config(self, ctx):
-        """Configuration command group. Does nothing on it's own."""
+        """Configure command group. Does nothing on it's own."""
 
     @config.command()
     async def set_prefix(self, ctx, prefix: str = None):

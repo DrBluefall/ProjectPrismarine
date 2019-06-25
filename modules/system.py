@@ -14,7 +14,7 @@ class System(commands.Cog):
     """Module containing all administrative commands. DEVELOPER-ONLY."""
 
     def __init__(self, client):
-        """Initialize the System cog."""
+        """Init the System cog."""
         self.client = client
         self.dbl = dbl.Client(self.client, CONFIG["dbl_token"])
         if discord.ClientUser.id == 568469437284614174:

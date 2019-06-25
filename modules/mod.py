@@ -8,7 +8,7 @@ class Moderation(commands.Cog):
     """Module containing all moderator-usable commands."""
 
     def __init__(self, client):
-        """Initialize the Moderation cog."""
+        """Init the Moderation cog."""
         self.client = client
 
     @commands.has_permissions(manage_nicknames=True)

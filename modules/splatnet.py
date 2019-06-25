@@ -9,12 +9,6 @@ import discord
 from discord.ext import commands, tasks
 
 
-def setup(client):
-    """Add the module to the bot."""
-    client.add_cog(Splatnet(client))
-    logging.info("%s Module Online.", Splatnet.__name__)
-
-
 class Splatnet(commands.Cog):
     """Module dealing with all SplatNet 2-related functions."""
 
@@ -273,3 +267,9 @@ def create_json_data(schedule, grizzco_schedule):
         }
     }
     return data
+
+
+def setup(client):
+    """Add the module to the bot."""
+    client.add_cog(Splatnet(client))
+    logging.info("%s Module Online.", Splatnet.__name__)

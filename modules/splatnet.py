@@ -15,7 +15,9 @@ def setup(client):
 
 
 class Splatnet(commands.Cog):
+    """Module dealing with all SplatNet 2-related functions."""
     def __init__(self, client):
+        """Initalize the class."""
         self.client = client
         self.data_retreval.start()
         self.data = create_json_data(requests.get(
@@ -32,6 +34,7 @@ class Splatnet(commands.Cog):
 
     @tasks.loop(minutes=30)
     async def data_retreval(self):
+        """Retrieve and cache info from Splatoon2.ink."""
         await self.client.wait_until_ready()
         while True:
             await asyncio.sleep(60)
@@ -41,22 +44,25 @@ class Splatnet(commands.Cog):
                         "https://splatoon2.ink/data/schedules.json",
                         headers={
                             'User-Agent': 'Project Prismarine#6634'
-                        }).json()
+                        })
 
                 grizzco_schedule = requests.get(
                     "https://splatoon2.ink/data/coop-schedules.json",
                     headers={
                             'User-Agent': 'Project Prismarine#6634'
-                        }).json()
+                        })
 
                 # splatnet = requests.get(
                 #     "https://splatoon2.ink/data/merchandises.json").json()
+                schedule.raise_for_status()
+                grizzco_schedule.raise_for_status()
 
                 self.data = create_json_data(schedule, grizzco_schedule)
+                logging.info("Retrieved data successfully.")
 
     @commands.group(case_insensitive=True)
-    async def s2(self, ctx):
-
+    async def rotation(self, ctx):
+        """List all the current rotation for all modes, including Salmon Run when it's open."""
         if ctx.invoked_subcommand is not None:
             return
 
@@ -69,10 +75,33 @@ class Splatnet(commands.Cog):
             if datetime.now() > self.data["grizzco"]["time"]["start"]:
                 await ctx.send(embed=SplatnetEmbeds.salmon(self.data["grizzco"]))
 
+    @rotation.command()
+    async def turf(self, ctx):
+        """List the current Turf War rotation."""
+        async with ctx.typing():
+            await ctx.send(embed=SplatnetEmbeds.regular(self.data["regular"]))
+
+    @rotation.command()
+    async def ranked(self, ctx):
+        """List the current Ranked Battle rotation."""
+        await ctx.send(embed=SplatnetEmbeds.regular(self.data["ranked"]))
+
+    @rotation.command()
+    async def league(self, ctx):
+        """List the current League Battle rotation."""
+        await ctx.send(embed=SplatnetEmbeds.regular(self.data["league"]))
+
+    @rotation.command()
+    async def salmon_run(self, ctx):
+        """Lists the current Salmon Run rotation."""
+        await ctx.send(embed=SplatnetEmbeds.regular(self.data["grizzco"]))
+
 
 class SplatnetEmbeds:
+    """Class handling embed generation for the module."""
     @staticmethod
     def regular(data):
+        """Generate a turf war embed."""
         embed = discord.Embed(
             title=
             f'Current Turf War Rotation: {data["time"]["start"].ctime()} - {data["time"]["end"].ctime()}',
@@ -89,6 +118,7 @@ class SplatnetEmbeds:
 
     @staticmethod
     def ranked(data):
+        """Generate a ranked battle embed."""
         embed = discord.Embed(
             title=
             f'Current Ranked Battle Rotation: {data["time"]["start"].ctime()} - {data["time"]["end"].ctime()}',
@@ -107,6 +137,7 @@ class SplatnetEmbeds:
 
     @staticmethod
     def league(data):
+        """Generate a league battle embed."""
         embed = discord.Embed(
             title=
             f'Current League Rotation: {data["time"]["start"].ctime()} - {data["time"]["end"].ctime()}',
@@ -126,29 +157,50 @@ class SplatnetEmbeds:
 
     @staticmethod
     def salmon(data):
-        embed = discord.Embed(
-            title=f"ADVERTISEMENT: Grizzco Industries is hiring!",
-            color=discord.Color.from_rgb(255, 51, 54))
-        embed.set_thumbnail(
-            url=
-            "https://cdn.wikimg.net/en/splatoonwiki/images/b/bf/S2_Icon_Grizzco.png"
-        )
-        embed.add_field(
-            name="Current Recruitment Drive Time Window:",
-            value=
-            f'From {data["time"]["start"].ctime()}, to {data["time"]["end"].ctime()}'
-        )
-        embed.add_field(name="Current Location:",
-                        value=f'{data["map"]}')
-        embed.add_field(
-            name="Available Weapon Pool:",
-            value=
-            f'{data["weapons"][0]}, {data["weapons"][1]}, {data["weapons"][2]}, and {data["weapons"][3]}'
-        )
-        return embed
+        """Generate a Salmon Run embed."""
+        if datetime.now() > data["time"]["start"]:
+            embed = discord.Embed(
+                title="ADVERTISEMENT: Grizzco Industries is hiring!",
+                color=discord.Color.from_rgb(255, 51, 54))
+            embed.set_thumbnail(
+                url=
+                "https://cdn.wikimg.net/en/splatoonwiki/images/b/bf/S2_Icon_Grizzco.png"
+            )
+            embed.add_field(
+                name="Current Recruitment Drive Time Window:",
+                value=
+                f'From {data["time"]["start"].ctime()}, to {data["time"]["end"].ctime()}'
+            )
+            embed.add_field(name="Current Location:",
+                            value=f'{data["map"]}')
+            embed.add_field(
+                name="Available Weapon Pool:",
+                value=
+                f'{data["weapons"][0]}, {data["weapons"][1]}, {data["weapons"][2]}, and {data["weapons"][3]}'
+            )
+            return embed
+        else:
+            embed = discord.Embed(
+                title=f"ADVERTISEMENT: Grizzco Industries will be hiring soon!",
+                color=discord.Color.from_rgb(255, 51, 54))
+            embed.add_field(
+                name="Future Recruitment Drive Time Window:",
+                value=
+                f'From {data["time"]["start"].ctime()}, to {data["time"]["end"].ctime()}'
+            )
+            embed.add_field(name="Future Location:",
+                            value=f'{data["map"]}')
+            embed.add_field(
+                name="Available Weapon Pool:",
+                value=
+                f'{data["weapons"][0]}, {data["weapons"][1]}, {data["weapons"][2]}, and {data["weapons"][3]}'
+            )
+
+
 
 
 def create_json_data(schedule, grizzco_schedule):
+    """Turn Splatoon2.ink json data into something more usable for the bot."""
     data = {
         "regular": {
             "mode":

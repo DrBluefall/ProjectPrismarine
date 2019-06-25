@@ -49,7 +49,7 @@ class Splatnet(commands.Cog):
                     embed=SplatnetEmbeds.salmon(self.data["grizzco"]))
 
     @tasks.loop(minutes=30)
-    async def data_retreval(self):
+    async def data_retrieval(self):
         """Retrieve and cache info from Splatoon2.ink."""
         await self.client.wait_until_ready()
         while True:
@@ -188,7 +188,6 @@ class SplatnetEmbeds:
                 value=
                 f'{data["weapons"][0]}, {data["weapons"][1]}, {data["weapons"][2]}, and {data["weapons"][3]}'
             )
-            return embed
         else:
             embed = discord.Embed(
                 title=f"ADVERTISEMENT: Grizzco Industries will be hiring soon!",
@@ -204,6 +203,7 @@ class SplatnetEmbeds:
                 value=
                 f'{data["weapons"][0]}, {data["weapons"][1]}, {data["weapons"][2]}, and {data["weapons"][3]}'
             )
+        return embed
 
 
 def create_json_data(schedule, grizzco_schedule):

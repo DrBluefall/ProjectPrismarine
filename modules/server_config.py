@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
 
 
 class DBcManager:
+    """Manages Database connections for the module."""
 
     db = create_engine("sqlite:///ProjectPrismarine.db")
     metadata = MetaData(db)
@@ -18,18 +19,21 @@ class DBcManager:
 
     @classmethod
     def get_server_prefix(cls, ctx):
+        """Retrieve a server's prefix."""
         return cls.c.execute(
             select([cls.prefix_table]).where(cls.prefix_table.c.server_id ==
                                              ctx.message.guild.id)).fetchone()
 
     @classmethod
     def insert_server_prefix(cls, ctx, prefix):
+        """Insert a new server prefix into the database."""
         return cls.c.execute(
             cls.prefix_table.insert(None).values(
                 server_id=ctx.message.guild.id, prefix=prefix))
 
     @classmethod
     def update_server_prefix(cls, ctx, prefix):
+        """Update a server's prefix."""
         return cls.c.execute(
             cls.prefix_table.update(None).where(
                 cls.prefix_table.c.server_id == ctx.message.guild.id).values(
@@ -37,6 +41,7 @@ class DBcManager:
 
     @classmethod
     def delete_server_prefix(cls, ctx):
+        """Delete a server's prefix from the database."""
         return cls.c.execute(
             cls.prefix_table.delete(None).where(
                 cls.prefix_table.c.server_id == ctx.message.guild.id))

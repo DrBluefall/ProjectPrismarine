@@ -17,44 +17,16 @@ def setup(client):
 class Splatnet(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self.data_retreval.start()
-        self.data = create_json_data(requests.get(
-                        "https://splatoon2.ink/data/schedules.json",
-                        headers={
-                            'User-Agent': 'Project Prismarine#6634'
-                        }).json(),
-                        requests.get(
-                    "https://splatoon2.ink/data/coop-schedules.json",
-                    headers={
-                            'User-Agent': 'Project Prismarine#6634'
-                        }).json()
-                        )
-
-    @tasks.loop(minutes=30)
-    async def data_retreval(self):
-        await self.client.wait_until_ready()
-        while True:
-            await asyncio.sleep(60)
-            if datetime.now().minute == 1:
-                logging.info("Retrieving data from Splatoon2.ink...")
-                schedule = requests.get(
-                        "https://splatoon2.ink/data/schedules.json",
-                        headers={
-                            'User-Agent': 'Project Prismarine#6634'
-                        }).json()
-
-                grizzco_schedule = requests.get(
-                    "https://splatoon2.ink/data/coop-schedules.json",
-                    headers={
-                            'User-Agent': 'Project Prismarine#6634'
-                        }).json()
-
-                # splatnet = requests.get(
-                #     "https://splatoon2.ink/data/merchandises.json").json()
-                schedule.raise_for_status()
-                grizzco_schedule.raise_for_status()
-
-                self.data = create_json_data(schedule, grizzco_schedule)
+        self.data_retrieval.start()
+        self.data = create_json_data(
+            requests.get("https://splatoon2.ink/data/schedules.json",
+                         headers={
+                             'User-Agent': 'Project Prismarine#6634'
+                         }).json(),
+            requests.get("https://splatoon2.ink/data/coop-schedules.json",
+                         headers={
+                             'User-Agent': 'Project Prismarine#6634'
+                         }).json())
 
     @commands.group(case_insensitive=True)
     async def s2(self, ctx):
@@ -69,7 +41,34 @@ class Splatnet(commands.Cog):
             await ctx.send(embed=SplatnetEmbeds.league(self.data["league"]))
 
             if datetime.now() > self.data["grizzco"]["time"]["start"]:
-                await ctx.send(embed=SplatnetEmbeds.salmon(self.data["grizzco"]))
+                await ctx.send(
+                    embed=SplatnetEmbeds.salmon(self.data["grizzco"]))
+
+    @tasks.loop(minutes=30)
+    async def data_retrieval(self):
+        await self.client.wait_until_ready()
+        while True:
+            await asyncio.sleep(60)
+            if datetime.now().minute == 1:
+                logging.info("Retrieving data from Splatoon2.ink...")
+                schedule = requests.get(
+                    "https://splatoon2.ink/data/schedules.json",
+                    headers={
+                        'User-Agent': 'Project Prismarine#6634'
+                    }).json()
+
+                grizzco_schedule = requests.get(
+                    "https://splatoon2.ink/data/coop-schedules.json",
+                    headers={
+                        'User-Agent': 'Project Prismarine#6634'
+                    }).json()
+
+                # splatnet = requests.get(
+                #     "https://splatoon2.ink/data/merchandises.json").json()
+                schedule.raise_for_status()
+                grizzco_schedule.raise_for_status()
+
+                self.data = create_json_data(schedule, grizzco_schedule)
 
 
 class SplatnetEmbeds:
@@ -100,9 +99,8 @@ class SplatnetEmbeds:
             "https://cdn.wikimg.net/en/splatoonwiki/images/2/2c/Mode_Icon_Ranked_Battle_2.png"
         )
         embed.add_field(name="Current Mode:", value=data["mode"])
-        embed.add_field(
-            name="Map Set:",
-            value=f'{data["maps"][0]}, {data["maps"][1]}')
+        embed.add_field(name="Map Set:",
+                        value=f'{data["maps"][0]}, {data["maps"][1]}')
         embed.add_field(name="Time Left:",
                         value=f'{data["time"]["end"] - datetime.now()}')
         return embed
@@ -117,11 +115,9 @@ class SplatnetEmbeds:
             url=
             "https://cdn.wikimg.net/en/splatoonwiki/images/9/9b/Symbol_LeagueF.png"
         )
-        embed.add_field(name="Current Mode:",
-                        value=f'{data["mode"]}')
-        embed.add_field(
-            name="Map Set:",
-            value=f'{data["maps"][0]}, {data["maps"][1]}')
+        embed.add_field(name="Current Mode:", value=f'{data["mode"]}')
+        embed.add_field(name="Map Set:",
+                        value=f'{data["maps"][0]}, {data["maps"][1]}')
         embed.add_field(name="Time Left:",
                         value=f'{data["time"]["end"] - datetime.now()}')
         return embed
@@ -140,8 +136,7 @@ class SplatnetEmbeds:
             value=
             f'From {data["time"]["start"].ctime()}, to {data["time"]["end"].ctime()}'
         )
-        embed.add_field(name="Current Location:",
-                        value=f'{data["map"]}')
+        embed.add_field(name="Current Location:", value=f'{data["map"]}')
         embed.add_field(
             name="Available Weapon Pool:",
             value=
@@ -161,11 +156,9 @@ def create_json_data(schedule, grizzco_schedule):
             ],
             "time": {
                 "start":
-                datetime.fromtimestamp(
-                    schedule["regular"][0]["start_time"]),
+                datetime.fromtimestamp(schedule["regular"][0]["start_time"]),
                 "end":
-                datetime.fromtimestamp(
-                    schedule["regular"][0]["end_time"])
+                datetime.fromtimestamp(schedule["regular"][0]["end_time"])
             }
         },
         "ranked": {
@@ -177,11 +170,9 @@ def create_json_data(schedule, grizzco_schedule):
             ],
             "time": {
                 "start":
-                datetime.fromtimestamp(
-                    schedule["gachi"][0]["start_time"]),
+                datetime.fromtimestamp(schedule["gachi"][0]["start_time"]),
                 "end":
-                datetime.fromtimestamp(
-                    schedule["gachi"][0]["end_time"]),
+                datetime.fromtimestamp(schedule["gachi"][0]["end_time"]),
             }
         },
         "league": {
@@ -193,11 +184,9 @@ def create_json_data(schedule, grizzco_schedule):
             ],
             "time": {
                 "start":
-                datetime.fromtimestamp(
-                    schedule["league"][0]["start_time"]),
+                datetime.fromtimestamp(schedule["league"][0]["start_time"]),
                 "end":
-                datetime.fromtimestamp(
-                    schedule["league"][0]["end_time"]),
+                datetime.fromtimestamp(schedule["league"][0]["end_time"]),
             }
         },
         "grizzco": {

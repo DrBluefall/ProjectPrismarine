@@ -59,7 +59,7 @@ class Splatnet(commands.Cog):
                 schedule.raise_for_status()
                 grizzco_schedule.raise_for_status()
 
-                self.data = create_json_data(schedule, grizzco_schedule)
+                self.data = create_json_data(schedule.json(), grizzco_schedule.json())
                 logging.info("Retrieved data successfully.")
 
     @commands.group(case_insensitive=True)
@@ -80,23 +80,22 @@ class Splatnet(commands.Cog):
     @rotation.command()
     async def turf(self, ctx):
         """List the current Turf War rotation."""
-        async with ctx.typing():
-            await ctx.send(embed=SplatnetEmbeds.regular(self.data["regular"]))
+        await ctx.send(embed=SplatnetEmbeds.regular(self.data["regular"]))
 
     @rotation.command()
     async def ranked(self, ctx):
         """List the current Ranked Battle rotation."""
-        await ctx.send(embed=SplatnetEmbeds.regular(self.data["ranked"]))
+        await ctx.send(embed=SplatnetEmbeds.ranked(self.data["ranked"]))
 
     @rotation.command()
     async def league(self, ctx):
         """List the current League Battle rotation."""
-        await ctx.send(embed=SplatnetEmbeds.regular(self.data["league"]))
+        await ctx.send(embed=SplatnetEmbeds.league(self.data["league"]))
 
     @rotation.command()
-    async def salmon_run(self, ctx):
+    async def salmon(self, ctx):
         """List the current Salmon Run rotation."""
-        await ctx.send(embed=SplatnetEmbeds.regular(self.data["grizzco"]))
+        await ctx.send(embed=SplatnetEmbeds.salmon(self.data["grizzco"]))
 
 
 class SplatnetEmbeds:

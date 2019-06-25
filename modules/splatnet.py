@@ -1,3 +1,4 @@
+"""Module dealing with all SplatNet 2-related functions."""
 import logging
 import time
 import asyncio
@@ -16,6 +17,7 @@ def setup(client):
 
 class Splatnet(commands.Cog):
     """Module dealing with all SplatNet 2-related functions."""
+
     def __init__(self, client):
         """Initalize the class."""
         self.client = client
@@ -93,12 +95,13 @@ class Splatnet(commands.Cog):
 
     @rotation.command()
     async def salmon_run(self, ctx):
-        """Lists the current Salmon Run rotation."""
+        """List the current Salmon Run rotation."""
         await ctx.send(embed=SplatnetEmbeds.regular(self.data["grizzco"]))
 
 
 class SplatnetEmbeds:
     """Class handling embed generation for the module."""
+
     @staticmethod
     def regular(data):
         """Generate a turf war embed."""

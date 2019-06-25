@@ -32,22 +32,6 @@ class Splatnet(commands.Cog):
                              'User-Agent': 'Project Prismarine#6634'
                          }).json())
 
-    @commands.group(case_insensitive=True)
-    async def s2(self, ctx):
-
-        if ctx.invoked_subcommand is not None:
-            return
-
-        async with ctx.typing():
-
-            await ctx.send(embed=SplatnetEmbeds.regular(self.data["regular"]))
-            await ctx.send(embed=SplatnetEmbeds.ranked(self.data["ranked"]))
-            await ctx.send(embed=SplatnetEmbeds.league(self.data["league"]))
-
-            if datetime.now() > self.data["grizzco"]["time"]["start"]:
-                await ctx.send(
-                    embed=SplatnetEmbeds.salmon(self.data["grizzco"]))
-
     @tasks.loop(minutes=30)
     async def data_retrieval(self):
         """Retrieve and cache info from Splatoon2.ink."""
@@ -273,3 +257,17 @@ def create_json_data(schedule, grizzco_schedule):
         }
     }
     return data
+
+def create_splatnet_json_data(splatnet):
+    data = []
+    for gear in splatnet["merchandises"]:
+        item = {
+            "name":gear["gear"]["name"],
+            "type":gear["kind"],
+            "price":gear["price"],
+            "rarity":gear["gear"]["rarity"],
+            "ability":gear["skill"]["name"],
+            "original_ability":gear["original_gear"]["skill"]["name"],
+            "expiration":datetime.fromtimestamp(gear["end_time"]).ctime()
+        }
+        data.append(item)

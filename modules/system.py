@@ -6,15 +6,12 @@ import discord
 from discord.ext import commands, tasks
 import dbl
 
-with open("config.json", "r") as infile:
-    CONFIG = json.load(infile)
-
 
 class System(commands.Cog):
     """Module containing all administrative commands. DEVELOPER-ONLY."""
 
     def __init__(self, client):
-        """Initialize the System cog."""
+        """Init the System cog."""
         self.client = client
         self.dbl = dbl.Client(self.client, CONFIG["dbl_token"])
         if discord.ClientUser.id == 568469437284614174:
@@ -143,6 +140,10 @@ class System(commands.Cog):
         if isinstance(error, (discord.ext.commands.errors.NotOwner)):
             await ctx.send(
                 ":warning: *You're not authorized to use this!* :warning:")
+
+
+with open("config.json", "r") as infile:
+    CONFIG = json.load(infile)
 
 
 def setup(client):

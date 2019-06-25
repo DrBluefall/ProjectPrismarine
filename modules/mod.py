@@ -8,7 +8,7 @@ class Moderation(commands.Cog):
     """Module containing all moderator-usable commands."""
 
     def __init__(self, client):
-        """Initialize the Moderation cog."""
+        """Init the Moderation cog."""
         self.client = client
 
     @commands.has_permissions(manage_nicknames=True)
@@ -106,6 +106,6 @@ class Moderation(commands.Cog):
 
 
 def setup(client):
-    """Add the cog to the bot."""
+    """Add the module to the bot."""
     client.add_cog(Moderation(client))
     logging.info("Moderation Module online.")

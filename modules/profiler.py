@@ -69,7 +69,7 @@ class Profiler(commands.Cog, SQLEngine):
     """Module containing commands pertaining to managing and querying user profiles."""
 
     def __init__(self, client):
-        """Initialize the Profiler cog."""
+        """Init the Profiler cog."""
         super().__init__()
         self.client = client
 
@@ -304,4 +304,4 @@ def get_modes():
 def setup(client):
     """Add the module to the bot."""
     client.add_cog(Profiler(client))
-    logging.info("%s Module Online.", Profiler.__name__)
+    logging.info("Profiler Module Online.")

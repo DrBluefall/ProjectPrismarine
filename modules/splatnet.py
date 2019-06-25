@@ -282,3 +282,8 @@ def create_splatnet_json_data(splatnet):
             "expiration":datetime.fromtimestamp(gear["end_time"]).ctime()
         }
         data.append(item)
+
+def setup(client):
+    """Add the module to the bot."""
+    client.add_cog(Splatnet(client))
+    logging.info("Splatnet Module Online.")

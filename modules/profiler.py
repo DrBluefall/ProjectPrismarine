@@ -57,18 +57,9 @@ class SQLEngine:
 
         embed.set_thumbnail(url=user.avatar_url)
         for name, index in zip(
-            (
-                "In-Game Name:",
-                "Friend Code:",
-                "Level:",
-                "Rainmaker Rank:",
-                "Tower Control Rank:",
-                "Splat Zones Rank:",
-                "Clam Blitz Rank:",
-                "Salmon Run Rank:",
-            ),
-                range(8),
-        ):
+            ("In-Game Name:", "Friend Code:", "Level:", "Rainmaker Rank:",
+             "Tower Control Rank:", "Splat Zones Rank:", "Clam Blitz Rank:",
+             "Salmon Run Rank:"), range(8)):
             embed.add_field(name=name, value=profile[index + 1])
         return embed
 
@@ -281,29 +272,9 @@ class Record(Profiler):
 
 def get_modes():
     """Get modes."""
-    rank_list = (
-        "C-",
-        "C",
-        "C+",
-        "B-",
-        "B",
-        "B+",
-        "A-",
-        "A",
-        "A+",
-        "S",
-        "S+0",
-        "S+1",
-        "S+2",
-        "S+3",
-        "S+4",
-        "S+5",
-        "S+6",
-        "S+7",
-        "S+8",
-        "S+9",
-        "X",
-    )
+    rank_list = ("C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+", "S", "S+0",
+                 "S+1", "S+2", "S+3", "S+4", "S+5", "S+6", "S+7", "S+8", "S+9",
+                 "X")
     modes = {
         "Splat Zones": {
             "aliases": ("sz", "splatzones", "sz_rank"),

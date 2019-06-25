@@ -21,21 +21,35 @@ class Splatnet(commands.Cog):
     def __init__(self, client):
         """Initalize the class."""
         self.client = client
-        self.data_retreval.start()
-        self.data = create_json_data(requests.get(
-                        "https://splatoon2.ink/data/schedules.json",
-                        headers={
-                            'User-Agent': 'Project Prismarine#6634'
-                        }).json(),
-                        requests.get(
-                    "https://splatoon2.ink/data/coop-schedules.json",
-                    headers={
-                            'User-Agent': 'Project Prismarine#6634'
-                        }).json()
-                        )
+        self.data_retrieval.start()
+        self.data = create_json_data(
+            requests.get("https://splatoon2.ink/data/schedules.json",
+                         headers={
+                             'User-Agent': 'Project Prismarine#6634'
+                         }).json(),
+            requests.get("https://splatoon2.ink/data/coop-schedules.json",
+                         headers={
+                             'User-Agent': 'Project Prismarine#6634'
+                         }).json())
+
+    @commands.group(case_insensitive=True)
+    async def s2(self, ctx):
+
+        if ctx.invoked_subcommand is not None:
+            return
+
+        async with ctx.typing():
+
+            await ctx.send(embed=SplatnetEmbeds.regular(self.data["regular"]))
+            await ctx.send(embed=SplatnetEmbeds.ranked(self.data["ranked"]))
+            await ctx.send(embed=SplatnetEmbeds.league(self.data["league"]))
+
+            if datetime.now() > self.data["grizzco"]["time"]["start"]:
+                await ctx.send(
+                    embed=SplatnetEmbeds.salmon(self.data["grizzco"]))
 
     @tasks.loop(minutes=30)
-    async def data_retreval(self):
+    async def data_retrieval(self):
         """Retrieve and cache info from Splatoon2.ink."""
         await self.client.wait_until_ready()
         while True:
@@ -43,23 +57,20 @@ class Splatnet(commands.Cog):
             if datetime.now().minute == 1:
                 logging.info("Retrieving data from Splatoon2.ink...")
                 schedule = requests.get(
-                        "https://splatoon2.ink/data/schedules.json",
-                        headers={
-                            'User-Agent': 'Project Prismarine#6634'
-                        })
+                    "https://splatoon2.ink/data/schedules.json",
+                    headers={'User-Agent': 'Project Prismarine#6634'})
 
                 grizzco_schedule = requests.get(
                     "https://splatoon2.ink/data/coop-schedules.json",
-                    headers={
-                            'User-Agent': 'Project Prismarine#6634'
-                        })
+                    headers={'User-Agent': 'Project Prismarine#6634'})
 
                 # splatnet = requests.get(
                 #     "https://splatoon2.ink/data/merchandises.json").json()
                 schedule.raise_for_status()
                 grizzco_schedule.raise_for_status()
 
-                self.data = create_json_data(schedule.json(), grizzco_schedule.json())
+                self.data = create_json_data(schedule.json(),
+                                             grizzco_schedule.json())
                 logging.info("Retrieved data successfully.")
 
     @commands.group(case_insensitive=True)
@@ -75,7 +86,8 @@ class Splatnet(commands.Cog):
             await ctx.send(embed=SplatnetEmbeds.league(self.data["league"]))
 
             if datetime.now() > self.data["grizzco"]["time"]["start"]:
-                await ctx.send(embed=SplatnetEmbeds.salmon(self.data["grizzco"]))
+                await ctx.send(
+                    embed=SplatnetEmbeds.salmon(self.data["grizzco"]))
 
     @rotation.command()
     async def turf(self, ctx):
@@ -130,9 +142,8 @@ class SplatnetEmbeds:
             "https://cdn.wikimg.net/en/splatoonwiki/images/2/2c/Mode_Icon_Ranked_Battle_2.png"
         )
         embed.add_field(name="Current Mode:", value=data["mode"])
-        embed.add_field(
-            name="Map Set:",
-            value=f'{data["maps"][0]}, {data["maps"][1]}')
+        embed.add_field(name="Map Set:",
+                        value=f'{data["maps"][0]}, {data["maps"][1]}')
         embed.add_field(name="Time Left:",
                         value=f'{data["time"]["end"] - datetime.now()}')
         return embed
@@ -148,11 +159,9 @@ class SplatnetEmbeds:
             url=
             "https://cdn.wikimg.net/en/splatoonwiki/images/9/9b/Symbol_LeagueF.png"
         )
-        embed.add_field(name="Current Mode:",
-                        value=f'{data["mode"]}')
-        embed.add_field(
-            name="Map Set:",
-            value=f'{data["maps"][0]}, {data["maps"][1]}')
+        embed.add_field(name="Current Mode:", value=f'{data["mode"]}')
+        embed.add_field(name="Map Set:",
+                        value=f'{data["maps"][0]}, {data["maps"][1]}')
         embed.add_field(name="Time Left:",
                         value=f'{data["time"]["end"] - datetime.now()}')
         return embed
@@ -173,14 +182,12 @@ class SplatnetEmbeds:
                 value=
                 f'From {data["time"]["start"].ctime()}, to {data["time"]["end"].ctime()}'
             )
-            embed.add_field(name="Current Location:",
-                            value=f'{data["map"]}')
+            embed.add_field(name="Current Location:", value=f'{data["map"]}')
             embed.add_field(
                 name="Available Weapon Pool:",
                 value=
                 f'{data["weapons"][0]}, {data["weapons"][1]}, {data["weapons"][2]}, and {data["weapons"][3]}'
             )
-            return embed
         else:
             embed = discord.Embed(
                 title=f"ADVERTISEMENT: Grizzco Industries will be hiring soon!",
@@ -190,15 +197,13 @@ class SplatnetEmbeds:
                 value=
                 f'From {data["time"]["start"].ctime()}, to {data["time"]["end"].ctime()}'
             )
-            embed.add_field(name="Future Location:",
-                            value=f'{data["map"]}')
+            embed.add_field(name="Future Location:", value=f'{data["map"]}')
             embed.add_field(
                 name="Available Weapon Pool:",
                 value=
                 f'{data["weapons"][0]}, {data["weapons"][1]}, {data["weapons"][2]}, and {data["weapons"][3]}'
             )
-
-
+        return embed
 
 
 def create_json_data(schedule, grizzco_schedule):
@@ -213,11 +218,9 @@ def create_json_data(schedule, grizzco_schedule):
             ],
             "time": {
                 "start":
-                datetime.fromtimestamp(
-                    schedule["regular"][0]["start_time"]),
+                datetime.fromtimestamp(schedule["regular"][0]["start_time"]),
                 "end":
-                datetime.fromtimestamp(
-                    schedule["regular"][0]["end_time"])
+                datetime.fromtimestamp(schedule["regular"][0]["end_time"])
             }
         },
         "ranked": {
@@ -229,11 +232,9 @@ def create_json_data(schedule, grizzco_schedule):
             ],
             "time": {
                 "start":
-                datetime.fromtimestamp(
-                    schedule["gachi"][0]["start_time"]),
+                datetime.fromtimestamp(schedule["gachi"][0]["start_time"]),
                 "end":
-                datetime.fromtimestamp(
-                    schedule["gachi"][0]["end_time"]),
+                datetime.fromtimestamp(schedule["gachi"][0]["end_time"]),
             }
         },
         "league": {
@@ -245,11 +246,9 @@ def create_json_data(schedule, grizzco_schedule):
             ],
             "time": {
                 "start":
-                datetime.fromtimestamp(
-                    schedule["league"][0]["start_time"]),
+                datetime.fromtimestamp(schedule["league"][0]["start_time"]),
                 "end":
-                datetime.fromtimestamp(
-                    schedule["league"][0]["end_time"]),
+                datetime.fromtimestamp(schedule["league"][0]["end_time"]),
             }
         },
         "grizzco": {

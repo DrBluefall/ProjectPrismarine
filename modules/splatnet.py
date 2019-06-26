@@ -244,19 +244,21 @@ def create_json_data(schedule, grizzco_schedule):
     }
     return data
 
+
 def create_splatnet_json_data(splatnet):
     data = []
     for gear in splatnet["merchandises"]:
         item = {
-            "name":gear["gear"]["name"],
-            "type":gear["kind"],
-            "price":gear["price"],
-            "rarity":gear["gear"]["rarity"],
-            "ability":gear["skill"]["name"],
-            "original_ability":gear["original_gear"]["skill"]["name"],
-            "expiration":datetime.fromtimestamp(gear["end_time"]).ctime()
+            "name": gear["gear"]["name"],
+            "type": gear["kind"],
+            "price": gear["price"],
+            "rarity": gear["gear"]["rarity"],
+            "ability": gear["skill"]["name"],
+            "original_ability": gear["original_gear"]["skill"]["name"],
+            "expiration": datetime.fromtimestamp(gear["end_time"]).ctime()
         }
         data.append(item)
+
 
 def setup(client):
     """Add the module to the bot."""

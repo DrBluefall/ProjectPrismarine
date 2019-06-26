@@ -23,7 +23,7 @@ def main():
     print("Type the function you want to run.")
     while True:
         function = input('> ')
-        print(eval("bin_module." + function))
+        eval("bin_module." + function)
 
 
 if __name__ == '__main__':

@@ -21,19 +21,22 @@ class AssetDB:
             Column("name", String),
             Column("image", String),
             Column("ablilty", String),
-            Column("brand", String))
+            Column("brand", String),
+            Column("splatnet", Integer))
 
         self.headgear_table = Table("headgear", metadata, Column("id", Integer, primary_key=True),
             Column("name", String),
             Column("image", String),
             Column("ablilty", String),
-            Column("brand", String))
+            Column("brand", String),
+            Column("splatnet", Integer))
 
         self.shoes_table = Table("shoes", metadata, Column("id", Integer, primary_key=True),
             Column("name", String),
             Column("image", String),
             Column("ablilty", String),
-            Column("brand", String))
+            Column("brand", String),
+            Column("splatnet", Integer))
 
         self.specials_table = Table("specials", metadata, Column("id", Integer, primary_key=True),
             Column("name", String),
@@ -78,7 +81,8 @@ class AssetDB:
                 name=item["name"],
                 image="assets/img/clothing/"+item["image"][34:],
                 ablilty=item["main"],
-                brand=item["brand"])
+                brand=item["brand"],
+                splatnet=item["splatnet"])
             self.c.execute(ins)
 
         print("\nInserting: 'headgear'...")
@@ -88,7 +92,8 @@ class AssetDB:
                 name=item["name"],
                 image="assets/img/headgear/"+item["image"][31:],
                 ablilty=item["main"],
-                brand=item["brand"])
+                brand=item["brand"],
+                splatnet=item["splatnet"])
             self.c.execute(ins)
 
         print("\nInserting: 'shoes'...")
@@ -98,7 +103,8 @@ class AssetDB:
                 name=item["name"],
                 image="assets/img/shoes/"+item["image"][32:],
                 ablilty=item["main"],
-                brand=item["brand"])
+                brand=item["brand"],
+                splatnet=item["splatnet"])
             self.c.execute(ins)
 
         print("\nInserting: 'specials'...")

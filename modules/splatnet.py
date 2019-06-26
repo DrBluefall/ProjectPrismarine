@@ -17,7 +17,7 @@ class Splatnet(commands.Cog):
 
     @commands.group(case_insensitive=True)
     async def rotation(self, ctx):
-        """List all the current rotation for all modes, including Salmon Run when it's open."""
+        """List all the current rotation for all modes, including Salmon Run when it's open. If a mode is specified, it will only display that mode."""
         if ctx.invoked_subcommand is not None:
             return
 
@@ -51,6 +51,21 @@ class Splatnet(commands.Cog):
         """List the current Salmon Run rotation."""
         await ctx.send(embed=SplatnetEmbeds.salmon(self.data["grizzco"]))
 
+    @rotation.command()
+    async def help(self, ctx):
+        """Splatnet command documentation."""
+        embed = discord.Embed(
+            title=f"Project Prismarine - {__class__.__name__} Documentation",
+            color=discord.Color.dark_red()
+        )
+        for command in self.client.commands:
+            if command.cog_name == __class__.__name__:
+                embed.add_field(name=f"{ctx.prefix}{command.qualified_name}", value=command.help)
+                for group_command in command.commands:
+                    embed.add_field(name=f"{ctx.prefix}{group_command.qualified_name}", value=group_command.help)
+        
+        await ctx.send(embed=embed)
+
     @tasks.loop(minutes=30)
     async def request_data_loop(self):
         """Loop over requesting data function."""
@@ -66,18 +81,30 @@ class Splatnet(commands.Cog):
         grizzco_schedule = requests.get(
             "https://splatoon2.ink/data/coop-schedules.json",
             headers={'User-Agent': 'Project Prismarine#6634'})
-        # splatnet = requests.get(
-        #     "https://splatoon2.ink/data/merchandises.json").json()
+        splatnet = requests.get(
+            "https://splatoon2.ink/data/merchandises.json",
+            headers={'User-Agent': 'Project Prismarine#6634'})
 
         try:
             schedule.raise_for_status()
             grizzco_schedule.raise_for_status()
+            splatnet.raise_for_status()
         except requests.exceptions.HTTPError:
-            logging.info("Retrieving data failed.")
+            logging.error("Retrieving data failed.")
         else:
             self.data = create_json_data(schedule.json(),
                                          grizzco_schedule.json())
+            self.splatnet_data = create_splatnet_json_data(splatnet.json())
             logging.info("Retrieved data successfully.")
+    
+    @commands.command()
+    async def splatnet(self, ctx, index: int = 6):
+        if index < 1:
+            await ctx.send("Command failed - Number of items listed must be a value between 1 and 6.")
+        async with ctx.typing():
+            for i in range(index):
+                await ctx.send(embed=SplatnetEmbeds.splatnet(self.splatnet_data[i - 1]))
+
 
 
 class SplatnetEmbeds:
@@ -174,6 +201,19 @@ class SplatnetEmbeds:
                 f'{data["weapons"][0]}, {data["weapons"][1]}, {data["weapons"][2]}, and {data["weapons"][3]}'
             )
         return embed
+    
+    @staticmethod
+    def splatnet(item):
+        embed = discord.Embed(
+            title=f"SplatNet Gear: {item['name']}",
+            color=discord.Color.from_rgb(85, 0, 253)
+        )
+        embed.add_field(name="Gear Type:", value=item["type"])
+        embed.add_field(name="Gear Price:", value=item["price"])
+        embed.add_field(name="Gear Rarity:", value=item["rarity"])
+        embed.add_field(name="Gear Ability:", value=f"~~{item['original_ability']}~~ {item['ability']}")
+        embed.add_field(name="Available Until:", value=item["expiration"])
+        return embed
 
 
 def create_json_data(schedule, grizzco_schedule):
@@ -259,6 +299,7 @@ def create_splatnet_json_data(splatnet):
             "expiration": datetime.fromtimestamp(gear["end_time"]).ctime()
         }
         data.append(item)
+    return data
 
 
 def setup(client):

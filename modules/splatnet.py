@@ -7,38 +7,13 @@ from discord.ext import commands, tasks
 
 
 class Splatnet(commands.Cog):
-    """Module dealing with all SplatNet 2-related functions."""
+    """Contains all SplatNet 2-related functions."""
 
     def __init__(self, client):
         """Init the class."""
         self.client = client
         self.request_data_loop.start()  # pylint: disable=no-member
         self.request_data()
-
-    @tasks.loop(minutes=30)
-    async def data_retrieval(self):
-        """Retrieve and cache info from Splatoon2.ink."""
-        await self.client.wait_until_ready()
-        while True:
-            await asyncio.sleep(60)
-            if datetime.now().minute == 1:
-                logging.info("Retrieving data from Splatoon2.ink...")
-                schedule = requests.get(
-                    "https://splatoon2.ink/data/schedules.json",
-                    headers={'User-Agent': 'Project Prismarine#6634'})
-
-                grizzco_schedule = requests.get(
-                    "https://splatoon2.ink/data/coop-schedules.json",
-                    headers={'User-Agent': 'Project Prismarine#6634'})
-
-                # splatnet = requests.get(
-                #     "https://splatoon2.ink/data/merchandises.json").json()
-                schedule.raise_for_status()
-                grizzco_schedule.raise_for_status()
-
-                self.data = create_json_data(schedule.json(),
-                                             grizzco_schedule.json())
-                logging.info("Retrieved data successfully.")
 
     @commands.group(case_insensitive=True)
     async def rotation(self, ctx):
@@ -269,19 +244,21 @@ def create_json_data(schedule, grizzco_schedule):
     }
     return data
 
+
 def create_splatnet_json_data(splatnet):
     data = []
     for gear in splatnet["merchandises"]:
         item = {
-            "name":gear["gear"]["name"],
-            "type":gear["kind"],
-            "price":gear["price"],
-            "rarity":gear["gear"]["rarity"],
-            "ability":gear["skill"]["name"],
-            "original_ability":gear["original_gear"]["skill"]["name"],
-            "expiration":datetime.fromtimestamp(gear["end_time"]).ctime()
+            "name": gear["gear"]["name"],
+            "type": gear["kind"],
+            "price": gear["price"],
+            "rarity": gear["gear"]["rarity"],
+            "ability": gear["skill"]["name"],
+            "original_ability": gear["original_gear"]["skill"]["name"],
+            "expiration": datetime.fromtimestamp(gear["end_time"]).ctime()
         }
         data.append(item)
+
 
 def setup(client):
     """Add the module to the bot."""

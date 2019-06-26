@@ -12,20 +12,20 @@ class MyModule(commands.Cog):
 
     @commands.group(case_insensitive=True)
     async def module_group(self, ctx):
-        """Run module group thing."""
+        """... Write command group docstrung."""
         if ctx.invoked_subcommand is not None:
             return
 
-        # ... Do something
+        # ... Write command group
 
     @module_group.command()
     async def subcommand(self, ctx):
-        """Run group sub-command thing."""
+        """... Write group command docstrung."""
         # ... Write group command
 
     @commands.command()
     async def mycommand(self, ctx, name_user, *, nickname: str):
-        """Run module command thing."""
+        """... Write module command docstrung."""
         # ... Write module command
 
 

@@ -1,6 +1,7 @@
 """Module contining all server configurations for the bot (i.e. custom prefixes)."""
 import logging
 import json
+import discord
 from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 
@@ -58,11 +59,15 @@ class ServerConfig(commands.Cog, DBcManager):
     @commands.has_permissions(administrator=True)
     @commands.group(case_insensitive=True)
     async def config(self, ctx):
-        """Configure command group. Does nothing on it's own."""
+        """Configuration command group. Does nothing on it's own."""
 
     @config.command()
     async def set_prefix(self, ctx, prefix: str = None):
-        """Set the bot's prefix within the server. By default, it is 'pr.', and it also responds to being @ mentioned."""
+        """
+        Set the bot's prefix within the server. By default, it is 'pr.', and it also responds to being @ mentioned.
+Parameters:
+    - Prefix: The prefix to be set. 
+        """
         if prefix is None:
             message = "Command failed - No prefix specified."
 
@@ -77,7 +82,7 @@ class ServerConfig(commands.Cog, DBcManager):
 
     @config.command()
     async def reset_prefix(self, ctx):
-        """Reset the bot's prefix within the server."""
+        """Reset the bot's prefix within the server. Will ask you to confirm the reset."""
         prefix = self.get_server_prefix(ctx)
 
         if prefix is not None:
@@ -97,6 +102,21 @@ class ServerConfig(commands.Cog, DBcManager):
             message = "Command failed - prefix is already set to default."
 
         await ctx.send(message)
+    
+    @config.command()
+    async def help(self, ctx):
+        """Server Config command documentation."""
+        embed = discord.Embed(
+            title=f"Project Prismarine - {__class__.__name__} Documentation",
+            color=discord.Color.dark_red()
+        )
+        for command in self.client.commands:
+            if command.cog_name == __class__.__name__:
+                embed.add_field(name=f"{ctx.prefix}{command.qualified_name}", value=command.help)
+                for group_command in command.commands:
+                    embed.add_field(name=f"{ctx.prefix}{group_command.qualified_name}", value=group_command.help)
+        
+        await ctx.send(embed=embed)
 
 
 with open("config.json", "r") as infile:

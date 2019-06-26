@@ -79,8 +79,6 @@ async def on_ready():
 CLIENT.remove_command("help")
 @CLIENT.command()
 async def help(ctx):
-    if ctx.invoked_subcommand is not None:
-        return
     embed = discord.Embed(
         title="Project Prismarine - User Manual",
         color=discord.Color.dark_red()

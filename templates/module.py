@@ -1,5 +1,6 @@
 """Module containing the MyModule cog."""
 import logging
+from discord import Embed, Color
 from discord.ext import commands
 
 
@@ -17,6 +18,19 @@ class MyModule(commands.Cog):
             return
 
         # ... Write command group
+
+    @module_group.command()
+    async def help(self, ctx):
+        """Mymodule command documentation."""
+        embed = Embed(
+            title=f"Project Prismarine - {__class__.__name__} Documentation",
+            color=Color.dark_red())
+
+        for command in self.walk_commands():
+            embed.add_field(name=ctx.prefix + command.qualified_name,
+                            value=command.help)
+
+        await ctx.send(embed=embed)
 
     @module_group.command()
     async def subcommand(self, ctx):

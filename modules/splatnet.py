@@ -246,6 +246,7 @@ def create_json_data(schedule, grizzco_schedule):
 
 
 def create_splatnet_json_data(splatnet):
+    """Create splatnet json data."""
     data = []
     for gear in splatnet["merchandises"]:
         item = {

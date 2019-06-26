@@ -38,9 +38,11 @@ class Moderation(commands.Cog):
     async def changename(self, ctx, name_user, *, nickname: str):
         """
         Change a user's nickname.
-Parameters:
-    - User (User ID/@ mention): The user you wish to change the name of.
-    - Nickname: The nickname you wish to set.
+
+        Parameters:
+            - User (User ID/@ mention): The user you wish to change the name of.
+            - Nickname: The nickname you wish to set.
+
         """
         try:
             name_user = ctx.message.mentions[0]
@@ -56,12 +58,16 @@ Parameters:
     async def delete(self, ctx, amount: int = 10):
         """
         Purge a number of messages.
-Parameters:
-    - Amount (Integer): Number of messages to delete.
-Returns:
-    - A message displaying the number of deleted messages. Deletes itself after 10 seconds.
-Will not work if:
-    - The command user does not have the `manage messages` permission.
+
+        Parameters:
+            - Amount (Integer): Number of messages to delete.
+
+        Returns:
+            - A message displaying the number of deleted messages. Deletes itself after 10 seconds.
+
+        Will not work if:
+            - The command user does not have the `manage messages` permission.
+
         """
         channel = self.client.get_channel(ctx.channel.id)
         deleted = await channel.purge(limit=amount)
@@ -82,15 +88,17 @@ Will not work if:
                   reason: str = None):
         """
         Ban a user.
-Parameters:
-    - User (User ID/@ mention): The user you wish to ban.
-    - Time (Integer): The number of days worth of messages you wish to delete from the user in the guild. Maximum is 7.
-    - Reason: The reason for the ban.
-Will not work if:
-    - A user is not specified.
-    - The command user does not have the `ban members` permission.
-        """
 
+        Parameters:
+            - User (User ID/@ mention): The user you wish to ban.
+            - Time (Integer): The number of days worth of messages you wish to delete from the user in the guild. Maximum is 7.
+            - Reason: The reason for the ban.
+
+        Will not work if:
+            - A user is not specified.
+            - The command user does not have the `ban members` permission.
+
+        """
         try:
             banned_user = ctx.message.mentions[0]
         except IndexError:
@@ -122,14 +130,16 @@ Will not work if:
     async def kick(self, ctx, kicked_user, *, reason: str = None):
         """
         Kick a user.
-Parameters:
-    - User (User ID/@ mention): The user you wish to kick.
-    - Reason: The reason for the kick.
-Will not work if:
-    - A user is not specified.
-    - The command user does not have the `kick members` permission.
-        """
 
+        Parameters:
+            - User (User ID/@ mention): The user you wish to kick.
+            - Reason: The reason for the kick.
+
+        Will not work if:
+            - A user is not specified.
+            - The command user does not have the `kick members` permission.
+
+        """
         try:
             kicked_user = ctx.message.mentions[0]
         except IndexError:
@@ -154,10 +164,12 @@ Will not work if:
     async def prune(self, ctx, time: int = 30):
         """
         Prune the server.
-Parameters:
-    - Time (Integer): The amount of time a user has to be inactive for them to be pruned. Defaults to 30 days.
 
-Note: This will only work on users without an assigned role.
+        Parameters:
+            - Time (Integer): The amount of time a user has to be inactive for them to be pruned. Defaults to 30 days.
+
+        Note: This will only work on users without an assigned role.
+
         """
         pruned = await ctx.guild.prune_members(days=time,
                                                compute_prune_count="False")

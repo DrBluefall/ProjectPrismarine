@@ -78,8 +78,10 @@ class ServerConfig(commands.Cog, DBcManager):
     async def set_prefix(self, ctx, prefix: str = None):
         """
         Set the bot's prefix within the server. By default, it is 'pr.', and it also responds to being @ mentioned.
-Parameters:
-    - Prefix: The prefix to be set. 
+
+        Parameters:
+            - Prefix: The prefix to be set.
+
         """
         if prefix is None:
             message = "Command failed - No prefix specified."

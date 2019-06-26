@@ -79,10 +79,13 @@ class Profiler(commands.Cog, SQLEngine):
     async def profile(self, ctx, user=None):
         """
         Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user.
-Parameters:
-    - User (User ID/@ mention): The user to query for. Defaults to the message author.
-Will not work if:
-    - The user in question doesn't have a profile.
+
+        Parameters:
+            - User (User ID/@ mention): The user to query for. Defaults to the message author.
+
+        Will not work if:
+            - The user in question doesn't have a profile.
+
         """
         if ctx.invoked_subcommand:
             return
@@ -128,8 +131,10 @@ Will not work if:
     async def ign(self, ctx, *, name: str = None):
         """
         Update your in-game name.
-Parameters:
-    - IGN: The in-game name you wish to set. (Note: There is a 10-character limit on your name, and it can't be blank, either.)
+
+        Parameters:
+            - IGN: The in-game name you wish to set. (Note: There is a 10-character limit on your name, and it can't be blank, either.)
+
         """
         if __class__.check_profile_exists(ctx.message.author.id):
             if name is None:
@@ -150,8 +155,10 @@ Parameters:
     async def fc(self, ctx, *, friend_code):  # pylint: disable=invalid-name
         """
         Update your friend code.
-Parameters:
-    - Friend Code: the friend code for your profile. This must be 12 characters long, and integers only.
+
+        Parameters:
+            - Friend Code: the friend code for your profile. This must be 12 characters long, and integers only.
+
         """
         if __class__.check_profile_exists(ctx.message.author.id):
             friend_code = re.sub(r"\D", "", friend_code)
@@ -171,8 +178,10 @@ Parameters:
     async def level(self, ctx, *, level: int = None):
         """
         Update your level.
-Parameters:
-- Level (Integer): The level you wish to set.
+
+        Parameters:
+            - Level (Integer): The level you wish to set.
+
         """
         if __class__.check_profile_exists(ctx.message.author.id):
 
@@ -191,10 +200,12 @@ Parameters:
     async def rank(self, ctx, gamemode: str = None, rank: str = None):
         """
         Update your rank in the profile database.
-Parameters:
-    - Gamemode: The game mode you wish to set your rank in. Valid names include mode initials (i.e. tc, sz, rm, cb), the full names (i.e. `towercontrol`, `splatzones`, `rainmaker`, `clamblitz`), or the initials followed by "_rank" (i.e. `sz_rank`, `tc_rank`, `cb_rank`, `rm_rank`). 
-    - Rank: The rank you wish to set. (Note: X Power is currently not supported. Sorry about that :P)
-    """
+
+        Parameters:
+            - Gamemode: The game mode you wish to set your rank in. Valid names include mode initials (i.e. tc, sz, rm, cb), the full names (i.e. `towercontrol`, `splatzones`, `rainmaker`, `clamblitz`), or the initials followed by "_rank" (i.e. `sz_rank`, `tc_rank`, `cb_rank`, `rm_rank`).
+            - Rank: The rank you wish to set. (Note: X Power is currently not supported. Sorry about that :P)
+
+        """
         modes = get_modes()
 
         if __class__.check_profile_exists(ctx.message.author.id):
@@ -235,7 +246,7 @@ Parameters:
 
 
 class Record(Profiler):
-    """Holds the staticmethods that record profile options into the database."""
+    """Holds the class methods that record profile options into the database."""
 
     @classmethod
     def init_entry(cls, ctx):

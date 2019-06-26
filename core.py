@@ -76,7 +76,19 @@ async def on_ready():
 
 # --- Bot Commands
 
+CLIENT.remove_command("help")
+@CLIENT.command()
+async def help(ctx):
+    if ctx.invoked_subcommand is not None:
+        return
+    embed = discord.Embed(
+        title="Project Prismarine - User Manual",
+        color=discord.Color.dark_red()
+    )
+    for module_name, module in CLIENT.cogs.items():
+        embed.add_field(name=module_name, value=module.description)
 
+    await ctx.send(embed=embed)
 
 @CLIENT.command()
 async def prefix(ctx):

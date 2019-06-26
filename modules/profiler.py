@@ -77,7 +77,13 @@ class Profiler(commands.Cog, SQLEngine):
                     case_insensitive=True,
                     ignore_extra=False)
     async def profile(self, ctx, user=None):
-        """Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user."""
+        """
+        Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user.
+Parameters:
+    - User (User ID/@ mention): The user to query for. Defaults to the message author.
+Will not work if:
+    - The user in question doesn't have a profile.
+        """
         if ctx.invoked_subcommand:
             return
 
@@ -96,7 +102,7 @@ class Profiler(commands.Cog, SQLEngine):
 
     @profile.command()
     async def init(self, ctx):
-        """Initialize a user profile."""
+        """Initialize a user profile. If your profile already exists, it will not create a new one."""
         if __class__.check_profile_exists(ctx.message.author.id):
             message = "Existing QA Profile detected. Aborting initialization..."
         else:
@@ -107,7 +113,11 @@ class Profiler(commands.Cog, SQLEngine):
 
     @profile.command()
     async def ign(self, ctx, *, name: str = None):
-        """Update someone's IGN."""
+        """
+        Update your in-game name.
+Parameters:
+    - IGN: The in-game name you wish to set. (Note: There is a 10-character limit on your name, and it can't be blank, either.)
+        """
         if __class__.check_profile_exists(ctx.message.author.id):
             if name is None:
                 message = "Command Failed - No IGN specified."
@@ -125,7 +135,11 @@ class Profiler(commands.Cog, SQLEngine):
 
     @profile.command()
     async def fc(self, ctx, *, friend_code):  # pylint: disable=invalid-name
-        """Update someone's Friend Code."""
+        """
+        Update your friend code.
+Parameters:
+    - Friend Code: the friend code for your profile. This must be 12 characters long, and integers only.
+        """
         if __class__.check_profile_exists(ctx.message.author.id):
             friend_code = re.sub(r"\D", "", friend_code)
 
@@ -142,7 +156,11 @@ class Profiler(commands.Cog, SQLEngine):
 
     @profile.command()
     async def level(self, ctx, *, level: int = None):
-        """Update someone's level."""
+        """
+        Update your level.
+Parameters:
+- Level (Integer): The level you wish to set.
+        """
         if __class__.check_profile_exists(ctx.message.author.id):
 
             if level is None:
@@ -158,7 +176,12 @@ class Profiler(commands.Cog, SQLEngine):
 
     @profile.command()
     async def rank(self, ctx, gamemode: str = None, rank: str = None):
-        """Update a person's rank in the database."""
+        """
+        Update your rank in the profile database.
+Parameters:
+    - Gamemode: The game mode you wish to set your rank in. Valid names include mode initials (i.e. tc, sz, rm, cb), the full names (i.e. `towercontrol`, `splatzones`, `rainmaker`, `clamblitz`), or the initials followed by "_rank" (i.e. `sz_rank`, `tc_rank`, `cb_rank`, `rm_rank`). 
+    - Rank: The rank you wish to set. (Note: X Power is currently not supported. Sorry about that :P)
+    """
         modes = get_modes()
 
         if __class__.check_profile_exists(ctx.message.author.id):
@@ -179,7 +202,11 @@ class Profiler(commands.Cog, SQLEngine):
 
     @profile.command()
     async def loadout(self, ctx, string: str = None):
-        """Update a person's loadout with a loadout.ink link."""
+        """
+        Update your loadout with a loadout.ink link.
+Parameters:
+    - loadout.ink link: The link to your loadout. Use `https://selicia.github.io/en_US/#0000000000000000000000000` to set your loadout.
+        """
         if __class__.check_profile_exists(ctx.message.author.id):
             if string is not None and len(string) == 58:
                 Record.loadout_string_entry(ctx, string[33:])
@@ -190,6 +217,21 @@ class Profiler(commands.Cog, SQLEngine):
             await ctx.send(message)
         else:
             await __class__.no_profile(ctx)
+    
+    @profile.command()
+    async def help(self, ctx):
+        """Profiler command documentation."""
+        embed = discord.Embed(
+            title=f"Project Prismarine - {__class__.__name__} Documentation",
+            color=discord.Color.dark_red()
+        )
+        for command in self.client.commands:
+            if command.cog_name == __class__.__name__:
+                embed.add_field(name=f"{ctx.prefix}{command.qualified_name}", value=command.help)
+                for group_command in command.commands:
+                    embed.add_field(name=f"{ctx.prefix}{group_command.qualified_name}", value=group_command.help)
+        
+        await ctx.send(embed=embed)
 
 
 class Record(Profiler):

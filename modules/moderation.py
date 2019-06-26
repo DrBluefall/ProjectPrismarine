@@ -19,10 +19,12 @@ class Moderation(commands.Cog):
     @commands.has_permissions(manage_nicknames=True)
     @mod.command()
     async def changename(self, ctx, name_user, *, nickname: str):
-        """Change a user's nickname.
+        """
+        Change a user's nickname.
 Parameters:
     - User (User ID/@ mention): The user you wish to change the name of.
-    - Nickname: The nickname you wish to set."""
+    - Nickname: The nickname you wish to set.
+        """
         try:
             name_user = ctx.message.mentions[0]
         except IndexError:
@@ -35,11 +37,15 @@ Parameters:
     @commands.has_permissions(manage_messages=True)
     @mod.command()
     async def delete(self, ctx, amount: int = 10):
-        """Purge a number of messages.
+        """
+        Purge a number of messages.
 Parameters:
-    - Amount: Number of messages to delete.
+    - Amount (Integer): Number of messages to delete.
 Returns:
-    - A message displaying the number of deleted messages. Deletes itself after 10 seconds."""
+    - A message displaying the number of deleted messages. Deletes itself after 10 seconds.
+Will not work if:
+    - The command user does not have the `manage messages` permission.
+        """
         channel = self.client.get_channel(ctx.channel.id)
         deleted = await channel.purge(limit=amount)
         await ctx.send("{} message(s) have been deleted.".format(len(deleted)),
@@ -57,14 +63,16 @@ Returns:
     @mod.command()
     async def ban(self, ctx, banned_user, time: int = 0, *,
                   reason: str = None):
-        """Ban a user.
+        """
+        Ban a user.
 Parameters:
     - User (User ID/@ mention): The user you wish to ban.
     - Time (Integer): The number of days worth of messages you wish to delete from the user in the guild. Maximum is 7.
     - Reason: The reason for the ban.
 Will not work if:
     - A user is not specified.
-    - The command user does not have the `ban members` permission."""
+    - The command user does not have the `ban members` permission.
+        """
 
         try:
             banned_user = ctx.message.mentions[0]
@@ -95,13 +103,15 @@ Will not work if:
     @commands.has_permissions(kick_members=True)
     @mod.command()
     async def kick(self, ctx, kicked_user, *, reason: str = None):
-        """Kick a user.
+        """
+        Kick a user.
 Parameters:
     - User (User ID/@ mention): The user you wish to kick.
     - Reason: The reason for the kick.
 Will not work if:
     - A user is not specified.
-    - The command user does not have the `kick members` permission."""
+    - The command user does not have the `kick members` permission.
+        """
 
         try:
             kicked_user = ctx.message.mentions[0]
@@ -125,11 +135,13 @@ Will not work if:
     @commands.has_permissions(kick_members=True)
     @mod.command()
     async def prune(self, ctx, time: int = 30):
-        """Prunes the server. 
+        """
+        Prune the server. 
 Parameters:
     - Time (Integer): The amount of time a user has to be inactive for them to be pruned. Defaults to 30 days.
 
-Note: This will only work on users without an assigned role."""
+Note: This will only work on users without an assigned role.
+        """
         pruned = await ctx.guild.prune_members(days=time,
                                                compute_prune_count="False")
         # await ctx.send("Prune executed.")
@@ -146,7 +158,7 @@ Note: This will only work on users without an assigned role."""
         for command in self.client.commands:
             if command.cog_name == __class__.__name__:
                 for group_command in command.commands:
-                    embed.add_field(name=f"{ctx.prefix}{group_command.name}", value=group_command.help)
+                    embed.add_field(name=f"{ctx.prefix}{group_command.qualified_name}", value=group_command.help)
         
         await ctx.send(embed=embed)
 

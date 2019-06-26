@@ -17,6 +17,7 @@ class Help(commands.Cog):
 
     @commands.group(case_insensitive=True)
     async def help(self, ctx):
+        """... Write command group docstring."""  # TODO: Write command group docstring
         if ctx.invoked_subcommand is not None:
             return
 

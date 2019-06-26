@@ -15,31 +15,6 @@ class Splatnet(commands.Cog):
         self.request_data_loop.start()  # pylint: disable=no-member
         self.request_data()
 
-    @tasks.loop(minutes=30)
-    async def data_retrieval(self):
-        """Retrieve and cache info from Splatoon2.ink."""
-        await self.client.wait_until_ready()
-        while True:
-            await asyncio.sleep(60)
-            if datetime.now().minute == 1:
-                logging.info("Retrieving data from Splatoon2.ink...")
-                schedule = requests.get(
-                    "https://splatoon2.ink/data/schedules.json",
-                    headers={'User-Agent': 'Project Prismarine#6634'})
-
-                grizzco_schedule = requests.get(
-                    "https://splatoon2.ink/data/coop-schedules.json",
-                    headers={'User-Agent': 'Project Prismarine#6634'})
-
-                # splatnet = requests.get(
-                #     "https://splatoon2.ink/data/merchandises.json").json()
-                schedule.raise_for_status()
-                grizzco_schedule.raise_for_status()
-
-                self.data = create_json_data(schedule.json(),
-                                             grizzco_schedule.json())
-                logging.info("Retrieved data successfully.")
-
     @commands.group(case_insensitive=True)
     async def rotation(self, ctx):
         """List all the current rotation for all modes, including Salmon Run when it's open."""

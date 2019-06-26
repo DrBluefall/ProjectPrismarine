@@ -101,6 +101,19 @@ Will not work if:
             await ctx.send(embed=__class__.create_profile_embed(user))
 
     @profile.command()
+    async def help(self, ctx):
+        """Profiler command documentation."""
+        embed = discord.Embed(
+            title=f"Project Prismarine - {__class__.__name__} Documentation",
+            color=discord.Color.dark_red())
+
+        for command in self.walk_commands():
+            embed.add_field(name=ctx.prefix + command.qualified_name,
+                            value=command.help)
+
+        await ctx.send(embed=embed)
+
+    @profile.command()
     async def init(self, ctx):
         """Initialize a user profile. If your profile already exists, it will not create a new one."""
         if __class__.check_profile_exists(ctx.message.author.id):
@@ -204,8 +217,10 @@ Parameters:
     async def loadout(self, ctx, string: str = None):
         """
         Update your loadout with a loadout.ink link.
-Parameters:
-    - loadout.ink link: The link to your loadout. Use `https://selicia.github.io/en_US/#0000000000000000000000000` to set your loadout.
+
+        Parameters:
+            - loadout.ink link: The link to your loadout. Use `https://selicia.github.io/en_US/#0000000000000000000000000` to set your loadout.
+
         """
         if __class__.check_profile_exists(ctx.message.author.id):
             if string is not None and len(string) == 58:
@@ -217,21 +232,6 @@ Parameters:
             await ctx.send(message)
         else:
             await __class__.no_profile(ctx)
-    
-    @profile.command()
-    async def help(self, ctx):
-        """Profiler command documentation."""
-        embed = discord.Embed(
-            title=f"Project Prismarine - {__class__.__name__} Documentation",
-            color=discord.Color.dark_red()
-        )
-        for command in self.client.commands:
-            if command.cog_name == __class__.__name__:
-                embed.add_field(name=f"{ctx.prefix}{command.qualified_name}", value=command.help)
-                for group_command in command.commands:
-                    embed.add_field(name=f"{ctx.prefix}{group_command.qualified_name}", value=group_command.help)
-        
-        await ctx.send(embed=embed)
 
 
 class Record(Profiler):

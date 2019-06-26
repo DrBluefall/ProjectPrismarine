@@ -59,7 +59,20 @@ class ServerConfig(commands.Cog, DBcManager):
     @commands.has_permissions(administrator=True)
     @commands.group(case_insensitive=True)
     async def config(self, ctx):
-        """Configuration command group. Does nothing on it's own."""
+        """Configure command group. Does nothing on it's own."""
+
+    @config.command()
+    async def help(self, ctx):
+        """Config command documentation."""
+        embed = discord.Embed(
+            title=f"Project Prismarine - {__class__.__name__} Documentation",
+            color=discord.Color.dark_red())
+
+        for command in self.walk_commands():
+            embed.add_field(name=ctx.prefix + command.qualified_name,
+                            value=command.help)
+
+        await ctx.send(embed=embed)
 
     @config.command()
     async def set_prefix(self, ctx, prefix: str = None):
@@ -102,21 +115,6 @@ Parameters:
             message = "Command failed - prefix is already set to default."
 
         await ctx.send(message)
-    
-    @config.command()
-    async def help(self, ctx):
-        """Server Config command documentation."""
-        embed = discord.Embed(
-            title=f"Project Prismarine - {__class__.__name__} Documentation",
-            color=discord.Color.dark_red()
-        )
-        for command in self.client.commands:
-            if command.cog_name == __class__.__name__:
-                embed.add_field(name=f"{ctx.prefix}{command.qualified_name}", value=command.help)
-                for group_command in command.commands:
-                    embed.add_field(name=f"{ctx.prefix}{group_command.qualified_name}", value=group_command.help)
-        
-        await ctx.send(embed=embed)
 
 
 with open("config.json", "r") as infile:

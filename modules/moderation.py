@@ -14,7 +14,24 @@ class Moderation(commands.Cog):
 
     @commands.group(case_insensitive=True)
     async def mod(self, ctx):
-        """Module command group. Does nothing on it's own."""
+        """Found module command group. Does nothing on it's own."""
+
+    @commands.has_permissions(kick_members=True,
+                              ban_members=True,
+                              manage_messages=True,
+                              manage_nicknames=True)
+    @mod.command()
+    async def help(self, ctx):
+        """Moderation command documentation."""
+        embed = discord.Embed(
+            title=f"Project Prismarine - {__class__.__name__} Documentation",
+            color=discord.Color.dark_red())
+
+        for command in self.walk_commands():
+            embed.add_field(name=ctx.prefix + command.qualified_name,
+                            value=command.help)
+
+        await ctx.send(embed=embed)
 
     @commands.has_permissions(manage_nicknames=True)
     @mod.command()
@@ -136,7 +153,7 @@ Will not work if:
     @mod.command()
     async def prune(self, ctx, time: int = 30):
         """
-        Prune the server. 
+        Prune the server.
 Parameters:
     - Time (Integer): The amount of time a user has to be inactive for them to be pruned. Defaults to 30 days.
 
@@ -146,21 +163,7 @@ Note: This will only work on users without an assigned role.
                                                compute_prune_count="False")
         # await ctx.send("Prune executed.")
         await ctx.send(f"{pruned} member(s) have been pruned from the server.")
-    
-    @commands.has_permissions(kick_members=True, ban_members=True, manage_messages=True, manage_nicknames=True)
-    @mod.command()
-    async def help(self, ctx):
-        """Moderation command documentation."""
-        embed = discord.Embed(
-            title=f"Project Prismarine - {__class__.__name__} Documentation",
-            color=discord.Color.dark_red()
-        )
-        for command in self.client.commands:
-            if command.cog_name == __class__.__name__:
-                for group_command in command.commands:
-                    embed.add_field(name=f"{ctx.prefix}{group_command.qualified_name}", value=group_command.help)
-        
-        await ctx.send(embed=embed)
+
 
 def setup(client):
     """Add the module to the bot."""

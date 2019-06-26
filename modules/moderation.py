@@ -1,11 +1,11 @@
-"""Module containing all moderator-usable commands."""
+"""Module containing Moderation cog."""
 import logging
 import asyncio
 from discord.ext import commands
 
 
 class Moderation(commands.Cog):
-    """Module containing all moderator-usable commands."""
+    """Contains all Moderation commands."""
 
     def __init__(self, client):
         """Init the Moderation cog."""

@@ -7,7 +7,7 @@ from discord.ext import commands, tasks
 
 
 class Splatnet(commands.Cog):
-    """Module dealing with all SplatNet 2-related functions."""
+    """Contains all SplatNet 2-related functions."""
 
     def __init__(self, client):
         """Init the class."""

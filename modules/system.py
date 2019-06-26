@@ -8,7 +8,7 @@ import dbl
 
 
 class System(commands.Cog):
-    """Module containing all administrative commands. DEVELOPER-ONLY."""
+    """Contains all administrative commands. DEVELOPER-ONLY."""
 
     def __init__(self, client):
         """Init the System cog."""

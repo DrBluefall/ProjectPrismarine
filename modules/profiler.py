@@ -1,4 +1,4 @@
-"""Holds the profile cog."""
+"""Module containing the Profiler cog."""
 import logging
 import re
 import discord
@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
 
 
 class SQLEngine:
-    """Class containing the SQLEngine."""
+    """Contains the SQLEngine."""
 
     main_db = create_engine("sqlite:///ProjectPrismarine.db")
     metadata = MetaData(main_db)
@@ -66,7 +66,7 @@ class SQLEngine:
 
 
 class Profiler(commands.Cog, SQLEngine):
-    """Module containing commands pertaining to managing and querying user profiles."""
+    """Contains all commands pertaining to managing and querying user profiles."""
 
     def __init__(self, client):
         """Init the Profiler cog."""

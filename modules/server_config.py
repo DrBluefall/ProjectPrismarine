@@ -48,7 +48,7 @@ class DBcManager:
 
 
 class ServerConfig(commands.Cog, DBcManager):
-    """Module conatining all server-configuraton related functionality of the bot."""
+    """Contains all server-configuraton related functionality of the bot."""
 
     def __init__(self, client):
         """Init the class."""

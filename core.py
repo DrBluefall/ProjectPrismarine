@@ -34,7 +34,7 @@ metadata = MetaData(db)
 metadata.reflect()
 c = db.connect()
 
-def prefix(client, message):
+def get_prefix(client, message):
     """Retrieve a guild's prefix."""
     raw_prefix_data = c.execute(
         select([metadata.tables["prefix"]])
@@ -49,7 +49,7 @@ def prefix(client, message):
     else:
         return commands.when_mentioned_or(prefix_dict[str(message.guild.id)])(client, message)
 
-CLIENT = commands.Bot(command_prefix=prefix,
+CLIENT = commands.Bot(command_prefix=get_prefix,
                       status=discord.Status.online)
 
 logging.basicConfig(

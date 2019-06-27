@@ -56,7 +56,6 @@ class Moderation(commands.Cog):
             f"`{name_user}`'s nickname has been changed to `{nickname}`."
         )
 
-    @commands.has_permissions(manage_messages=True)
     @mod.command()
     async def delete(self, ctx, amount: int = 10):
         """
@@ -72,20 +71,17 @@ class Moderation(commands.Cog):
             - The command user does not have the `manage messages` permission.
 
         """
-        channel = self.client.get_channel(ctx.channel.id)
-        deleted = await channel.purge(limit=amount)
-        await ctx.send(
-            f"{len(deleted)} message(s) have been deleted.", delete_after=10
-        )
-
-    @delete.error
-    async def delete_error(self, ctx, error):
-        """Error when delete doesn't work."""
-        if isinstance(error, commands.MissingPermissions):
+        if ctx.message.author.permissions_in(ctx.message.channel).manage_messages is True:
+            channel = self.client.get_channel(ctx.channel.id)
+            deleted = await channel.purge(limit=amount)
+            await ctx.send(
+                f"{len(deleted)} message(s) have been deleted.", delete_after=10
+            )
+        else:
             await ctx.send(
                 "Command failed. Make sure you have the `manage_messages` permission in order to use this command."
             )
-
+            
     @commands.has_permissions(ban_members=True)
     @mod.command()
     async def ban(
@@ -109,28 +105,26 @@ class Moderation(commands.Cog):
         except IndexError:
             banned_user = int(banned_user)
             banned_user = self.client.get_user(banned_user)
-        try:
-            await ctx.guild.ban(
-                user=banned_user, reason=reason, delete_message_days=time
-            )
+        if ctx.message.author.permissions_in(ctx.message.channel).ban_members is True:
+            try:
+                await ctx.guild.ban(
+                    user=banned_user, reason=reason, delete_message_days=time
+                )
+                await ctx.send(
+                    f"The ban hammer has been dropped on {banned_user}!"
+                )
+            except asyncio.TimeoutError:
+                await ctx.send(
+                    "Command failed. Make sure all necessary arguments are provided and/or correct."
+                )
+            except commands.BadArgument:
+                await ctx.send(
+                "Command failed. Make sure you have specified the correct parameters for this command."
+                )
+        else:
             await ctx.send(
-                f"The ban hammer has been dropped on {banned_user}!"
+                "Command failed. Make sure you have the `ban_members` permission in order to use this command."
             )
-        except asyncio.TimeoutError:
-            await ctx.send(
-                "Command failed. Make sure all necessary arguments are provided and/or correct."
-            )
-
-    @ban.error
-    async def ban_error(self, ctx, error):
-        """Error when ban doesn't work."""
-        if isinstance(
-            error, (commands.BadArgument, commands.MissingPermissions)
-        ):
-            await ctx.send(
-                "Command failed. Make sure you have the `ban_members` permission in order to use this command, or have specified the correct arguments."
-            )
-            logging.info("%i - %s", ctx.guild.id, error)
 
     @commands.has_permissions(kick_members=True)
     @mod.command()
@@ -147,27 +141,24 @@ class Moderation(commands.Cog):
             - The command user does not have the `kick members` permission.
 
         """
-        try:
-            kicked_user = ctx.message.mentions[0]
-        except IndexError:
-            kicked_user = int(kicked_user)
-            kicked_user = self.client.get_user(kicked_user)
-        await ctx.guild.kick(user=kicked_user, reason=reason)
-        await ctx.send(f"User {kicked_user} has been kicked.")
-
-    @kick.error
-    async def kick_error(self, ctx, error):
-        """Error when kick doesn't work."""
-        if isinstance(
-            error,
-            (commands.MissingRequiredArgument, commands.MissingPermissions)
-        ):
+        if ctx.message.author.permissions_in(ctx.message.channel).kick_members is True:
+            try:
+                kicked_user = ctx.message.mentions[0]
+            except IndexError:
+                kicked_user = int(kicked_user)
+                kicked_user = self.client.get_user(kicked_user)
+            try:
+                await ctx.guild.kick(user=kicked_user, reason=reason)
+                await ctx.send(f"User {kicked_user} has been kicked.")
+            except commands.MissingRequiredArgument:
+                await ctx.send(
+                    "Command failed. Please make sure you have specified all the necessary parameters."
+                )
+        else:
             await ctx.send(
-                "Command failed. Make sure you have the `kick_members` permission in order to use this command, or have specified the user you want to kick using an @mention."
+                "Command failed. Make sure you have the `kick_members` permission in order to use this command."
             )
-            logging.info("%i - %s", ctx.guild.id, error)
 
-    @commands.has_permissions(kick_members=True)
     @mod.command()
     async def prune(self, ctx, time: int = 30):
         """
@@ -179,11 +170,16 @@ class Moderation(commands.Cog):
         Note: This will only work on users without an assigned role.
 
         """
-        pruned = await ctx.guild.prune_members(
-            days=time, compute_prune_count="False"
-        )
-        # await ctx.send("Prune executed.")
-        await ctx.send(f"{pruned} member(s) have been pruned from the server.")
+        if ctx.message.author.permissions_in(ctx.message.channel).kick_members is True:
+            pruned = await ctx.guild.prune_members(
+                days=time, compute_prune_count="False"
+            )
+            # await ctx.send("Prune executed.")
+            await ctx.send(f"{pruned} member(s) have been pruned from the server.")
+        else:
+            await ctx.send(
+                "Command failed. Make sure you have the `kick_members` permission in order to use this command."
+            )
 
 
 def setup(client):

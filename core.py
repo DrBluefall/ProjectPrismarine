@@ -85,7 +85,7 @@ CLIENT.remove_command("help")
 
 @CLIENT.command()
 async def help(ctx):
-    """Mymodule command documentation."""
+    """Client command documentation."""
     embed = discord.Embed(
         title="Project Prismarine - User Manual",
         color=discord.Color.dark_red()

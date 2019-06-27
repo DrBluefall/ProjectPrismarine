@@ -14,8 +14,8 @@ class System(commands.Cog):
         """Init the System cog."""
         self.client = client
         self.dbl = dbl.Client(self.client, CONFIG["dbl_token"])
-        if discord.ClientUser.id == 568469437284614174:
-            self.update = self.update_stats.start()
+        if discord.ClientUser.id == 568469437284614174: # pylint: disable=no-member
+            self.update = self.update_stats.start() # pylint: disable=no-member
 
     @tasks.loop()
     async def update_stats(self):

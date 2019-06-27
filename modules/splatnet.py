@@ -240,8 +240,6 @@ class SplatnetEmbeds:
         embed.add_field(name="Gear Rarity:", value=item["rarity"])
         embed.add_field(name="Gear Ability:", value=f"~~{item['original_ability']}~~ {item['ability']}")
         embed.add_field(name="Available Until:", value=item["expiration"])
-        print(file.fp)
-        print(file.filename)
         return embed, file
 
 

@@ -43,6 +43,7 @@ class System(commands.Cog):
 
         Returns:
             - An embed displaying the client's latency.
+
         """
         embed = discord.Embed(color=0xDE2E43)
         embed.add_field(
@@ -59,8 +60,10 @@ class System(commands.Cog):
 
         Parameters:
             - User (User ID/@ mention): The user to retrieve info on. Defaults to the message author.
+
         Returns:
             - An embed containing miscellaneous info on a user.
+
         """
         if member is None:
             member = ctx.message.author
@@ -103,11 +106,14 @@ class System(commands.Cog):
         Parameters:
             - Channel (Channel ID only): The channel to send the message to.
             - Content: The message to send.
+
         Returns:
             - A sent message to the specified channel.
             - A confirmation message where the command was invoked from.
+
         Will not work if:
             - The channel ID is not provided and/or invalid.
+
         """
         channel = int(channel)
         channel = self.client.get_channel(channel)
@@ -132,8 +138,10 @@ class System(commands.Cog):
 
         Parameters:
             - Text: The announcement to be made. If the message contains an @everyone mention, the bot will automatically ping everyone.
+
         Returns:
             - An announcement in an embed in the support server announcement channel.
+
         Will not work if:
             - The command is invoked outside the support server.
 
@@ -172,6 +180,7 @@ class System(commands.Cog):
 
         Returns:
             - An embedded image of a Discord Bot List widget containing info about the bot.
+
         """
         embed = discord.Embed(color=discord.Color.blurple())
         embed.set_image(

@@ -16,21 +16,23 @@ class Moderation(commands.Cog):
     async def mod(self, ctx):
         """Found module command group. Does nothing on it's own."""
 
-    @commands.has_permissions(kick_members=True,
-                              ban_members=True,
-                              manage_messages=True,
-                              manage_nicknames=True)
+    @commands.has_permissions(
+        kick_members=True,
+        ban_members=True,
+        manage_messages=True,
+        manage_nicknames=True
+    )
     @mod.command()
     async def help(self, ctx):
         """Moderation command documentation."""
         embed = discord.Embed(
             title=f"Project Prismarine - {__class__.__name__} Documentation",
-            color=discord.Color.dark_red())
-
+            color=discord.Color.dark_red()
+        )
         for command in self.walk_commands():
-            embed.add_field(name=ctx.prefix + command.qualified_name,
-                            value=command.help)
-
+            embed.add_field(
+                name=ctx.prefix + command.qualified_name, value=command.help
+            )
         await ctx.send(embed=embed)
 
     @commands.has_permissions(manage_nicknames=True)
@@ -51,7 +53,8 @@ class Moderation(commands.Cog):
             name_user = ctx.guild.get_member(name_user)
         await name_user.edit(reason=None, nick=nickname)
         await ctx.send(
-            f"`{name_user}`'s nickname has been changed to `{nickname}`.")
+            f"`{name_user}`'s nickname has been changed to `{nickname}`."
+        )
 
     @commands.has_permissions(manage_messages=True)
     @mod.command()
@@ -71,8 +74,9 @@ class Moderation(commands.Cog):
         """
         channel = self.client.get_channel(ctx.channel.id)
         deleted = await channel.purge(limit=amount)
-        await ctx.send(f"{len(deleted)} message(s) have been deleted.",
-                       delete_after=10)
+        await ctx.send(
+            f"{len(deleted)} message(s) have been deleted.", delete_after=10
+        )
 
     @delete.error
     async def delete_error(self, ctx, error):
@@ -84,8 +88,9 @@ class Moderation(commands.Cog):
 
     @commands.has_permissions(ban_members=True)
     @mod.command()
-    async def ban(self, ctx, banned_user, time: int = 0, *,
-                  reason: str = None):
+    async def ban(
+        self, ctx, banned_user, time: int = 0, *, reason: str = None
+    ):
         """
         Ban a user.
 
@@ -105,11 +110,12 @@ class Moderation(commands.Cog):
             banned_user = int(banned_user)
             banned_user = self.client.get_user(banned_user)
         try:
-            await ctx.guild.ban(user=banned_user,
-                                reason=reason,
-                                delete_message_days=time)
-            await ctx.send(f"The ban hammer has been dropped on {banned_user}!"
-                           )
+            await ctx.guild.ban(
+                user=banned_user, reason=reason, delete_message_days=time
+            )
+            await ctx.send(
+                f"The ban hammer has been dropped on {banned_user}!"
+            )
         except asyncio.TimeoutError:
             await ctx.send(
                 "Command failed. Make sure all necessary arguments are provided and/or correct."
@@ -118,8 +124,9 @@ class Moderation(commands.Cog):
     @ban.error
     async def ban_error(self, ctx, error):
         """Error when ban doesn't work."""
-        if isinstance(error,
-                      (commands.BadArgument, commands.MissingPermissions)):
+        if isinstance(
+            error, (commands.BadArgument, commands.MissingPermissions)
+        ):
             await ctx.send(
                 "Command failed. Make sure you have the `ban_members` permission in order to use this command, or have specified the correct arguments."
             )
@@ -152,8 +159,9 @@ class Moderation(commands.Cog):
     async def kick_error(self, ctx, error):
         """Error when kick doesn't work."""
         if isinstance(
-                error,
-            (commands.MissingRequiredArgument, commands.MissingPermissions)):
+            error,
+            (commands.MissingRequiredArgument, commands.MissingPermissions)
+        ):
             await ctx.send(
                 "Command failed. Make sure you have the `kick_members` permission in order to use this command, or have specified the user you want to kick using an @mention."
             )
@@ -171,8 +179,9 @@ class Moderation(commands.Cog):
         Note: This will only work on users without an assigned role.
 
         """
-        pruned = await ctx.guild.prune_members(days=time,
-                                               compute_prune_count="False")
+        pruned = await ctx.guild.prune_members(
+            days=time, compute_prune_count="False"
+        )
         # await ctx.send("Prune executed.")
         await ctx.send(f"{pruned} member(s) have been pruned from the server.")
 

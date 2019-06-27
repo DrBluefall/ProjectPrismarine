@@ -33,27 +33,32 @@ class SQLEngine:
     def check_profile_exists(cls, user_id):
         """Check if a profile exists in the database or not."""
         profile = cls.c.execute(
-            select([cls.table
-                    ]).where(cls.table.c.user_id == user_id)).fetchone()
+            select([cls.table]).where(cls.table.c.user_id == user_id)
+        ).fetchone()
 
         return profile is not None
 
     @classmethod
     def create_profile_embed(cls, user):
         """Create profile embed."""
-        profile_select = select([cls.table
-                                 ]).where(cls.table.c.user_id == user.id)
+        profile_select = select([cls.table]
+                                ).where(cls.table.c.user_id == user.id)
         profile = cls.c.execute(profile_select)
         profile = profile.fetchone()
 
-        embed = discord.Embed(title=f"QA Tester #{profile[0]}'s Profile",
-                              color=discord.Color.dark_red())
+        embed = discord.Embed(
+            title=f"QA Tester #{profile[0]}'s Profile",
+            color=discord.Color.dark_red()
+        )
 
         embed.set_thumbnail(url=user.avatar_url)
         for name, index in zip(
-            ("In-Game Name:", "Friend Code:", "Level:", "Rainmaker Rank:",
-             "Tower Control Rank:", "Splat Zones Rank:", "Clam Blitz Rank:",
-             "Salmon Run Rank:"), range(8)):
+            (
+                "In-Game Name:", "Friend Code:", "Level:", "Rainmaker Rank:",
+                "Tower Control Rank:", "Splat Zones Rank:", "Clam Blitz Rank:",
+                "Salmon Run Rank:"
+            ), range(8)
+        ):
             embed.add_field(name=name, value=profile[index + 1])
         return embed
 
@@ -73,9 +78,9 @@ class Profiler(commands.Cog, SQLEngine):
         super().__init__()
         self.client = client
 
-    @commands.group(invoke_without_command=True,
-                    case_insensitive=True,
-                    ignore_extra=False)
+    @commands.group(
+        invoke_without_command=True, case_insensitive=True, ignore_extra=False
+    )
     async def profile(self, ctx, user=None):
         """
         Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user.
@@ -108,11 +113,13 @@ class Profiler(commands.Cog, SQLEngine):
         """Profiler command documentation."""
         embed = discord.Embed(
             title=f"Project Prismarine - {__class__.__name__} Documentation",
-            color=discord.Color.dark_red())
+            color=discord.Color.dark_red()
+        )
 
         for command in self.walk_commands():
-            embed.add_field(name=ctx.prefix + command.qualified_name,
-                            value=command.help)
+            embed.add_field(
+                name=ctx.prefix + command.qualified_name, value=command.help
+            )
 
         await ctx.send(embed=embed)
 
@@ -214,7 +221,8 @@ class Profiler(commands.Cog, SQLEngine):
             else:
                 for key, value in modes.items():
                     found, message = Record.try_rank_entry(
-                        gamemode, key, value, rank)
+                        gamemode, key, value, rank
+                    )
                     if found:
                         break
                 else:
@@ -267,24 +275,32 @@ class Record(Profiler):
     @classmethod
     def ign_entry(cls, ctx, name):
         """Record the ign in the database."""
-        ign = (cls.table.update(None).where(
-            cls.table.c.user_id == ctx.message.author.id).values(ign=name))
+        ign = (
+            cls.table.update(None).where(
+                cls.table.c.user_id == ctx.message.author.id
+            ).values(ign=name)
+        )
         cls.c.execute(ign)
 
     @classmethod
     def fc_entry(cls, ctx, friend_code):
         """Record the fc in the database."""
         p_1, p_2, p_3 = friend_code[0:4], friend_code[4:8], friend_code[8:12]
-        friend_code = (cls.table.update(None).where(
-            cls.table.c.user_id == ctx.message.author.id).values(
-                fc=f"SW-{p_1}-{p_2}-{p_3}"))
+        friend_code = (
+            cls.table.update(None).where(
+                cls.table.c.user_id == ctx.message.author.id
+            ).values(fc=f"SW-{p_1}-{p_2}-{p_3}")
+        )
         cls.c.execute(friend_code)
 
     @classmethod
     def level_entry(cls, ctx, level):
         """Record the level in the database."""
-        level = (cls.table.update(None).where(
-            cls.table.c.user_id == ctx.message.author.id).values(level=level))
+        level = (
+            cls.table.update(None).where(
+                cls.table.c.user_id == ctx.message.author.id
+            ).values(level=level)
+        )
         cls.c.execute(level)
 
     @classmethod
@@ -311,17 +327,20 @@ class Record(Profiler):
     @classmethod
     def loadout_string_entry(cls, ctx, string: str = None):
         """Record a user's loadout.ink string into the database."""
-        loadout_string = (cls.table.update(None).where(
-            cls.table.c.user_id == ctx.message.author.id).values(
-                loadout_string=string))
+        loadout_string = (
+            cls.table.update(None).where(
+                cls.table.c.user_id == ctx.message.author.id
+            ).values(loadout_string=string)
+        )
         cls.c.execute(loadout_string)
 
 
 def get_modes():
     """Get modes."""
-    rank_list = ("C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+", "S", "S+0",
-                 "S+1", "S+2", "S+3", "S+4", "S+5", "S+6", "S+7", "S+8", "S+9",
-                 "X")
+    rank_list = (
+        "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+", "S", "S+0", "S+1",
+        "S+2", "S+3", "S+4", "S+5", "S+6", "S+7", "S+8", "S+9", "X"
+    )
     modes = {
         "Splat Zones": {
             "aliases": ("sz", "splatzones", "sz_rank"),

@@ -24,12 +24,12 @@ class MyModule(commands.Cog):
         """Mymodule command documentation."""
         embed = discord.Embed(
             title=f"Project Prismarine - {__class__.__name__} Documentation",
-            color=discord.Color.dark_red())
-
+            color=discord.Color.dark_red()
+        )
         for command in self.walk_commands():
-            embed.add_field(name=ctx.prefix + command.qualified_name,
-                            value=command.help)
-
+            embed.add_field(
+                name=ctx.prefix + command.qualified_name, value=command.help
+            )
         await ctx.send(embed=embed)
 
     @module_group.command()

@@ -11,9 +11,10 @@ class DBcManager:
 
     db = create_engine("sqlite:///ProjectPrismarine.db")
     metadata = MetaData(db)
-    prefix_table = Table("prefix", metadata,
-                         Column("server_id", Integer, primary_key=True),
-                         Column("prefix", String))
+    prefix_table = Table(
+        "prefix", metadata, Column("server_id", Integer, primary_key=True),
+        Column("prefix", String)
+    )
 
     metadata.create_all()
     c = db.connect()
@@ -22,30 +23,37 @@ class DBcManager:
     def get_server_prefix(cls, ctx):
         """Retrieve a server's prefix."""
         return cls.c.execute(
-            select([cls.prefix_table]).where(cls.prefix_table.c.server_id ==
-                                             ctx.message.guild.id)).fetchone()
+            select(
+                [cls.prefix_table]
+            ).where(cls.prefix_table.c.server_id == ctx.message.guild.id)
+        ).fetchone()
 
     @classmethod
     def insert_server_prefix(cls, ctx, prefix):
         """Insert a new server prefix into the database."""
         return cls.c.execute(
             cls.prefix_table.insert(None).values(
-                server_id=ctx.message.guild.id, prefix=prefix))
+                server_id=ctx.message.guild.id, prefix=prefix
+            )
+        )
 
     @classmethod
     def update_server_prefix(cls, ctx, prefix):
         """Update a server's prefix."""
         return cls.c.execute(
             cls.prefix_table.update(None).where(
-                cls.prefix_table.c.server_id == ctx.message.guild.id).values(
-                    prefix=prefix))
+                cls.prefix_table.c.server_id == ctx.message.guild.id
+            ).values(prefix=prefix)
+        )
 
     @classmethod
     def delete_server_prefix(cls, ctx):
         """Delete a server's prefix from the database."""
         return cls.c.execute(
             cls.prefix_table.delete(None).where(
-                cls.prefix_table.c.server_id == ctx.message.guild.id))
+                cls.prefix_table.c.server_id == ctx.message.guild.id
+            )
+        )
 
 
 class ServerConfig(commands.Cog, DBcManager):
@@ -66,11 +74,13 @@ class ServerConfig(commands.Cog, DBcManager):
         """Config command documentation."""
         embed = discord.Embed(
             title=f"Project Prismarine - {__class__.__name__} Documentation",
-            color=discord.Color.dark_red())
+            color=discord.Color.dark_red()
+        )
 
         for command in self.walk_commands():
-            embed.add_field(name=ctx.prefix + command.qualified_name,
-                            value=command.help)
+            embed.add_field(
+                name=ctx.prefix + command.qualified_name, value=command.help
+            )
 
         await ctx.send(embed=embed)
 
@@ -105,7 +115,8 @@ class ServerConfig(commands.Cog, DBcManager):
                 f"Your current prefix is: `{prefix[1]}`.\n\nAre you sure you wish to reset the bot's prefix to `{CONFIG['prefix']}`? (Y/N)"
             )
             confirm = await self.client.wait_for(
-                "message", check=lambda m: m.author == ctx.message.author)
+                "message", check=lambda m: m.author == ctx.message.author
+            )
 
             if confirm.content.lower() == "y":
                 self.delete_server_prefix(ctx)

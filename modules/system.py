@@ -14,8 +14,8 @@ class System(commands.Cog):
         """Init the System cog."""
         self.client = client
         self.dbl = dbl.Client(self.client, CONFIG["dbl_token"])
-        if discord.ClientUser.id == 568469437284614174: # pylint: disable=no-member
-            self.update = self.update_stats.start() # pylint: disable=no-member
+        if discord.ClientUser.id == 568469437284614174:  # pylint: disable=no-member
+            self.update = self.update_stats.start()  # pylint: disable=no-member
 
     @tasks.loop()
     async def update_stats(self):
@@ -26,8 +26,10 @@ class System(commands.Cog):
                 await self.dbl.post_guild_count()
                 logging.info("Posted server count: %s", self.dbl.guild_count())
             except Exception as e:  # pylint: disable=broad-except, invalid-name
-                logging.exception("Failed to post server count\n%s: %s",
-                                  type(e).__name__, e)
+                logging.exception(
+                    "Failed to post server count\n%s: %s",
+                    type(e).__name__, e
+                )
             await asyncio.sleep(900)
 
     @commands.command()
@@ -57,13 +59,17 @@ class System(commands.Cog):
             user_type = "`User`"
         else:
             user_type = "`Bot`"
-        embed = discord.Embed(title=f"User Report: {member.display_name}",
-                              color=discord.Color.blurple())
+        embed = discord.Embed(
+            title=f"User Report: {member.display_name}",
+            color=discord.Color.blurple()
+        )
         embed.add_field(name="Discord ID:", value=name, inline=True)
         embed.add_field(name="User ID:", value=f"`{member.id}`", inline=True)
-        embed.add_field(name="Account Created At:",
-                        value=f"`{member.created_at}`",
-                        inline=True)
+        embed.add_field(
+            name="Account Created At:",
+            value=f"`{member.created_at}`",
+            inline=True
+        )
         embed.add_field(name="Account Type:", value=user_type, inline=True)
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(
@@ -87,7 +93,8 @@ class System(commands.Cog):
         """Error if the user of the command is not the bot owner."""
         if isinstance(error, (discord.ext.commands.errors.NotOwner)):
             await ctx.send(
-                ":warning: *You're not authorized to use this!* :warning:")
+                ":warning: *You're not authorized to use this!* :warning:"
+            )
 
     @commands.check(lambda ctx: ctx.guild.id == 561529218949971989)
     @commands.has_permissions(administrator=True)
@@ -99,11 +106,13 @@ class System(commands.Cog):
             description=text,
             color=discord.Color.blurple(),
         )
-        embed.set_author(name="Unit 10008-RSP",
-                         icon_url=self.client.user.avatar_url)
+        embed.set_author(
+            name="Unit 10008-RSP", icon_url=self.client.user.avatar_url
+        )
         embed.set_footer(
             text=f"Solidarity, {ctx.message.author.display_name}.",
-            icon_url=ctx.author.avatar_url)
+            icon_url=ctx.author.avatar_url
+        )
         announce_channel = self.client.get_channel(583704659080773642)
         if ctx.message.mention_everyone:
             await announce_channel.send("@everyone")
@@ -114,7 +123,8 @@ class System(commands.Cog):
         """Error when announce is used by an unauthorized user."""
         if isinstance(error, (discord.ext.commands.errors.NotOwner)):
             await ctx.send(
-                ":warning: *You're not authorized to use this!* :warning:")
+                ":warning: *You're not authorized to use this!* :warning:"
+            )
         else:
             print(error)
 
@@ -122,8 +132,10 @@ class System(commands.Cog):
     async def info(self, ctx):
         """Show info from dbl in an embed."""
         embed = discord.Embed(color=discord.Color.blurple())
-        embed.set_image(url=await self.dbl.generate_widget_large(
-            bot_id="568469437284614174"))
+        embed.set_image(
+            url=await
+            self.dbl.generate_widget_large(bot_id="568469437284614174")
+        )
         await ctx.send(embed=embed)
 
     @commands.is_owner()
@@ -139,7 +151,8 @@ class System(commands.Cog):
         """Error if the person using the command is not the bot owner."""
         if isinstance(error, (discord.ext.commands.errors.NotOwner)):
             await ctx.send(
-                ":warning: *You're not authorized to use this!* :warning:")
+                ":warning: *You're not authorized to use this!* :warning:"
+            )
 
 
 with open("config.json", "r") as infile:

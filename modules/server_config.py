@@ -70,21 +70,6 @@ class ServerConfig(commands.Cog, DBcManager):
         """Configure command group. Does nothing on it's own."""
 
     @config.command()
-    async def help(self, ctx):
-        """Config command documentation."""
-        embed = discord.Embed(
-            title=f"Project Prismarine - {__class__.__name__} Documentation",
-            color=discord.Color.dark_red()
-        )
-
-        for command in self.walk_commands():
-            embed.add_field(
-                name=ctx.prefix + command.qualified_name, value=command.help
-            )
-
-        await ctx.send(embed=embed)
-
-    @config.command()
     async def set_prefix(self, ctx, prefix: str = None):
         """
         Set the bot's prefix within the server. By default, it is 'pr.', and it also responds to being @ mentioned.
@@ -128,6 +113,21 @@ class ServerConfig(commands.Cog, DBcManager):
             message = "Command failed - prefix is already set to default."
 
         await ctx.send(message)
+
+    @config.command()
+    async def help(self, ctx):
+        """Config command documentation."""
+        embed = discord.Embed(
+            title=f"Project Prismarine - {__class__.__name__} Documentation",
+            color=discord.Color.dark_red()
+        )
+
+        for command in self.walk_commands():
+            embed.add_field(
+                name=ctx.prefix + command.qualified_name, value=command.help
+            )
+
+        await ctx.send(embed=embed)
 
 
 with open("config.json", "r") as infile:

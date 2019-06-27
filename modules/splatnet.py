@@ -58,16 +58,34 @@ class Splatnet(commands.Cog):
         embed = discord.Embed(
             title=f"Project Prismarine - {__class__.__name__} Documentation",
             color=discord.Color.dark_red())
-        for command in self.client.commands:
-            if command.cog_name == __class__.__name__:
-                embed.add_field(name=f"{ctx.prefix}{command.qualified_name}",
-                                value=command.help)
-                for group_command in command.commands:
-                    embed.add_field(
-                        name=f"{ctx.prefix}{group_command.qualified_name}",
-                        value=group_command.help)
+
+        for command in self.walk_commands():
+            embed.add_field(name=ctx.prefix + command.qualified_name,
+                            value=command.help)
 
         await ctx.send(embed=embed)
+
+    @rotation.command()
+    async def splatnet(self, ctx, index: int = 6):
+        """
+        List the currently available number of items on the SplatNet Shop.
+
+        Parameters:
+            -Index (Integer): The number of items to list. This must be a value between 1 and 6. Defaults to 6.
+        Returns:
+            - A list of embeds with each Splatnet item and info about it.
+        """
+        if index < 1 or index > 6:
+            await ctx.send(
+                "Command failed - Number of items listed must be a value between 1 and 6."
+            )
+            return
+        async with ctx.typing():
+            for i in range(index):
+                embed, file = SplatnetEmbeds.splatnet(self.splatnet_data[i -
+                                                                         1])
+                embed.set_thumbnail(url=f"attachment://{file.filename}")
+                await ctx.send(embed=embed, file=file)
 
     @tasks.loop(minutes=30)
     async def request_data_loop(self):
@@ -99,18 +117,6 @@ class Splatnet(commands.Cog):
                                          grizzco_schedule.json())
             self.splatnet_data = create_splatnet_json_data(splatnet.json())
             logging.info("Retrieved data successfully.")
-
-    @commands.command()
-    async def splatnet(self, ctx, index: int = 6):
-        if index < 1 or index > 6:
-            await ctx.send("Command failed - Number of items listed must be a value between 1 and 6.")
-            return
-        async with ctx.typing():
-            for i in range(index):
-                embed, file = SplatnetEmbeds.splatnet(self.splatnet_data[i - 1])
-                embed.set_thumbnail(url=f"attachment://{file.filename}")
-                await ctx.send(embed=embed, file=file)
-
 
 
 class SplatnetEmbeds:
@@ -233,10 +239,8 @@ class SplatnetEmbeds:
                     .where(cls.metadata.tables["headgear"].c.splatnet == item["splatnet"])
             ).fetchone()
             file = discord.File(file["image"], filename=file["image"][20:])
-        embed = discord.Embed(
-            title=f"SplatNet Gear: {item['name']}",
-            color=discord.Color.from_rgb(85, 0, 253)
-        )
+        embed = discord.Embed(title=f"SplatNet Gear: {item['name']}",
+                              color=discord.Color.from_rgb(85, 0, 253))
         embed.add_field(name="Gear Type:", value=item["type"].capitalize())
         embed.add_field(name="Gear Price:", value=item["price"])
         embed.add_field(name="Gear Rarity:", value=item["rarity"])

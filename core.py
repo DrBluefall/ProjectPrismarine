@@ -117,9 +117,14 @@ async def load(ctx, extension):
         CLIENT.load_extension(f"modules.{extension}")
         await ctx.send(f"Module `{extension}` loaded.")
         logging.info("%s module loaded.", extension)
-    except (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) as error:
-        await ctx.send("Module could not be loaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly.")
+    except \
+        (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) \
+        as error:
+        await ctx.send(
+            "Module could not be loaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
+        )
         logging.exception("%i - %s", ctx.guild.id, error)
+
 
 @commands.is_owner()
 @CLIENT.command()
@@ -129,9 +134,14 @@ async def unload(ctx, extension):
         CLIENT.unload_extension(f"modules.{extension}")
         await ctx.send(f"Module `{extension}` unloaded.")
         logging.info("%s module unloaded.", extension)
-    except (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) as error:
-        await ctx.send("Module could not be unloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly.")
+    except \
+        (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) \
+        as error:
+        await ctx.send(
+            "Module could not be unloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
+        )
         logging.exception("%i - %s", ctx.guild.id, error)
+
 
 @commands.is_owner()
 @CLIENT.command()
@@ -142,9 +152,14 @@ async def reload(ctx, extension):
         CLIENT.load_extension(f"modules.{extension}")
         await ctx.send(f"Module `{extension}` reloaded.")
         logging.info("%s module reloaded.", extension)
-    except (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) as error:
-        await ctx.send("Module could not be reloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly.")
+    except \
+        (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) \
+        as error:
+        await ctx.send(
+            "Module could not be reloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
+        )
         logging.exception("%i - %s", ctx.guild.id, error)
+
 
 @CLIENT.command()
 async def credits(ctx):

@@ -4,7 +4,7 @@ from datetime import datetime
 import requests
 import discord
 from discord.ext import commands, tasks
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
+from sqlalchemy import create_engine, MetaData, select
 
 
 class Splatnet(commands.Cog):
@@ -30,7 +30,8 @@ class Splatnet(commands.Cog):
 
             if datetime.now() > self.data["grizzco"]["time"]["start"]:
                 await ctx.send(
-                    embed=SplatnetEmbeds.salmon(self.data["grizzco"]))
+                    embed=SplatnetEmbeds.salmon(self.data["grizzco"])
+                )
 
     @rotation.command()
     async def turf(self, ctx):
@@ -57,12 +58,12 @@ class Splatnet(commands.Cog):
         """Splatnet command documentation."""
         embed = discord.Embed(
             title=f"Project Prismarine - {__class__.__name__} Documentation",
-            color=discord.Color.dark_red())
-
+            color=discord.Color.dark_red()
+        )
         for command in self.walk_commands():
-            embed.add_field(name=ctx.prefix + command.qualified_name,
-                            value=command.help)
-
+            embed.add_field(
+                name=ctx.prefix + command.qualified_name, value=command.help
+            )
         await ctx.send(embed=embed)
 
     @rotation.command()
@@ -72,8 +73,10 @@ class Splatnet(commands.Cog):
 
         Parameters:
             -Index (Integer): The number of items to list. This must be a value between 1 and 6. Defaults to 6.
+
         Returns:
             - A list of embeds with each Splatnet item and info about it.
+
         """
         if index < 1 or index > 6:
             await ctx.send(
@@ -82,8 +85,9 @@ class Splatnet(commands.Cog):
             return
         async with ctx.typing():
             for i in range(index):
-                embed, file = SplatnetEmbeds.splatnet(self.splatnet_data[i -
-                                                                         1])
+                embed, file = SplatnetEmbeds.splatnet(
+                    self.data["splatnet"][i - 1]
+                )
                 embed.set_thumbnail(url=f"attachment://{file.filename}")
                 await ctx.send(embed=embed, file=file)
 
@@ -96,26 +100,27 @@ class Splatnet(commands.Cog):
 
     def request_data(self):
         """Request and cache info from Splatoon2.ink."""
-        schedule = requests.get(
-            "https://splatoon2.ink/data/schedules.json",
-            headers={'User-Agent': 'Project Prismarine#6634'})
-        grizzco_schedule = requests.get(
-            "https://splatoon2.ink/data/coop-schedules.json",
-            headers={'User-Agent': 'Project Prismarine#6634'})
-        splatnet = requests.get(
-            "https://splatoon2.ink/data/merchandises.json",
-            headers={'User-Agent': 'Project Prismarine#6634'})
+        header = {'User-Agent': 'Project Prismarine#6634'}
+        schedules = requests.get(
+            "https://splatoon2.ink/data/schedules.json", headers=header
+        )
+        coop_schedules = requests.get(
+            "https://splatoon2.ink/data/coop-schedules.json", headers=header
+        )
+        merchandises = requests.get(
+            "https://splatoon2.ink/data/merchandises.json", headers=header
+        )
 
         try:
-            schedule.raise_for_status()
-            grizzco_schedule.raise_for_status()
-            splatnet.raise_for_status()
+            schedules.raise_for_status()
+            coop_schedules.raise_for_status()
+            merchandises.raise_for_status()
         except requests.exceptions.HTTPError:
             logging.error("Retrieving data failed.")
         else:
-            self.data = create_json_data(schedule.json(),
-                                         grizzco_schedule.json())
-            self.splatnet_data = create_splatnet_json_data(splatnet.json())
+            self.data = create_json_data(
+                schedules.json(), coop_schedules.json(), merchandises.json()
+            )
             logging.info("Retrieved data successfully.")
 
 
@@ -133,15 +138,18 @@ class SplatnetEmbeds:
         embed = discord.Embed(
             title=
             f'Current Turf War Rotation: {data["time"]["start"].ctime()} - {data["time"]["end"].ctime()}',
-            color=discord.Color.from_rgb(199, 207, 32))
+            color=discord.Color.from_rgb(199, 207, 32)
+        )
         embed.set_thumbnail(
             url=
             "https://cdn.wikimg.net/en/splatoonwiki/images/4/4c/Mode_Icon_Regular_Battle_2.png"
         )
-        embed.add_field(name="Map Set:",
-                        value=f'{data["maps"][0]}, {data["maps"][1]}')
-        embed.add_field(name="Time Left:",
-                        value=f'{data["time"]["end"] - datetime.now()}')
+        embed.add_field(
+            name="Map Set:", value=f'{data["maps"][0]}, {data["maps"][1]}'
+        )
+        embed.add_field(
+            name="Time Left:", value=f'{data["time"]["end"] - datetime.now()}'
+        )
         return embed
 
     @staticmethod
@@ -150,16 +158,19 @@ class SplatnetEmbeds:
         embed = discord.Embed(
             title=
             f'Current Ranked Battle Rotation: {data["time"]["start"].ctime()} - {data["time"]["end"].ctime()}',
-            color=discord.Color.from_rgb(243, 48, 0))
+            color=discord.Color.from_rgb(243, 48, 0)
+        )
         embed.set_thumbnail(
             url=
             "https://cdn.wikimg.net/en/splatoonwiki/images/2/2c/Mode_Icon_Ranked_Battle_2.png"
         )
         embed.add_field(name="Current Mode:", value=data["mode"])
-        embed.add_field(name="Map Set:",
-                        value=f'{data["maps"][0]}, {data["maps"][1]}')
-        embed.add_field(name="Time Left:",
-                        value=f'{data["time"]["end"] - datetime.now()}')
+        embed.add_field(
+            name="Map Set:", value=f'{data["maps"][0]}, {data["maps"][1]}'
+        )
+        embed.add_field(
+            name="Time Left:", value=f'{data["time"]["end"] - datetime.now()}'
+        )
         return embed
 
     @staticmethod
@@ -168,16 +179,19 @@ class SplatnetEmbeds:
         embed = discord.Embed(
             title=
             f'Current League Rotation: {data["time"]["start"].ctime()} - {data["time"]["end"].ctime()}',
-            color=discord.Color.from_rgb(234, 0, 107))
+            color=discord.Color.from_rgb(234, 0, 107)
+        )
         embed.set_thumbnail(
             url=
             "https://cdn.wikimg.net/en/splatoonwiki/images/9/9b/Symbol_LeagueF.png"
         )
         embed.add_field(name="Current Mode:", value=f'{data["mode"]}')
-        embed.add_field(name="Map Set:",
-                        value=f'{data["maps"][0]}, {data["maps"][1]}')
-        embed.add_field(name="Time Left:",
-                        value=f'{data["time"]["end"] - datetime.now()}')
+        embed.add_field(
+            name="Map Set:", value=f'{data["maps"][0]}, {data["maps"][1]}'
+        )
+        embed.add_field(
+            name="Time Left:", value=f'{data["time"]["end"] - datetime.now()}'
+        )
         return embed
 
     @staticmethod
@@ -186,7 +200,8 @@ class SplatnetEmbeds:
         if datetime.now() > data["time"]["start"]:
             embed = discord.Embed(
                 title="ADVERTISEMENT: Grizzco Industries is hiring!",
-                color=discord.Color.from_rgb(255, 51, 54))
+                color=discord.Color.from_rgb(255, 51, 54)
+            )
             embed.set_thumbnail(
                 url=
                 "https://cdn.wikimg.net/en/splatoonwiki/images/b/bf/S2_Icon_Grizzco.png"
@@ -205,7 +220,8 @@ class SplatnetEmbeds:
         else:
             embed = discord.Embed(
                 title=f"ADVERTISEMENT: Grizzco Industries will be hiring soon!",
-                color=discord.Color.from_rgb(255, 51, 54))
+                color=discord.Color.from_rgb(255, 51, 54)
+            )
             embed.add_field(
                 name="Future Recruitment Drive Time Window:",
                 value=
@@ -221,6 +237,7 @@ class SplatnetEmbeds:
 
     @classmethod
     def splatnet(cls, item):
+        """Generate a Splatnet feed embed."""
         if item["type"] == "shoes":
             file = cls.c.execute(
                 select([cls.metadata.tables["shoes"].c.image])\
@@ -239,102 +256,101 @@ class SplatnetEmbeds:
                     .where(cls.metadata.tables["headgear"].c.splatnet == item["splatnet"])
             ).fetchone()
             file = discord.File(file["image"], filename=file["image"][20:])
-        embed = discord.Embed(title=f"SplatNet Gear: {item['name']}",
-                              color=discord.Color.from_rgb(85, 0, 253))
+        embed = discord.Embed(
+            title=f"SplatNet Gear: {item['name']}",
+            color=discord.Color.from_rgb(85, 0, 253)
+        )
         embed.add_field(name="Gear Type:", value=item["type"].capitalize())
         embed.add_field(name="Gear Price:", value=item["price"])
         embed.add_field(name="Gear Rarity:", value=item["rarity"])
         embed.add_field(
             name="Gear Ability:",
-            value=f"~~{item['original_ability']}~~ {item['ability']}")
+            value=f"~~{item['original_ability']}~~ {item['ability']}"
+        )
         embed.add_field(name="Available Until:", value=item["expiration"])
         return embed, file
 
 
-def create_json_data(schedule, grizzco_schedule):
+def create_json_data(schedules, coop_schedules, merchandises):
     """Turn Splatoon2.ink json data into something more usable for the bot."""
     data = {
         "regular": {
             "mode":
             "Turf War",
             "maps": [
-                schedule["regular"][0]['stage_a']['name'],
-                schedule["regular"][0]['stage_b']['name']
+                schedules["regular"][0]['stage_a']['name'],
+                schedules["regular"][0]['stage_b']['name']
             ],
             "time": {
                 "start":
-                datetime.fromtimestamp(schedule["regular"][0]["start_time"]),
+                datetime.fromtimestamp(schedules["regular"][0]["start_time"]),
                 "end":
-                datetime.fromtimestamp(schedule["regular"][0]["end_time"])
+                datetime.fromtimestamp(schedules["regular"][0]["end_time"])
             }
         },
         "ranked": {
             "mode":
-            schedule["gachi"][0]["rule"]["name"],
+            schedules["gachi"][0]["rule"]["name"],
             "maps": [
-                schedule["gachi"][0]['stage_a']['name'],
-                schedule["gachi"][0]['stage_b']['name']
+                schedules["gachi"][0]['stage_a']['name'],
+                schedules["gachi"][0]['stage_b']['name']
             ],
             "time": {
                 "start":
-                datetime.fromtimestamp(schedule["gachi"][0]["start_time"]),
+                datetime.fromtimestamp(schedules["gachi"][0]["start_time"]),
                 "end":
-                datetime.fromtimestamp(schedule["gachi"][0]["end_time"]),
+                datetime.fromtimestamp(schedules["gachi"][0]["end_time"]),
             }
         },
         "league": {
             "mode":
-            schedule["league"][0]["rule"]["name"],
+            schedules["league"][0]["rule"]["name"],
             "maps": [
-                schedule["league"][0]['stage_a']['name'],
-                schedule["league"][0]['stage_b']['name']
+                schedules["league"][0]['stage_a']['name'],
+                schedules["league"][0]['stage_b']['name']
             ],
             "time": {
                 "start":
-                datetime.fromtimestamp(schedule["league"][0]["start_time"]),
+                datetime.fromtimestamp(schedules["league"][0]["start_time"]),
                 "end":
-                datetime.fromtimestamp(schedule["league"][0]["end_time"]),
+                datetime.fromtimestamp(schedules["league"][0]["end_time"]),
             }
         },
         "grizzco": {
             "mode":
             "Salmon Run",
             "map":
-            grizzco_schedule["details"][0]["stage"]["name"],
+            coop_schedules["details"][0]["stage"]["name"],
             "weapons": [
-                grizzco_schedule["details"][0]["weapons"][0]["weapon"]["name"],
-                grizzco_schedule["details"][0]["weapons"][1]["weapon"]["name"],
-                grizzco_schedule["details"][0]["weapons"][2]["weapon"]["name"],
-                grizzco_schedule["details"][0]["weapons"][3]["weapon"]["name"]
+                coop_schedules["details"][0]["weapons"][0]["weapon"]["name"],
+                coop_schedules["details"][0]["weapons"][1]["weapon"]["name"],
+                coop_schedules["details"][0]["weapons"][2]["weapon"]["name"],
+                coop_schedules["details"][0]["weapons"][3]["weapon"]["name"]
             ],
             "time": {
                 "start":
                 datetime.fromtimestamp(
-                    grizzco_schedule["details"][0]["start_time"]),
+                    coop_schedules["details"][0]["start_time"]
+                ),
                 "end":
                 datetime.fromtimestamp(
-                    grizzco_schedule["details"][0]["end_time"]),
+                    coop_schedules["details"][0]["end_time"]
+                ),
             }
-        }
+        },
+        "splatnet": [
+            {
+                "name": gear["gear"]["name"],
+                "type": gear["kind"],
+                "price": gear["price"],
+                "rarity": gear["gear"]["rarity"],
+                "ability": gear["skill"]["name"],
+                "original_ability": gear["original_gear"]["skill"]["name"],
+                "expiration": datetime.fromtimestamp(gear["end_time"]).ctime(),
+                "splatnet": gear["gear"]["id"]
+            } for gear in merchandises["merchandises"]
+        ]
     }
-    return data
-
-
-def create_splatnet_json_data(splatnet):
-    """Create splatnet json data."""
-    data = []
-    for gear in splatnet["merchandises"]:
-        item = {
-            "name": gear["gear"]["name"],
-            "type": gear["kind"],
-            "price": gear["price"],
-            "rarity": gear["gear"]["rarity"],
-            "ability": gear["skill"]["name"],
-            "original_ability": gear["original_gear"]["skill"]["name"],
-            "expiration": datetime.fromtimestamp(gear["end_time"]).ctime(),
-            "splatnet": gear["gear"]["id"]
-        }
-        data.append(item)
     return data
 
 

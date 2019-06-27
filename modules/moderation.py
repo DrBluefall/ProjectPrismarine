@@ -71,7 +71,7 @@ class Moderation(commands.Cog):
         """
         channel = self.client.get_channel(ctx.channel.id)
         deleted = await channel.purge(limit=amount)
-        await ctx.send("{} message(s) have been deleted.".format(len(deleted)),
+        await ctx.send(f"{len(deleted)} message(s) have been deleted.",
                        delete_after=10)
 
     @delete.error

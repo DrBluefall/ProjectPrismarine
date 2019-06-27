@@ -64,7 +64,7 @@ class Splatnet(commands.Cog):
                             value=command.help)
 
         await ctx.send(embed=embed)
-    
+
     @rotation.command()
     async def splatnet(self, ctx, index: int = 6):
         """
@@ -76,11 +76,14 @@ class Splatnet(commands.Cog):
             - A list of embeds with each Splatnet item and info about it.
         """
         if index < 1 or index > 6:
-            await ctx.send("Command failed - Number of items listed must be a value between 1 and 6.")
+            await ctx.send(
+                "Command failed - Number of items listed must be a value between 1 and 6."
+            )
             return
         async with ctx.typing():
             for i in range(index):
-                embed, file = SplatnetEmbeds.splatnet(self.splatnet_data[i - 1])
+                embed, file = SplatnetEmbeds.splatnet(self.splatnet_data[i -
+                                                                         1])
                 embed.set_thumbnail(url=f"attachment://{file.filename}")
                 await ctx.send(embed=embed, file=file)
 
@@ -114,7 +117,6 @@ class Splatnet(commands.Cog):
                                          grizzco_schedule.json())
             self.splatnet_data = create_splatnet_json_data(splatnet.json())
             logging.info("Retrieved data successfully.")
-
 
 
 class SplatnetEmbeds:
@@ -216,7 +218,7 @@ class SplatnetEmbeds:
                 f'{data["weapons"][0]}, {data["weapons"][1]}, {data["weapons"][2]}, and {data["weapons"][3]}'
             )
         return embed
-    
+
     @classmethod
     def splatnet(cls, item):
         if item["type"] == "shoes":
@@ -237,14 +239,14 @@ class SplatnetEmbeds:
                     .where(cls.metadata.tables["headgear"].c.splatnet == item["splatnet"])
             ).fetchone()
             file = discord.File(file["image"], filename=file["image"][20:])
-        embed = discord.Embed(
-            title=f"SplatNet Gear: {item['name']}",
-            color=discord.Color.from_rgb(85, 0, 253)
-        )
+        embed = discord.Embed(title=f"SplatNet Gear: {item['name']}",
+                              color=discord.Color.from_rgb(85, 0, 253))
         embed.add_field(name="Gear Type:", value=item["type"].capitalize())
         embed.add_field(name="Gear Price:", value=item["price"])
         embed.add_field(name="Gear Rarity:", value=item["rarity"])
-        embed.add_field(name="Gear Ability:", value=f"~~{item['original_ability']}~~ {item['ability']}")
+        embed.add_field(
+            name="Gear Ability:",
+            value=f"~~{item['original_ability']}~~ {item['ability']}")
         embed.add_field(name="Available Until:", value=item["expiration"])
         return embed, file
 

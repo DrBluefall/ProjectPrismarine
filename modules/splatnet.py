@@ -4,6 +4,7 @@ from datetime import datetime
 import requests
 import discord
 from discord.ext import commands, tasks
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 
 
 class Splatnet(commands.Cog):
@@ -99,16 +100,24 @@ class Splatnet(commands.Cog):
     
     @commands.command()
     async def splatnet(self, ctx, index: int = 6):
-        if index < 1:
+        if index < 1 or index > 6:
             await ctx.send("Command failed - Number of items listed must be a value between 1 and 6.")
+            return
         async with ctx.typing():
             for i in range(index):
-                await ctx.send(embed=SplatnetEmbeds.splatnet(self.splatnet_data[i - 1]))
+                embed, file = SplatnetEmbeds.splatnet(self.splatnet_data[i - 1])
+                embed.set_thumbnail(url=f"attachment://{file.filename}")
+                await ctx.send(embed=embed, file=file)
 
 
 
 class SplatnetEmbeds:
     """Class handling embed generation for the module."""
+
+    asset_db = create_engine("sqlite:///assets/assets.db")
+    metadata = MetaData(asset_db)
+    metadata.reflect()
+    c = asset_db.connect()
 
     @staticmethod
     def regular(data):
@@ -202,18 +211,38 @@ class SplatnetEmbeds:
             )
         return embed
     
-    @staticmethod
-    def splatnet(item):
+    @classmethod
+    def splatnet(cls, item):
+        if item["type"] == "shoes":
+            file = cls.c.execute(
+                select([cls.metadata.tables["shoes"].c.image])\
+                    .where(cls.metadata.tables["shoes"].c.splatnet == item["splatnet"])
+            ).fetchone()
+            file = discord.File(file["image"], filename=file["image"][17:])
+        elif item["type"] == "clothes":
+            file = cls.c.execute(
+                select([cls.metadata.tables["clothing"].c.image])\
+                    .where(cls.metadata.tables["clothing"].c.splatnet == item["splatnet"])
+            ).fetchone()
+            file = discord.File(file["image"], filename=file["image"][20:])
+        elif item["type"] == "head":
+            file = cls.c.execute(
+                select([cls.metadata.tables["headgear"].c.image])\
+                    .where(cls.metadata.tables["headgear"].c.splatnet == item["splatnet"])
+            ).fetchone()
+            file = discord.File(file["image"], filename=file["image"][20:])
         embed = discord.Embed(
             title=f"SplatNet Gear: {item['name']}",
             color=discord.Color.from_rgb(85, 0, 253)
         )
-        embed.add_field(name="Gear Type:", value=item["type"])
+        embed.add_field(name="Gear Type:", value=item["type"].capitalize())
         embed.add_field(name="Gear Price:", value=item["price"])
         embed.add_field(name="Gear Rarity:", value=item["rarity"])
         embed.add_field(name="Gear Ability:", value=f"~~{item['original_ability']}~~ {item['ability']}")
         embed.add_field(name="Available Until:", value=item["expiration"])
-        return embed
+        print(file.fp)
+        print(file.filename)
+        return embed, file
 
 
 def create_json_data(schedule, grizzco_schedule):
@@ -296,7 +325,8 @@ def create_splatnet_json_data(splatnet):
             "rarity": gear["gear"]["rarity"],
             "ability": gear["skill"]["name"],
             "original_ability": gear["original_gear"]["skill"]["name"],
-            "expiration": datetime.fromtimestamp(gear["end_time"]).ctime()
+            "expiration": datetime.fromtimestamp(gear["end_time"]).ctime(),
+            "splatnet": gear["gear"]["id"]
         }
         data.append(item)
     return data

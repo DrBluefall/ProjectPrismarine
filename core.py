@@ -113,57 +113,38 @@ async def prefix(ctx):
 @CLIENT.command()
 async def load(ctx, extension):
     """Load the specified module within the bot."""
-    CLIENT.load_extension(f"modules.{extension}")
-    await ctx.send(f"Module `{extension}` loaded.")
-    logging.info("%s module loaded.", extension)
-
-
-@load.error
-async def load_error(ctx, error):
-    """Error if the specified module cannot be loaded."""
-    if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
-        await ctx.send(
-            "Module could not be loaded. Make sure that the module name is correct, and is in the correct directory."
-        )
-
+    try:
+        CLIENT.load_extension(f"modules.{extension}")
+        await ctx.send(f"Module `{extension}` loaded.")
+        logging.info("%s module loaded.", extension)
+    except (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) as error:
+        await ctx.send("Module could not be loaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly.")
+        logging.exception("%i - %s", ctx.guild.id, error)
 
 @commands.is_owner()
 @CLIENT.command()
 async def unload(ctx, extension):
     """Unload the specified module within the bot."""
-    CLIENT.unload_extension(f"modules.{extension}")
-    await ctx.send(f"Module `{extension}` unloaded.")
-    logging.info("%s module unloaded.", extension)
-
-
-@unload.error
-async def unload_error(ctx, error):
-    """Error if the specified module cannot be unloaded."""
-    if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
-        await ctx.send(
-            "Module could not be unloaded. Make sure that the module name is correct, and is in the correct directory."
-        )
-
+    try:
+        CLIENT.unload_extension(f"modules.{extension}")
+        await ctx.send(f"Module `{extension}` unloaded.")
+        logging.info("%s module unloaded.", extension)
+    except (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) as error:
+        await ctx.send("Module could not be unloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly.")
+        logging.exception("%i - %s", ctx.guild.id, error)
 
 @commands.is_owner()
 @CLIENT.command()
 async def reload(ctx, extension):
     """Reload the specified module within the bot."""
-    CLIENT.unload_extension(f"modules.{extension}")
-    CLIENT.load_extension(f"modules.{extension}")
-    await ctx.send(f"Module `{extension}` reloaded.")
-    logging.info("%s module reloaded.", extension)
-
-
-@reload.error
-async def reload_error(ctx, error):
-    """Error if the specified module cannot be reloaded."""
-    if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
-        await ctx.send(
-            "Module could not be reloaded. Make sure that the module name is correct, and is in the correct directory."
-        )
-        logging.info("%i - %s", ctx.guild.id, error)
-
+    try:
+        CLIENT.unload_extension(f"modules.{extension}")
+        CLIENT.load_extension(f"modules.{extension}")
+        await ctx.send(f"Module `{extension}` reloaded.")
+        logging.info("%s module reloaded.", extension)
+    except (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) as error:
+        await ctx.send("Module could not be reloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly.")
+        logging.exception("%i - %s", ctx.guild.id, error)
 
 @CLIENT.command()
 async def credits(ctx):

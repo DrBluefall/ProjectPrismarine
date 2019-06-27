@@ -115,20 +115,19 @@ class System(commands.Cog):
             - The channel ID is not provided and/or invalid.
 
         """
-        channel = int(channel)
-        channel = self.client.get_channel(channel)
-        await channel.send(content)
-        await ctx.send(f"Message sent to {channel}.")
-        logging.info("Message sent to %s.", channel)
-
-    @send.error
-    async def send_error(self, ctx, error):
-        """Error if the user of the command is not the bot owner."""
-        if isinstance(error, (discord.ext.commands.errors.NotOwner)):
-            await ctx.send(
-                ":warning: *You're not authorized to use this!* :warning:"
-            )
-
+        try:
+            channel = int(channel)
+            channel = self.client.get_channel(channel)
+            if channel is None:
+                raise ValueError
+            await channel.send(content)
+            await ctx.send(f"Message sent to {channel}.")
+            logging.info("Message sent to %s.", channel)
+        except commands.errors.NotOwner:
+            await ctx.send(":warning: *You're not authorized to use this!* :warning:")
+        except ValueError:
+            await ctx.send("Command failed - Channel ID is invalid.")
+        
     @commands.check(lambda ctx: ctx.guild.id == 561529218949971989)
     @commands.has_permissions(administrator=True)
     @system.command()
@@ -146,32 +145,28 @@ class System(commands.Cog):
             - The command is invoked outside the support server.
 
         """
-        embed = discord.Embed(
-            title=f"An Announcement from {ctx.message.author.name}...",
-            description=text,
-            color=discord.Color.blurple(),
-        )
-        embed.set_author(
-            name="Unit 10008-RSP", icon_url=self.client.user.avatar_url
-        )
-        embed.set_footer(
-            text=f"Solidarity, {ctx.message.author.display_name}.",
-            icon_url=ctx.author.avatar_url
-        )
-        announce_channel = self.client.get_channel(583704659080773642)
-        if ctx.message.mention_everyone:
-            await announce_channel.send("@everyone")
-        await announce_channel.send(embed=embed)
-
-    @announce.error
-    async def announce_error(self, ctx, error):
-        """Error when announce is used by an unauthorized user."""
-        if isinstance(error, (discord.ext.commands.errors.NotOwner)):
-            await ctx.send(
-                ":warning: *You're not authorized to use this!* :warning:"
-            )
+        if ctx.guild.id == 561529218949971989:
+            if ctx.message.author.permissions_in(ctx.message.channel).administrator is True:
+                embed = discord.Embed(
+                    title=f"An Announcement from {ctx.message.author.name}...",
+                    description=text,
+                    color=discord.Color.blurple(),
+                )
+                embed.set_author(
+                    name="Unit 10008-RSP", icon_url=self.client.user.avatar_url
+                )
+                embed.set_footer(
+                    text=f"Solidarity, {ctx.message.author.display_name}.",
+                    icon_url=ctx.author.avatar_url
+                )
+                announce_channel = self.client.get_channel(583704659080773642)
+                if ctx.message.mention_everyone:
+                    await announce_channel.send("@everyone")
+                await announce_channel.send(embed=embed)
+            else:
+                await ctx.send("Command Failed - You are not authorized to use this command! :warning:")
         else:
-            print(error)
+            await ctx.send("Command Failed - Command invoked outside the support server.")
 
     @system.command()
     async def info(self, ctx):
@@ -189,38 +184,32 @@ class System(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    @commands.is_owner()
     @system.command()
     async def logout(self, ctx):
         """Quit the bot."""
-        logging.info("Shutting down Project Prismarine...")
-        await ctx.send("*Shutting down Project Prismarine...*")
-        await self.client.logout()
+        if ctx.message.author.id == 490650609641324544:
+            logging.info("Shutting down Project Prismarine...")
+            await ctx.send("*Shutting down Project Prismarine...*")
+            await self.client.logout()
+        else:
+            await ctx.send("Command Failed - You are not authorized to use this! :warning:")
 
-    @logout.error
-    async def logout_error(self, ctx, error):
-        """Error if the person using the command is not the bot owner."""
-        if isinstance(error, (discord.ext.commands.errors.NotOwner)):
-            await ctx.send(
-                ":warning: *You're not authorized to use this!* :warning:"
-            )
-
-    @commands.check(
-        lambda ctx: ctx.message.author.id == 490650609641324544 \
-        or ctx.message.author.id == 571494333090496514
-    )
     @system.command()
     async def help(self, ctx):
         """System command documentation."""
-        embed = discord.Embed(
-            title=f"Project Prismarine - {__class__.__name__} Documentation",
-            color=discord.Color.dark_red()
-        )
-        for command in self.walk_commands():
-            embed.add_field(
-                name=ctx.prefix + command.qualified_name, value=command.help
+        if ctx.message.author.id == 490650609641324544 \
+            or ctx.message.author.id == ctx.message.author.id == 571494333090496514:
+            embed = discord.Embed(
+                title=f"Project Prismarine - {__class__.__name__} Documentation",
+                color=discord.Color.dark_red()
             )
-        await ctx.send(embed=embed)
+            for command in self.walk_commands():
+                embed.add_field(
+                    name=ctx.prefix + command.qualified_name, value=command.help
+                )
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send("Command Failed - You are not authorized to access this module! :warning:")
 
 
 with open("config.json", "r") as infile:

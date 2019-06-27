@@ -4,7 +4,7 @@ from datetime import datetime
 import requests
 import discord
 from discord.ext import commands, tasks
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
+from sqlalchemy import create_engine, MetaData, select
 
 
 class Splatnet(commands.Cog):
@@ -100,17 +100,15 @@ class Splatnet(commands.Cog):
 
     def request_data(self):
         """Request and cache info from Splatoon2.ink."""
+        header = {'User-Agent': 'Project Prismarine#6634'}
         schedules = requests.get(
-            "https://splatoon2.ink/data/schedules.json",
-            headers={'User-Agent': 'Project Prismarine#6634'}
+            "https://splatoon2.ink/data/schedules.json", headers=header
         )
         coop_schedules = requests.get(
-            "https://splatoon2.ink/data/coop-schedules.json",
-            headers={'User-Agent': 'Project Prismarine#6634'}
+            "https://splatoon2.ink/data/coop-schedules.json", headers=header
         )
         merchandises = requests.get(
-            "https://splatoon2.ink/data/merchandises.json",
-            headers={'User-Agent': 'Project Prismarine#6634'}
+            "https://splatoon2.ink/data/merchandises.json", headers=header
         )
 
         try:

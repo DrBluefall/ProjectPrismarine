@@ -14,7 +14,7 @@ class Loadout:
                 'meta': MetaData()
             },
             'main': {
-                'db': create_engine("sqlite:///ProjectPrismarine.db"),
+                'db': create_engine("sqlite:///main.db"),
                 'meta': MetaData()
             }
         }

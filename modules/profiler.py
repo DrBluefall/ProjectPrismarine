@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
 class SQLEngine:
     """Contains the SQLEngine."""
 
-    main_db = create_engine("sqlite:///ProjectPrismarine.db")
+    main_db = create_engine("sqlite:///main.db")
     metadata = MetaData(main_db)
     table = Table(
         "profile",

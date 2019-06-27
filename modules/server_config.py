@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
 class DBcManager:
     """Manages Database connections for the module."""
 
-    db = create_engine("sqlite:///ProjectPrismarine.db")
+    db = create_engine("sqlite:///main.db")
     metadata = MetaData(db)
     prefix_table = Table(
         "prefix", metadata, Column("server_id", Integer, primary_key=True),

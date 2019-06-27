@@ -17,7 +17,6 @@ with open("config.json", "r") as infile:
         raise EnvironmentError(
             "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token', 'owner', 'dbl_token', and 'prefix'."
         )
-
 STATUS = cycle([
     "with my creator!",
     "with life, the universe, and everything.",
@@ -34,23 +33,22 @@ metadata = MetaData(db)
 metadata.reflect()
 c = db.connect()
 
+
 def get_prefix(client, message):
     """Retrieve a guild's prefix."""
-    raw_prefix_data = c.execute(
-        select([metadata.tables["prefix"]])
-    ).fetchall()
+    raw_prefix_data = c.execute(select([metadata.tables["prefix"]])).fetchall()
     prefix_dict = {}
     for server in raw_prefix_data:
         prefix_dict[str(server[0])] = server[1]
     if not message.guild:
         return commands.when_mentioned_or(CONFIG["prefix"])(client, message)
-    elif str(message.guild.id) not in prefix_dict.keys():
+    if str(message.guild.id) not in prefix_dict.keys():
         return commands.when_mentioned_or(CONFIG["prefix"])(client, message)
-    else:
-        return commands.when_mentioned_or(prefix_dict[str(message.guild.id)])(client, message)
+    return commands.when_mentioned_or(prefix_dict[str(message.guild.id)])(
+        client, message)
 
-CLIENT = commands.Bot(command_prefix=get_prefix,
-                      status=discord.Status.online)
+
+CLIENT = commands.Bot(command_prefix=get_prefix, status=discord.Status.online)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -77,26 +75,28 @@ async def on_ready():
 # --- Bot Commands
 
 CLIENT.remove_command("help")
+
+
 @CLIENT.command()
 async def help(ctx):
-    embed = discord.Embed(
-        title="Project Prismarine - User Manual",
-        color=discord.Color.dark_red()
-    )
+    """Mymodule command documentation."""
+    embed = discord.Embed(title="Project Prismarine - User Manual",
+                          color=discord.Color.dark_red())
     for module_name, module in CLIENT.cogs.items():
         embed.add_field(name=module_name, value=module.description)
 
     await ctx.send(embed=embed)
 
+
 @CLIENT.command()
 async def prefix(ctx):
     """Get a server's prefix."""
-    prefix = c.execute(
+    server_prefix = c.execute(
         select([metadata.tables["prefix"]])\
         .where(metadata.tables["prefix"].c.server_id == ctx.message.guild.id)
     ).fetchone()
-    if prefix is not None:
-        await ctx.send(f"Your prefix is `{prefix[1]}`")
+    if server_prefix is not None:
+        await ctx.send(f"Your prefix is `{server_prefix[1]}`")
     else:
         await ctx.send(f"Your prefix is `{CONFIG['prefix']}`")
 

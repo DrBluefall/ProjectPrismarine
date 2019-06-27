@@ -56,14 +56,16 @@ class Splatnet(commands.Cog):
         """Splatnet command documentation."""
         embed = discord.Embed(
             title=f"Project Prismarine - {__class__.__name__} Documentation",
-            color=discord.Color.dark_red()
-        )
+            color=discord.Color.dark_red())
         for command in self.client.commands:
             if command.cog_name == __class__.__name__:
-                embed.add_field(name=f"{ctx.prefix}{command.qualified_name}", value=command.help)
+                embed.add_field(name=f"{ctx.prefix}{command.qualified_name}",
+                                value=command.help)
                 for group_command in command.commands:
-                    embed.add_field(name=f"{ctx.prefix}{group_command.qualified_name}", value=group_command.help)
-        
+                    embed.add_field(
+                        name=f"{ctx.prefix}{group_command.qualified_name}",
+                        value=group_command.help)
+
         await ctx.send(embed=embed)
 
     @tasks.loop(minutes=30)
@@ -96,15 +98,17 @@ class Splatnet(commands.Cog):
                                          grizzco_schedule.json())
             self.splatnet_data = create_splatnet_json_data(splatnet.json())
             logging.info("Retrieved data successfully.")
-    
+
     @commands.command()
     async def splatnet(self, ctx, index: int = 6):
         if index < 1:
-            await ctx.send("Command failed - Number of items listed must be a value between 1 and 6.")
+            await ctx.send(
+                "Command failed - Number of items listed must be a value between 1 and 6."
+            )
         async with ctx.typing():
             for i in range(index):
-                await ctx.send(embed=SplatnetEmbeds.splatnet(self.splatnet_data[i - 1]))
-
+                await ctx.send(
+                    embed=SplatnetEmbeds.splatnet(self.splatnet_data[i - 1]))
 
 
 class SplatnetEmbeds:
@@ -201,17 +205,17 @@ class SplatnetEmbeds:
                 f'{data["weapons"][0]}, {data["weapons"][1]}, {data["weapons"][2]}, and {data["weapons"][3]}'
             )
         return embed
-    
+
     @staticmethod
     def splatnet(item):
-        embed = discord.Embed(
-            title=f"SplatNet Gear: {item['name']}",
-            color=discord.Color.from_rgb(85, 0, 253)
-        )
+        embed = discord.Embed(title=f"SplatNet Gear: {item['name']}",
+                              color=discord.Color.from_rgb(85, 0, 253))
         embed.add_field(name="Gear Type:", value=item["type"])
         embed.add_field(name="Gear Price:", value=item["price"])
         embed.add_field(name="Gear Rarity:", value=item["rarity"])
-        embed.add_field(name="Gear Ability:", value=f"~~{item['original_ability']}~~ {item['ability']}")
+        embed.add_field(
+            name="Gear Ability:",
+            value=f"~~{item['original_ability']}~~ {item['ability']}")
         embed.add_field(name="Available Until:", value=item["expiration"])
         return embed
 

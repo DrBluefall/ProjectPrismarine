@@ -237,6 +237,7 @@ class SplatnetEmbeds:
 
     @classmethod
     def splatnet(cls, item):
+        """Generate a Splatnet feed embed."""
         if item["type"] == "shoes":
             file = cls.c.execute(
                 select([cls.metadata.tables["shoes"].c.image])\

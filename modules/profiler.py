@@ -52,13 +52,12 @@ class SQLEngine:
         )
 
         embed.set_thumbnail(url=user.avatar_url)
-        for name, index in zip(
-            (
+        for name, index in \
+        zip((
                 "In-Game Name:", "Friend Code:", "Level:", "Rainmaker Rank:",
                 "Tower Control Rank:", "Splat Zones Rank:", "Clam Blitz Rank:",
                 "Salmon Run Rank:"
-            ), range(8)
-        ):
+            ), range(8)):
             embed.add_field(name=name, value=profile[index + 1])
         return embed
 
@@ -107,21 +106,6 @@ class Profiler(commands.Cog, SQLEngine):
             await __class__.no_profile(ctx)
         else:
             await ctx.send(embed=__class__.create_profile_embed(user))
-
-    @profile.command()
-    async def help(self, ctx):
-        """Profiler command documentation."""
-        embed = discord.Embed(
-            title=f"Project Prismarine - {__class__.__name__} Documentation",
-            color=discord.Color.dark_red()
-        )
-
-        for command in self.walk_commands():
-            embed.add_field(
-                name=ctx.prefix + command.qualified_name, value=command.help
-            )
-
-        await ctx.send(embed=embed)
 
     @profile.command()
     async def init(self, ctx):
@@ -251,6 +235,19 @@ class Profiler(commands.Cog, SQLEngine):
             await ctx.send(message)
         else:
             await __class__.no_profile(ctx)
+
+    @profile.command()
+    async def help(self, ctx):
+        """Profiler command documentation."""
+        embed = discord.Embed(
+            title=f"Project Prismarine - {__class__.__name__} Documentation",
+            color=discord.Color.dark_red()
+        )
+        for command in self.walk_commands():
+            embed.add_field(
+                name=ctx.prefix + command.qualified_name, value=command.help
+            )
+        await ctx.send(embed=embed)
 
 
 class Record(Profiler):

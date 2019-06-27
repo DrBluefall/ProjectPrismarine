@@ -29,10 +29,19 @@ class System(commands.Cog):
                 logging.exception("Failed to post server count\n%s: %s",
                                   type(e).__name__, e)
             await asyncio.sleep(900)
+    
+    @commands.group(case_insensitive=True)
+    async def system(self, ctx):
+        """System command group. Does nothing on it's own."""
 
-    @commands.command()
+    @system.command()
     async def ping(self, ctx):
-        """Ping the user."""
+        """
+        Ping the user.
+
+        Returns:
+            - An embed displaying the client's latency.
+        """
         embed = discord.Embed(color=0xDE2E43)
         embed.add_field(
             name=
@@ -41,9 +50,16 @@ class System(commands.Cog):
         )
         await ctx.channel.send(embed=embed)
 
-    @commands.command()
+    @system.command()
     async def user(self, ctx, member=None):
-        """Get user info on a user."""
+        """
+        Get user info on a user.
+
+        Parameters:
+            - User (User ID/@ mention): The user to retrieve info on. Defaults to the message author.
+        Returns:
+            - An embed containing miscellaneous info on a user.
+        """
         if member is None:
             member = ctx.message.author
         else:
@@ -73,9 +89,20 @@ class System(commands.Cog):
         await ctx.channel.send(embed=embed)
 
     @commands.is_owner()
-    @commands.command()
+    @system.command()
     async def send(self, ctx, channel, *, content: str):
-        """Send message to a channel as the bot."""
+        """
+        Send message to a channel as the bot.
+
+        Parameters:
+            - Channel (Channel ID only): The channel to send the message to.
+            - Content: The message to send.
+        Returns:
+            - A sent message to the specified channel.
+            - A confirmation message where the command was invoked from.
+        Will not work if:
+            - The channel ID is not provided and/or invalid.
+        """
         channel = int(channel)
         channel = self.client.get_channel(channel)
         await channel.send(content)
@@ -91,15 +118,25 @@ class System(commands.Cog):
 
     @commands.check(lambda ctx: ctx.guild.id == 561529218949971989)
     @commands.has_permissions(administrator=True)
-    @commands.command()
+    @system.command()
     async def announce(self, ctx, *, text):
-        """Make an announcement as the bot."""
+        """
+        Make an announcement as the bot.
+
+        Parameters:
+            - Text: The announcement to be made. If the message contains an @everyone mention, the bot will automatically ping everyone.
+        Returns:
+            - An announcement in an embed in the support server announcement channel.
+        Will not work if:
+            - The command is invoked outside the support server.
+
+        """
         embed = discord.Embed(
-            title=f"An Announcement from {ctx.message.author.display_name}...",
+            title=f"An Announcement from {ctx.message.author.name}...",
             description=text,
             color=discord.Color.blurple(),
         )
-        embed.set_author(name="Unit 10008-RSP",
+        embed.set_author(name="Project Prismarine",
                          icon_url=self.client.user.avatar_url)
         embed.set_footer(
             text=f"Solidarity, {ctx.message.author.display_name}.",
@@ -118,16 +155,21 @@ class System(commands.Cog):
         else:
             print(error)
 
-    @commands.command()
+    @system.command()
     async def info(self, ctx):
-        """Show info from dbl in an embed."""
+        """
+        Show info from Discord Bot List in an embed.
+
+        Returns:
+            - An embedded image of a Discord Bot List widget containing info about the bot.
+        """
         embed = discord.Embed(color=discord.Color.blurple())
         embed.set_image(url=await self.dbl.generate_widget_large(
             bot_id="568469437284614174"))
         await ctx.send(embed=embed)
 
     @commands.is_owner()
-    @commands.command()
+    @system.command()
     async def logout(self, ctx):
         """Quit the bot."""
         logging.info("Shutting down Project Prismarine...")
@@ -140,6 +182,21 @@ class System(commands.Cog):
         if isinstance(error, (discord.ext.commands.errors.NotOwner)):
             await ctx.send(
                 ":warning: *You're not authorized to use this!* :warning:")
+    
+    @commands.check(lambda ctx: ctx.message.author.id == 490650609641324544\
+                             or ctx.message.author.id == 571494333090496514)
+    @system.command()
+    async def help(self, ctx):
+        """System command documentation."""
+        embed = discord.Embed(
+            title=f"Project Prismarine - {__class__.__name__} Documentation",
+            color=discord.Color.dark_red())
+
+        for command in self.walk_commands():
+            embed.add_field(name=ctx.prefix + command.qualified_name,
+                            value=command.help)
+
+        await ctx.send(embed=embed)
 
 
 with open("config.json", "r") as infile:

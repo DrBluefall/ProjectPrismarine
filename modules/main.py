@@ -1,4 +1,4 @@
-"""Module containing miscellaneous commands."""
+"""Module containing the main commands."""
 
 import logging
 import json
@@ -7,8 +7,8 @@ from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, select
 
 
-class Misc(commands.Cog):
-    """Contains all miscellaneous commands."""
+class Main(commands.Cog):
+    """Contains all the main commands."""
 
     def __init__(self, client):
         """Init the MyModule cog."""
@@ -19,12 +19,12 @@ class Misc(commands.Cog):
         self.c = main_db.connect()
 
     @commands.group(case_insensitive=True)
-    async def misc(self, ctx):
-        """Misc command group. Does nothing on it's own."""
+    async def main(self, ctx):
+        """Define main command group. Does nothing on it's own."""
 
-    @misc.command()
+    @main.command()
     async def help(self, ctx):
-        """Misc command documentation."""
+        """Define main command documentation."""
         embed = discord.Embed(
             title=f"Project Prismarine - {__class__.__name__} Documentation",
             color=discord.Color.dark_red()
@@ -145,5 +145,5 @@ with open("config.json", "r") as infile:
 
 def setup(client):
     """Add the module to the bot."""
-    client.add_cog(Misc(client))
-    logging.info("Misc Module Online.")
+    client.add_cog(Main(client))
+    logging.info("main Module Online.")

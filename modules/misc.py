@@ -54,10 +54,9 @@ class Misc(commands.Cog):
             self.client.load_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` loaded.")
             logging.info("%s module loaded.", extension)
-        except (
-            commands.CommandInvokeError, commands.ExtensionNotLoaded,
-            commands.ExtensionNotFound
-        ) as error:
+        except \
+        (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) \
+        as error:
             await ctx.send(
                 "Module could not be loaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
             )
@@ -70,10 +69,9 @@ class Misc(commands.Cog):
             self.client.unload_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` unloaded.")
             logging.info("%s module unloaded.", extension)
-        except (
-            commands.CommandInvokeError, commands.ExtensionNotLoaded,
-            commands.ExtensionNotFound
-        ) as error:
+        except \
+        (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) \
+        as error:
             await ctx.send(
                 "Module could not be unloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
             )
@@ -87,10 +85,9 @@ class Misc(commands.Cog):
             self.client.load_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` reloaded.")
             logging.info("%s module reloaded.", extension)
-        except (
-            commands.CommandInvokeError, commands.ExtensionNotLoaded,
-            commands.ExtensionNotFound
-        ) as error:
+        except \
+        (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) \
+        as error:
             await ctx.send(
                 "Module could not be reloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
             )

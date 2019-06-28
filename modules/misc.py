@@ -1,10 +1,10 @@
 """Module containing miscellaneous commands."""
 
 import logging
-import discord
 import json
+import discord
 from discord.ext import commands
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
+from sqlalchemy import create_engine, MetaData, select
 
 
 class Misc(commands.Cog):
@@ -13,10 +13,10 @@ class Misc(commands.Cog):
     def __init__(self, client):
         """Init the MyModule cog."""
         self.client = client
-        self.db = create_engine("sqlite:///main.db")
-        self.metadata = MetaData(self.db)
+        main_db = create_engine("sqlite:///main.db")
+        self.metadata = MetaData(main_db)
         self.metadata.reflect()
-        self.c = self.db.connect()
+        self.c = main_db.connect()
 
     @commands.group(case_insensitive=True)
     async def misc(self, ctx):

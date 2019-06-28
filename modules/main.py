@@ -98,25 +98,24 @@ class Main(commands.Cog):
         """Credits the people who have contributed to the bot."""
         embed = discord.Embed(
             title="The Credits",
-            description=
-            """This command exists to commemorate and properly credit those who have assisted, inspired, or otherwise contributed to the creation of Project Prismarine.
+            description="""
+                This command exists to commemorate and properly credit those who have assisted, inspired, or otherwise contributed to the creation of Project Prismarine.
 
-        *Personal Commendations*
+                *Personal Commendations*
 
-        :military_medal: <@274983796414349313> - For initially inspiring me to learn Python and persue Computer Science and programming in a serious manner, as well as for his open-source Splatoon bot, from which I referenced frequently in Project Prismarine's development.
+                :military_medal: <@274983796414349313> - For initially inspiring me to learn Python and persue Computer Science and programming in a serious manner, as well as for his open-source Splatoon bot, from which I referenced frequently in Project Prismarine's development.
 
-        :military_medal: <@196470965402730507> - For reviewing Project Prismarine's code and general assistance in my code endeavors, and a really interesting person to talk with in general, whether the topic be programming or otherwise.
-        :military_medal: <@323922433654390784> - For aiding me in fixing several commands and showing me just how much of a newbie I am at Python.
+                :military_medal: <@196470965402730507> - For reviewing Project Prismarine's code and general assistance in my code endeavors, and a really interesting person to talk with in general, whether the topic be programming or otherwise.
+                :military_medal: <@323922433654390784> - For aiding me in fixing several commands and showing me just how much of a newbie I am at Python.
 
-        :military_medal: <@571494333090496514> - For his massive assistance in improving the backend of Project Prismarine, as well as the endless refactoring of my bodged code, and seeing solutions to issues I genuinely would have never thought of to implement myself.
+                :military_medal: <@571494333090496514> - For his massive assistance in improving the backend of Project Prismarine, as well as the endless refactoring of my bodged code, and seeing solutions to issues I genuinely would have never thought of to implement myself.
 
-        *Communal Commenations*
+                *Communal Commenations*
 
-        Splatoon2.ink - for providing the data used within the Splatnet module.
+                Splatoon2.ink - for providing the data used within the Splatnet module.
 
-        To all of these people, I only have one thing to say:
-        Thank you.
-        """,
+                To all of these people, I only have one thing to say:
+                Thank you.""",
             color=discord.Color.gold(),
         )
         embed.set_author(

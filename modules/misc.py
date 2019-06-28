@@ -1,26 +1,14 @@
 """Module containing miscellaneous commands."""
 
-# ... Anything starting with "..." should be replaced
-# All comments (including these 2) should be removed entirely
-
 import logging
 import discord
 import json
 from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
 
+
 class Misc(commands.Cog):
     """Contains all miscellaneous commands."""
-
-    # ... The order of methods in these classes are:
-    # ... - Command groups
-    # ... - Subcommands (in same order as command groups)
-    # ... - Help subcommand
-    # ... - Module commands
-    # ... - Other discord.ext methods
-    # ... - Normal methods
-    # ... - Class methods
-    # ... - Static methods
 
     def __init__(self, client):
         """Init the MyModule cog."""
@@ -29,11 +17,11 @@ class Misc(commands.Cog):
         self.metadata = MetaData(self.db)
         self.metadata.reflect()
         self.c = self.db.connect()
-    
+
     @commands.group(case_insensitive=True)
     async def misc(self, ctx):
         """Misc command group. Does nothing on it's own."""
-    
+
     @misc.command()
     async def help(self, ctx):
         """Misc command documentation."""
@@ -58,7 +46,7 @@ class Misc(commands.Cog):
             embed.add_field(name=module_name, value=module.description)
 
         await ctx.send(embed=embed)
-    
+
     @commands.command()
     async def load(self, ctx, extension):
         """Load the specified module within the bot."""
@@ -66,10 +54,15 @@ class Misc(commands.Cog):
             self.client.load_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` loaded.")
             logging.info("%s module loaded.", extension)
-        except (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) as error:
-            await ctx.send("Module could not be loaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly.")
+        except (
+            commands.CommandInvokeError, commands.ExtensionNotLoaded,
+            commands.ExtensionNotFound
+        ) as error:
+            await ctx.send(
+                "Module could not be loaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
+            )
             logging.exception("%i - %s", ctx.guild.id, error)
-    
+
     @commands.command()
     async def unload(self, ctx, extension):
         """Unload the specified module within the bot."""
@@ -77,8 +70,13 @@ class Misc(commands.Cog):
             self.client.unload_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` unloaded.")
             logging.info("%s module unloaded.", extension)
-        except (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) as error:
-            await ctx.send("Module could not be unloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly.")
+        except (
+            commands.CommandInvokeError, commands.ExtensionNotLoaded,
+            commands.ExtensionNotFound
+        ) as error:
+            await ctx.send(
+                "Module could not be unloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
+            )
             logging.exception("%i - %s", ctx.guild.id, error)
 
     @commands.command()
@@ -89,10 +87,15 @@ class Misc(commands.Cog):
             self.client.load_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` reloaded.")
             logging.info("%s module reloaded.", extension)
-        except (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) as error:
-            await ctx.send("Module could not be reloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly.")
+        except (
+            commands.CommandInvokeError, commands.ExtensionNotLoaded,
+            commands.ExtensionNotFound
+        ) as error:
+            await ctx.send(
+                "Module could not be reloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
+            )
             logging.exception("%i - %s", ctx.guild.id, error)
-    
+
     @commands.command()
     async def credits(self, ctx):
         """Credits the people who have contributed to the bot."""
@@ -119,11 +122,13 @@ class Misc(commands.Cog):
         """,
             color=discord.Color.gold(),
         )
-        embed.set_author(name="Project Prismarine", icon_url=self.client.user.avatar_url)
+        embed.set_author(
+            name="Project Prismarine", icon_url=self.client.user.avatar_url
+        )
         embed.set_footer(text=f"Solidarity, Dr. Prismarine Bluefall.")
         credits_message = await ctx.send(embed=embed)
         await credits_message.add_reaction("🏆")
-    
+
     @commands.command()
     async def prefix(self, ctx):
         """Get a server's prefix."""
@@ -136,8 +141,10 @@ class Misc(commands.Cog):
         else:
             await ctx.send(f"Your prefix is `{CONFIG['prefix']}`")
 
+
 with open("config.json", "r") as infile:
     CONFIG = json.load(infile)
+
 
 def setup(client):
     """Add the module to the bot."""

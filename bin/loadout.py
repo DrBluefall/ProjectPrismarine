@@ -98,30 +98,68 @@ class Loadout:
         image = Image.open("assets/img/loadout_template.png")
 
         # Head
-        image.paste(main, box=(154, 117), mask=main)
-        image.paste(ability, box=(190, 126), mask=ability)
-        image.paste(ability, box=(219, 126), mask=ability)
-        image.paste(ability, box=(247, 126), mask=ability)
-        image.paste(hat, box=(170, 29), mask=hat)
+        try:
+            image.paste(Image.open(loadout["headgear"]["main"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS), box=(154, 117), mask=Image.open(loadout["headgear"]["main"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS))
+        except TypeError:
+            image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((32, 32), Image.ANTIALIAS), box=(154, 117), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((32, 32), Image.ANTIALIAS))
+        try:
+            image.paste(Image.open(loadout["headgear"]["subs"][0]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(190, 126), mask=Image.open(loadout["headgear"]["subs"][0]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        except TypeError:
+            image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(190, 126), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        try:
+            image.paste(Image.open(loadout["headgear"]["subs"][1]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(219, 126), mask=Image.open(loadout["headgear"]["subs"][1]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        except TypeError:
+            image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(219, 126), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        try:
+            image.paste(Image.open(loadout["headgear"]["subs"][2]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(247, 126), mask=Image.open(loadout["headgear"]["subs"][2]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        except TypeError:
+            image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(247, 126), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        image.paste(Image.open(loadout["headgear"]["gear"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS), box=(170, 29), mask=Image.open(loadout["headgear"]["gear"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS))
 
-        # Shirt
-        image.paste(main, box=(299, 117), mask=main)
-        image.paste(ability, box=(335, 126), mask=ability)
-        image.paste(ability, box=(364, 126), mask=ability)
-        image.paste(ability, box=(392, 126), mask=ability)
-        image.paste(shirt, box=(315, 29), mask=shirt)
+        # Shirt Image.open("assets/img/abilities/Unknown.png")
+        try:
+            image.paste(Image.open(loadout["clothing"]["main"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS), box=(299, 117), mask=Image.open(loadout["clothing"]["main"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS))
+        except TypeError:
+            image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((32, 32), Image.ANTIALIAS), box=(299, 117), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((32, 32), Image.ANTIALIAS))
+        try:
+            image.paste(Image.open(loadout["clothing"]["subs"][0]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(335, 126), mask=Image.open(loadout["clothing"]["subs"][0]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        except TypeError:
+            image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(335, 126), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        try:
+            image.paste(Image.open(loadout["clothing"]["subs"][1]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(364, 126), mask=Image.open(loadout["clothing"]["subs"][1]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        except TypeError:
+            image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(364, 126), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        try:
+            image.paste(Image.open(loadout["clothing"]["subs"][2]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(392, 126), mask=Image.open(loadout["clothing"]["subs"][2]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        except TypeError:
+            image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(392, 126), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        image.paste(Image.open(loadout["clothing"]["gear"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS), box=(315, 29), mask=Image.open(loadout["clothing"]["gear"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS))
 
         # Shoes
-        image.paste(main, box=(444, 117), mask=main)
-        image.paste(ability, box=(480, 126), mask=ability)
-        image.paste(ability, box=(508, 126), mask=ability)
-        image.paste(ability, box=(537, 126), mask=ability)
-        image.paste(shoe, box=(460, 29), mask=shoe)
+        try:
+            image.paste(Image.open(loadout["shoes"]["main"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS), box=(444, 117), mask=Image.open(loadout["shoes"]["main"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS))
+        except TypeError:
+            image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((32, 32), Image.ANTIALIAS), box=(444, 117), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((32, 32), Image.ANTIALIAS))
+        try:
+            image.paste(Image.open(loadout["shoes"]["subs"][0]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(480, 126), mask=Image.open(loadout["shoes"]["subs"][0]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        except TypeError:
+            image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(480, 126), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        try:
+            image.paste(Image.open(loadout["shoes"]["subs"][1]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(508, 126), mask=Image.open(loadout["shoes"]["subs"][1]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        except TypeError:
+            image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(508, 126), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        try:
+            image.paste(Image.open(loadout["shoes"]["subs"][2]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(537, 126), mask=Image.open(loadout["shoes"]["subs"][2]["image"]).convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        except TypeError:
+            image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(537, 126), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS))
+        image.paste(Image.open(loadout["shoes"]["gear"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS), box=(460, 29), mask=Image.open(loadout["shoes"]["gear"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS))
 
         # Weapon
-        image.paste(sub, box=(28, 117), mask=sub)
-        image.paste(special, box=(78, 117), mask=special)
-        image.paste(wep, box=(23, 29), mask=wep)
+        image.paste(Image.open(loadout["weapon"]["sub"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS), box=(28, 117), mask=Image.open(loadout["weapon"]["sub"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS))
+        image.paste(Image.open(loadout["weapon"]["special"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS), box=(78, 117), mask=Image.open(loadout["weapon"]["special"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS))
+        image.paste(Image.open(loadout["weapon"]["main"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS), box=(23, 29), mask=Image.open(loadout["weapon"]["main"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS))
+
+        image.show()
 
 if __name__ == "__main__":
-    pprint(Loadout().convert_loadout(decoder.decode("0000002054c006906a0071dab")))
+    Loadout().generate_loadout_image(Loadout().convert_loadout(decoder.decode("0007004a529004a4000000000")))

@@ -14,6 +14,7 @@ discord = "*"
 dblpy = "==0.3.0"
 "discord.py" = "*"
 SQLAlchemy = "*"
+pillow = "*"
 
 [requires]
 python_version = "3.7"

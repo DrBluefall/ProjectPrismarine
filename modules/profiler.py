@@ -1,16 +1,20 @@
-"""Holds the profile cog."""
+"""Module containing the Profiler cog."""
 import logging
 import re
 import discord
 from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
+from PIL import Image
+from io import BytesIO
+from bin.decoder import decode
+from bin.loadout import Loadout
 
 
 class SQLEngine:
-    """Class containing the SQLEngine."""
+    """Contains the SQLEngine."""
 
-    engine = create_engine("sqlite:///ProjectPrismarine.db")
-    metadata = MetaData(engine)
+    main_db = create_engine("sqlite:///main.db")
+    metadata = MetaData(main_db)
     table = Table(
         "profile",
         metadata,
@@ -23,10 +27,11 @@ class SQLEngine:
         Column("sz_rank", String),
         Column("cb_rank", String),
         Column("sr_rank", String),
+        Column("loadout_string", String, server_default="0000000000000000000000000"),
     )
 
     metadata.create_all()
-    c = engine.connect()
+    c = main_db.connect()
 
     @classmethod
     def check_profile_exists(cls, user_id):
@@ -40,30 +45,38 @@ class SQLEngine:
     @classmethod
     def create_profile_embed(cls, user):
         """Create profile embed."""
-        profile_select = select([cls.table]).where(cls.table.c.user_id == user.id)
+        profile_select = select([cls.table]
+                                ).where(cls.table.c.user_id == user.id)
         profile = cls.c.execute(profile_select)
         profile = profile.fetchone()
 
         embed = discord.Embed(
-            title=f"QA Tester #{profile[0]}'s Profile", color=discord.Color.dark_red()
+            title=f"QA Tester #{profile[0]}'s Profile",
+            color=discord.Color.dark_red()
         )
 
         embed.set_thumbnail(url=user.avatar_url)
-        for name, index in zip(
-            (
-                "In-Game Name:",
-                "Friend Code:",
-                "Level:",
-                "Rainmaker Rank:",
-                "Tower Control Rank:",
-                "Splat Zones Rank:",
-                "Clam Blitz Rank:",
-                "Salmon Run Rank:",
-            ),
-            range(8),
-        ):
+        for name, index in \
+        zip((
+                "In-Game Name:", "Friend Code:", "Level:", "Rainmaker Rank:",
+                "Tower Control Rank:", "Splat Zones Rank:", "Clam Blitz Rank:",
+                "Salmon Run Rank:"
+            ), range(8)):
             embed.add_field(name=name, value=profile[index + 1])
-        return embed
+        
+        if profile["loadout_string"] is not None:
+            loadout = profile["loadout_string"]
+            loadout = decode(loadout)
+            loadout = Loadout().convert_loadout(loadout)
+            with Loadout().generate_loadout_image(loadout) as loadout:
+                out_buffer = BytesIO()
+                loadout.save(out_buffer, "png")
+                out_buffer.seek(0)
+
+            loadout = discord.File(fp=out_buffer,filename="loadout.png")
+            embed.set_image(url="attachment://loadout.png")
+
+        return embed, loadout
 
     @staticmethod
     async def no_profile(ctx):
@@ -74,16 +87,27 @@ class SQLEngine:
 
 
 class Profiler(commands.Cog, SQLEngine):
-    """Module containing commands pertaining to managing and querying user profiles."""
+    """Contains all commands pertaining to managing and querying user profiles."""
 
     def __init__(self, client):
-        """Initialize the Profiler cog."""
+        """Init the Profiler cog."""
         super().__init__()
         self.client = client
 
-    @commands.group(invoke_without_command=True, case_insensitive=True, ignore_extra=False)
+    @commands.group(
+        invoke_without_command=True, case_insensitive=True, ignore_extra=False
+    )
     async def profile(self, ctx, user=None):
-        """Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user."""
+        """
+        Profile command group. If run without a subcommand, it will query for the profile of either the message author or specified user.
+
+        Parameters:
+            - User (User ID/@ mention): The user to query for. Defaults to the message author.
+
+        Will not work if:
+            - The user in question doesn't have a profile.
+
+        """
         if ctx.invoked_subcommand:
             return
 
@@ -98,11 +122,12 @@ class Profiler(commands.Cog, SQLEngine):
         if user is None or __class__.check_profile_exists(user.id) is False:
             await __class__.no_profile(ctx)
         else:
-            await ctx.send(embed=__class__.create_profile_embed(user))
+            embed, loadout = __class__.create_profile_embed(user)
+            await ctx.send(embed=embed, file=loadout)
 
     @profile.command()
     async def init(self, ctx):
-        """Initialize a user profile."""
+        """Initialize a user profile. If your profile already exists, it will not create a new one."""
         if __class__.check_profile_exists(ctx.message.author.id):
             message = "Existing QA Profile detected. Aborting initialization..."
         else:
@@ -113,7 +138,13 @@ class Profiler(commands.Cog, SQLEngine):
 
     @profile.command()
     async def ign(self, ctx, *, name: str = None):
-        """Update someone's IGN."""
+        """
+        Update your in-game name.
+
+        Parameters:
+            - IGN: The in-game name you wish to set. (Note: There is a 10-character limit on your name, and it can't be blank, either.)
+
+        """
         if __class__.check_profile_exists(ctx.message.author.id):
             if name is None:
                 message = "Command Failed - No IGN specified."
@@ -131,7 +162,13 @@ class Profiler(commands.Cog, SQLEngine):
 
     @profile.command()
     async def fc(self, ctx, *, friend_code):  # pylint: disable=invalid-name
-        """Update someone's Friend Code."""
+        """
+        Update your friend code.
+
+        Parameters:
+            - Friend Code: the friend code for your profile. This must be 12 characters long, and integers only.
+
+        """
         if __class__.check_profile_exists(ctx.message.author.id):
             friend_code = re.sub(r"\D", "", friend_code)
 
@@ -148,7 +185,13 @@ class Profiler(commands.Cog, SQLEngine):
 
     @profile.command()
     async def level(self, ctx, *, level: int = None):
-        """Update someone's level."""
+        """
+        Update your level.
+
+        Parameters:
+            - Level (Integer): The level you wish to set.
+
+        """
         if __class__.check_profile_exists(ctx.message.author.id):
 
             if level is None:
@@ -164,7 +207,14 @@ class Profiler(commands.Cog, SQLEngine):
 
     @profile.command()
     async def rank(self, ctx, gamemode: str = None, rank: str = None):
-        """Update a person's rank in the database."""
+        """
+        Update your rank in the profile database.
+
+        Parameters:
+            - Gamemode: The game mode you wish to set your rank in. Valid names include mode initials (i.e. tc, sz, rm, cb), the full names (i.e. `towercontrol`, `splatzones`, `rainmaker`, `clamblitz`), or the initials followed by "_rank" (i.e. `sz_rank`, `tc_rank`, `cb_rank`, `rm_rank`).
+            - Rank: The rank you wish to set. (Note: X Power is currently not supported. Sorry about that :P)
+
+        """
         modes = get_modes()
 
         if __class__.check_profile_exists(ctx.message.author.id):
@@ -172,7 +222,9 @@ class Profiler(commands.Cog, SQLEngine):
                 message = "Command Failed - Argument not specified."
             else:
                 for key, value in modes.items():
-                    found, message = Record.try_rank_entry(gamemode, key, value, rank)
+                    found, message = Record.try_rank_entry(
+                        gamemode, key, value, rank
+                    )
                     if found:
                         break
                 else:
@@ -182,9 +234,42 @@ class Profiler(commands.Cog, SQLEngine):
         else:
             await __class__.no_profile(ctx)
 
+    @profile.command()
+    async def loadout(self, ctx, string: str = None):
+        """
+        Update your loadout with a loadout.ink link.
+
+        Parameters:
+            - loadout.ink link: The link to your loadout. Use `https://selicia.github.io/en_US/#0000000000000000000000000` to set your loadout.
+
+        """
+        if __class__.check_profile_exists(ctx.message.author.id):
+            if string is not None and len(string) == 58:
+                Record.loadout_string_entry(ctx, string[33:])
+                message = "Loadout updated!"
+            else:
+                message = "Command failed - Loadout link is invalid."
+
+            await ctx.send(message)
+        else:
+            await __class__.no_profile(ctx)
+
+    @profile.command()
+    async def help(self, ctx):
+        """Profiler command documentation."""
+        embed = discord.Embed(
+            title=f"Project Prismarine - {__class__.__name__} Documentation",
+            color=discord.Color.dark_red()
+        )
+        for command in self.walk_commands():
+            embed.add_field(
+                name=ctx.prefix + command.qualified_name, value=command.help
+            )
+        await ctx.send(embed=embed)
+
 
 class Record(Profiler):
-    """Holds the staticmethods that record profile options into the database."""
+    """Holds the class methods that record profile options into the database."""
 
     @classmethod
     def init_entry(cls, ctx):
@@ -206,9 +291,9 @@ class Record(Profiler):
     def ign_entry(cls, ctx, name):
         """Record the ign in the database."""
         ign = (
-            cls.table.update(None)
-            .where(cls.table.c.user_id == ctx.message.author.id)
-            .values(ign=name)
+            cls.table.update(None).where(
+                cls.table.c.user_id == ctx.message.author.id
+            ).values(ign=name)
         )
         cls.c.execute(ign)
 
@@ -217,9 +302,9 @@ class Record(Profiler):
         """Record the fc in the database."""
         p_1, p_2, p_3 = friend_code[0:4], friend_code[4:8], friend_code[8:12]
         friend_code = (
-            cls.table.update(None)
-            .where(cls.table.c.user_id == ctx.message.author.id)
-            .values(fc=f"SW-{p_1}-{p_2}-{p_3}")
+            cls.table.update(None).where(
+                cls.table.c.user_id == ctx.message.author.id
+            ).values(fc=f"SW-{p_1}-{p_2}-{p_3}")
         )
         cls.c.execute(friend_code)
 
@@ -227,9 +312,9 @@ class Record(Profiler):
     def level_entry(cls, ctx, level):
         """Record the level in the database."""
         level = (
-            cls.table.update(None)
-            .where(cls.table.c.user_id == ctx.message.author.id)
-            .values(level=level)
+            cls.table.update(None).where(
+                cls.table.c.user_id == ctx.message.author.id
+            ).values(level=level)
         )
         cls.c.execute(level)
 
@@ -248,51 +333,46 @@ class Record(Profiler):
 
             if changed_rank is not None:
                 eval(  # pylint: disable=eval-used
-                    "{0}.c.execute(({0}.table.update(None).where({0}.table.c.user_id==ctx.message.author.id).values({1}=changed_rank)))".format(
-                        cls, value["aliases"][-1]
-                    )
-                )
+                    "{0}.c.execute(({0}.table.update(None).where({0}.table.c.user_id==ctx.message.author.id).values({1}=changed_rank)))"
+                    .format(cls.__name__, value["aliases"][-1]))
                 message = f"{key} rank updated!"
             return True, message
         return False, None
 
-
-def setup(client):
-    """Add the module to the bot."""
-    client.add_cog(Profiler(client))
-    logging.info("%s Module Online.", Profiler.__name__)
+    @classmethod
+    def loadout_string_entry(cls, ctx, string: str = None):
+        """Record a user's loadout.ink string into the database."""
+        loadout_string = (
+            cls.table.update(None).where(
+                cls.table.c.user_id == ctx.message.author.id
+            ).values(loadout_string=string)
+        )
+        cls.c.execute(loadout_string)
 
 
 def get_modes():
     """Get modes."""
     rank_list = (
-        "C-",
-        "C",
-        "C+",
-        "B-",
-        "B",
-        "B+",
-        "A-",
-        "A",
-        "A+",
-        "S",
-        "S+0",
-        "S+1",
-        "S+2",
-        "S+3",
-        "S+4",
-        "S+5",
-        "S+6",
-        "S+7",
-        "S+8",
-        "S+9",
-        "X",
+        "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+", "S", "S+0", "S+1",
+        "S+2", "S+3", "S+4", "S+5", "S+6", "S+7", "S+8", "S+9", "X"
     )
     modes = {
-        "Splat Zones": {"aliases": ("sz", "splatzones", "sz_rank"), "rlist": rank_list},
-        "Rainmaker": {"aliases": ("rm", "rainmaker", "rm_rank"), "rlist": rank_list},
-        "Tower Control": {"aliases": ("tc", "towercontrol", "tc_rank"), "rlist": rank_list},
-        "Clam Blitz": {"aliases": ("cb", "clamblitz", "cb_rank"), "rlist": rank_list},
+        "Splat Zones": {
+            "aliases": ("sz", "splatzones", "sz_rank"),
+            "rlist": rank_list
+        },
+        "Rainmaker": {
+            "aliases": ("rm", "rainmaker", "rm_rank"),
+            "rlist": rank_list
+        },
+        "Tower Control": {
+            "aliases": ("tc", "towercontrol", "tc_rank"),
+            "rlist": rank_list
+        },
+        "Clam Blitz": {
+            "aliases": ("cb", "clamblitz", "cb_rank"),
+            "rlist": rank_list
+        },
         "Salmon Run": {
             "aliases": ("sr", "salmonrun", "sr_rank"),
             "rlist": (
@@ -306,3 +386,9 @@ def get_modes():
         },
     }
     return modes
+
+
+def setup(client):
+    """Add the module to the bot."""
+    client.add_cog(Profiler(client))
+    logging.info("Profiler Module Online.")

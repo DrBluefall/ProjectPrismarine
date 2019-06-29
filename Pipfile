@@ -1,0 +1,22 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pydocstyle = "*"
+pylint = "*"
+
+[packages]
+requests = "*"
+discord = "*"
+dblpy = "==0.3.0"
+"discord.py" = "*"
+SQLAlchemy = "*"
+pillow = "*"
+
+[requires]
+python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true

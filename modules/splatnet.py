@@ -273,6 +273,12 @@ class SplatnetEmbeds:
 
 def create_json_data(schedules, coop_schedules, merchandises):
     """Turn Splatoon2.ink json data into something more usable for the bot."""
+    i = 0
+    for weapon in coop_schedules["details"][0]["weapons"]:
+        if weapon["id"] == '-1':
+            coop_schedules["details"][0]["weapons"][i] = {"weapon":{"name":"*a mystery weapon!*"}}
+        i += 1
+
     data = {
         "regular": {
             "mode":

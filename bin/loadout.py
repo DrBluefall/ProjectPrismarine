@@ -39,8 +39,28 @@ class Loadout:
     
     def convert_loadout(self, raw_loadout):
 
+        sub = self.dbs['assets']['connect'].execute(
+            select([self.dbs['assets']['meta'].tables['subs']]).where(
+                self.dbs['assets']['meta'].tables['subs'].c.name == self.get_row(
+                    self.dbs['assets']['meta'].tables['weapons'], raw_loadout["class"], raw_loadout["weapon"]
+                )['sub']
+            )
+        ).fetchone()
+
+        special = self.dbs['assets']['connect'].execute(
+            select([self.dbs['assets']['meta'].tables['specials']]).where(
+                self.dbs['assets']['meta'].tables['specials'].c.name == self.get_row(
+                    self.dbs['assets']['meta'].tables['weapons'], raw_loadout["class"], raw_loadout["weapon"]
+                )['special']
+            )
+        ).fetchone()
+
         loadout = {
-            "weapon": self.get_row(self.dbs['assets']['meta'].tables['weapons'], raw_loadout["class"], raw_loadout["weapon"]),
+            "weapon": {
+                "main": self.get_row(self.dbs['assets']['meta'].tables['weapons'], raw_loadout["class"], raw_loadout["weapon"]),
+                "sub": sub,
+                "special": special
+            },
             "headgear": {
                 "gear": self.get_row(self.dbs['assets']['meta'].tables['headgear'], raw_loadout['headgear']['gear']),
                 "subs": [
@@ -75,8 +95,8 @@ class Loadout:
     def generate_loadout_image(self, loadout):
         """Generate an image from provided loadout data."""
 
+        image = Image.open("assets/img/loadout_template.png")
 
-"""
         # Head
         image.paste(main, box=(154, 117), mask=main)
         image.paste(ability, box=(190, 126), mask=ability)
@@ -102,7 +122,6 @@ class Loadout:
         image.paste(sub, box=(28, 117), mask=sub)
         image.paste(special, box=(78, 117), mask=special)
         image.paste(wep, box=(23, 29), mask=wep)
-"""
 
 if __name__ == "__main__":
     pprint(Loadout().convert_loadout(decoder.decode("0000002054c006906a0071dab")))

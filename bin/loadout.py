@@ -116,7 +116,7 @@ class Loadout:
             image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(247, 126), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS))
         image.paste(Image.open(loadout["headgear"]["gear"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS), box=(170, 29), mask=Image.open(loadout["headgear"]["gear"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS))
 
-        # Shirt Image.open("assets/img/abilities/Unknown.png")
+        # Shirt 
         try:
             image.paste(Image.open(loadout["clothing"]["main"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS), box=(299, 117), mask=Image.open(loadout["clothing"]["main"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS))
         except TypeError:

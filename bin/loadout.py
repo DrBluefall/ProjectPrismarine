@@ -1,7 +1,7 @@
 """Script to make dealing with loadouts in cogs easier."""
 from sqlalchemy import create_engine, MetaData, select, and_
 from PIL import Image
-import decoder
+from . import decoder
 from pprint import pprint
 
 class Loadout:
@@ -159,7 +159,7 @@ class Loadout:
         image.paste(Image.open(loadout["weapon"]["special"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS), box=(78, 117), mask=Image.open(loadout["weapon"]["special"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS))
         image.paste(Image.open(loadout["weapon"]["main"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS), box=(23, 29), mask=Image.open(loadout["weapon"]["main"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS))
 
-        image.show()
+        return image
 
 if __name__ == "__main__":
-    Loadout().generate_loadout_image(Loadout().convert_loadout(decoder.decode("0007004a529004a4000000000")))
+    Loadout().generate_loadout_image(Loadout().convert_loadout(decoder.decode("0007004a529004a4000000000"))) #pylint: disable=no-member

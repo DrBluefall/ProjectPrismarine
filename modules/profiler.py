@@ -4,6 +4,10 @@ import re
 import discord
 from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
+from PIL import Image
+from io import BytesIO
+from bin.decoder import decode
+from bin.loadout import Loadout
 
 
 class SQLEngine:
@@ -23,7 +27,7 @@ class SQLEngine:
         Column("sz_rank", String),
         Column("cb_rank", String),
         Column("sr_rank", String),
-        Column("loadout_string", String),
+        Column("loadout_string", String, server_default="0000000000000000000000000"),
     )
 
     metadata.create_all()
@@ -59,7 +63,20 @@ class SQLEngine:
                 "Salmon Run Rank:"
             ), range(8)):
             embed.add_field(name=name, value=profile[index + 1])
-        return embed
+        
+        if profile["loadout_string"] is not None:
+            loadout = profile["loadout_string"]
+            loadout = decode(loadout)
+            loadout = Loadout().convert_loadout(loadout)
+            with Loadout().generate_loadout_image(loadout) as loadout:
+                out_buffer = BytesIO()
+                loadout.save(out_buffer, "png")
+                out_buffer.seek(0)
+
+            loadout = discord.File(fp=out_buffer,filename="loadout.png")
+            embed.set_image(url="attachment://loadout.png")
+
+        return embed, loadout
 
     @staticmethod
     async def no_profile(ctx):
@@ -105,7 +122,8 @@ class Profiler(commands.Cog, SQLEngine):
         if user is None or __class__.check_profile_exists(user.id) is False:
             await __class__.no_profile(ctx)
         else:
-            await ctx.send(embed=__class__.create_profile_embed(user))
+            embed, loadout = __class__.create_profile_embed(user)
+            await ctx.send(embed=embed, file=loadout)
 
     @profile.command()
     async def init(self, ctx):

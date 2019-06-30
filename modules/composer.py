@@ -80,23 +80,23 @@ class TeamComposer(commands.Cog):
                 color=discord.Color.orange()
             )
             cap = self.client.get_user(team_profile["captain"])
-            p_2 = self.client.get_user(team_profile["player_2"])
-            p_3 = self.client.get_user(team_profile["player_3"])
-            p_4 = self.client.get_user(team_profile["player_4"])
+            p_2 = self.client.get_user(team_profile["player_2"]).mention
+            p_3 = self.client.get_user(team_profile["player_3"]).mention
+            p_4 = self.client.get_user(team_profile["player_4"]).mention
             p_5 = self.client.get_user(team_profile["player_5"])
-            p_6 = self.client.get_user(team_profile["player_6"])
-            p_7 = self.client.get_user(team_profile["player_7"])
-            embed.add_field(name="Team ID:", value=team_profile["team_id"])
-            embed.add_field(name="Captain:", value=cap.mention)
-            embed.add_field(name="Player 2:", value=p_2.mention)
-            embed.add_field(name="Player 3:", value=p_3.mention)
-            embed.add_field(name="Player 4:", value=p_4.mention)
             if p_5 is not None:
-                embed.add_field(name="Player 5:", value=p_5.mention)
+                p_5 = p_5.mention
+            p_6 = self.client.get_user(team_profile["player_6"])
             if p_6 is not None:
-                embed.add_field(name="Player 6:", value=p_6.mention)
+                p_6 = p_6.mention
+            p_7 = self.client.get_user(team_profile["player_7"])
             if p_7 is not None:
-                embed.add_field(name="Player 6:", value=p_7.mention)
+                p_7 = p_7.mention
+            embed.add_field(name="Team Roster:", value=f"{p_2}\n{p_3}\n{p_4}\n{p_5}\n{p_6}\n{p_7}")
+            embed.add_field(name="Team Captain", value=cap.mention)
+            embed.add_field(name="Team ID:", value=team_profile["team_id"])
+            
+            
 
             await ctx.send(embed=embed)
             

@@ -163,27 +163,26 @@ class TeamComposer(commands.Cog):
                             except IndexError:
                                 await ctx.send("No player specified - Aborting creation...")
                                 return
-                    else:
-                        if i + 2 >= 4 and msg.content.lower() != "none":
+                    elif i + 2 >= 4 and msg.content.lower() != "none":
+                        try:
+                            player = self.client.get_user(int(msg.content))
+                            if player is None:
+                                raise ValueError
+                            else:
+                                players.append(player.id)
+                                continue
+                        except ValueError:
                             try:
-                                player = self.client.get_user(int(msg.content))
-                                if player is None:
-                                    raise ValueError
-                                else:
-                                    players.append(player.id)
-                                    continue
-                            except ValueError:
-                                try:
-                                    player = msg.mentions[0].id
-                                    players.append(player)
-                                    continue
-                                except IndexError:
-                                    await ctx.send("No player specified - Assuming none...")
-                                    player = None
-                                    players.append(player)
-                                    continue
-                        else:
-                            players.append(None)
+                                player = msg.mentions[0].id
+                                players.append(player)
+                                continue
+                            except IndexError:
+                                await ctx.send("No player specified - Assuming none...")
+                                player = None
+                                players.append(player)
+                                continue
+                    else:
+                        players.append(None)
                 
                 await ctx.send("Alright, that's your roster set up! Now, what will be your team name?")
 

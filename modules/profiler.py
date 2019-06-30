@@ -223,7 +223,7 @@ class Profiler(commands.Cog, SQLEngine):
             else:
                 for key, value in modes.items():
                     found, message = Record.try_rank_entry(
-                        gamemode, key, value, rank
+                        ctx, gamemode, key, value, rank
                     )
                     if found:
                         break
@@ -319,7 +319,7 @@ class Record(Profiler):
         cls.c.execute(level)
 
     @classmethod
-    def try_rank_entry(cls, gamemode, key, value, rank):
+    def try_rank_entry(cls, ctx, gamemode, key, value, rank):
         """Record the rank in the database."""
         if gamemode.lower() in value["aliases"]:
 

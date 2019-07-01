@@ -80,7 +80,7 @@ def get_prefix(client, message):
             select([dbh.get_meta("main").tables["prefix"]])
         ).fetchall()
     except KeyError:
-        return commands.when_mentioned_or(CONFIG["prefix"])
+        return commands.when_mentioned_or(CONFIG["prefix"])(client, message)
     prefix_dict = {}
     for server in raw_prefix_data:
         prefix_dict[str(server[0])] = server[1]

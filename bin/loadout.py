@@ -2,7 +2,7 @@
 from sqlalchemy import select, and_
 from PIL import Image
 from core import DBHandler
-from . import decoder
+from bin.decoder import decode
 
 
 class Loadout(DBHandler):
@@ -316,8 +316,8 @@ class Loadout(DBHandler):
 def main():
     """Generate loadout image."""
     Loadout().generate_loadout_image(
-        Loadout().convert_loadout(decoder.decode("0007004a529004a4000000000"))
-    )  # pylint: disable=no-member
+        Loadout().convert_loadout(decode("0007004a529004a4000000000"))
+    )
 
 
 if __name__ == "__main__":

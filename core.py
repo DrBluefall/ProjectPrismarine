@@ -74,6 +74,17 @@ async def on_ready():
         task_starter += 1
     logging.info("Project Prismarine is online.")
 
+@CLIENT.event
+async def on_command_error(ctx, err):
+    if not isinstance(err, commands.CommandNotFound):
+        await ctx.send(f"""Command Error - Unhandled Exception: 
+        ```swift
+        {err}
+        ```
+        Please report this error to the support server immediately: https://discord.gg/XpX5nKr
+        """)
+        logging.exception(err)
+
 CLIENT.remove_command("help")
 
 @tasks.loop(seconds=30)

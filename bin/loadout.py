@@ -25,26 +25,6 @@ class Loadout:
         self.dbs["assets"]["connect"] = self.dbs["assets"]["db"].connect()
         self.dbs["main"]["connect"] = self.dbs["main"]["db"].connect()
 
-    def get_row(self, table, id, weapon_id=None):
-        """Return row in database given table and the id."""
-        asset_c = self.dbs["assets"]["connect"]
-        if weapon_id is None:
-            return asset_c.execute(
-                select(
-                    [self.dbs["assets"]["meta"].tables[table]]
-                ).where(self.dbs["assets"]["meta"].tables[table].c.id == id)
-            ).fetchone()
-
-        return asset_c.execute(
-            select([self.dbs["assets"]["meta"].tables[table]]).where(
-                and_(
-                    self.dbs["assets"]["meta"].tables[table].c.class_id == id,
-                    self.dbs["assets"]["meta"].tables[table].c.loadout_ink_id
-                    == weapon_id,
-                )
-            )
-        ).fetchone()
-
     def convert_loadout(self, raw_loadout):
         """Convert and return the raw_loadout to a database queried loadout, using a beautiful dictionary comprehension."""
         weapon_value = {
@@ -346,8 +326,26 @@ class Loadout:
 
         return image
 
+    def get_row(self, table, loadout_id, weapon_id=None):
+        """Return row in database given table and the id."""
+        asset_c = self.dbs["assets"]["connect"]
+        if weapon_id is None:
+            return asset_c.execute(
+                select([self.dbs["assets"]["meta"].tables[table]]).\
+                where(self.dbs["assets"]["meta"].tables[table].c.id == loadout_id)
+            ).fetchone()
+
+        return asset_c.execute(
+            select([self.dbs["assets"]["meta"].tables[table]]).\
+            where(
+                and_(
+                    self.dbs["assets"]["meta"].tables[table].c.class_id == loadout_id,
+                    self.dbs["assets"]["meta"].tables[table].c.loadout_ink_id == weapon_id))
+        ).fetchone()
+
 
 def main():
+    """Generate loadout image."""
     Loadout().generate_loadout_image(
         Loadout().convert_loadout(decoder.decode("0007004a529004a4000000000"))
     )  # pylint: disable=no-member

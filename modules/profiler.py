@@ -9,8 +9,7 @@ from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, select
 from sqlalchemy import Table, Column, Integer, String
 
-from bin.decoder import decode
-from bin.loadout import Loadout
+from bin.loadout import Loadout, decode
 
 
 class SQLEngine:

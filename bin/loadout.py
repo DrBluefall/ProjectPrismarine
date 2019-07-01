@@ -62,34 +62,6 @@ class Loadout:
 
         return loadout
 
-    def generate_loadout_image(self, loadout):
-        """Generate an image from provided loadout data."""
-        image = Image.open("assets/img/loadout_template.png")
-
-        image = self.generate_headgear(image, loadout)
-        image = self.generate_clothing(image, loadout)
-        image = self.generate_shoes(image, loadout)
-        image = self.generate_weapon(image, loadout)
-
-        return image
-
-    def get_row(self, table, loadout_id, weapon_id=None):
-        """Return row in database given table and the id."""
-        asset_c = self.dbs["assets"]["connect"]
-        if weapon_id is None:
-            return asset_c.execute(
-                select([self.dbs["assets"]["meta"].tables[table]]).\
-                where(self.dbs["assets"]["meta"].tables[table].c.id == loadout_id)
-            ).fetchone()
-
-        return asset_c.execute(
-            select([self.dbs["assets"]["meta"].tables[table]]).\
-            where(
-                and_(
-                    self.dbs["assets"]["meta"].tables[table].c.class_id == loadout_id,
-                    self.dbs["assets"]["meta"].tables[table].c.loadout_ink_id == weapon_id))
-        ).fetchone()
-
     @staticmethod
     def generate_headgear(image, loadout):
         """Help method to generate the headgear part of the image."""
@@ -330,6 +302,23 @@ class Loadout:
             ),
         )
         return image
+
+    def get_row(self, table, loadout_id, weapon_id=None):
+        """Return row in database given table and the id."""
+        asset_c = self.dbs["assets"]["connect"]
+        if weapon_id is None:
+            return asset_c.execute(
+                select([self.dbs["assets"]["meta"].tables[table]]).\
+                where(self.dbs["assets"]["meta"].tables[table].c.id == loadout_id)
+            ).fetchone()
+
+        return asset_c.execute(
+            select([self.dbs["assets"]["meta"].tables[table]]).\
+            where(
+                and_(
+                    self.dbs["assets"]["meta"].tables[table].c.class_id == loadout_id,
+                    self.dbs["assets"]["meta"].tables[table].c.loadout_ink_id == weapon_id))
+        ).fetchone()
 
 
 def main():

@@ -30,7 +30,11 @@ class SQLEngine:
         Column("sz_rank", String),
         Column("cb_rank", String),
         Column("sr_rank", String),
-        Column("loadout_string", String, server_default="0000000000000000000000000"),
+        Column(
+            "loadout_string",
+            String,
+            server_default="0000000000000000000000000"
+        ),
     )
 
     metadata.create_all()
@@ -66,7 +70,7 @@ class SQLEngine:
                 "Salmon Run Rank:"
             ), range(8)):
             embed.add_field(name=name, value=profile[index + 1])
-        
+
         if profile["loadout_string"] is not None:
             loadout = profile["loadout_string"]
             loadout = decode(loadout)
@@ -76,7 +80,7 @@ class SQLEngine:
                 loadout.save(out_buffer, "png")
                 out_buffer.seek(0)
 
-            loadout = discord.File(fp=out_buffer,filename="loadout.png")
+            loadout = discord.File(fp=out_buffer, filename="loadout.png")
             embed.set_image(url="attachment://loadout.png")
 
         return embed, loadout
@@ -322,7 +326,7 @@ class Record(Profiler):
         cls.c.execute(level)
 
     @classmethod
-    def try_rank_entry(cls, ctx, gamemode, key, value, rank):
+    def try_rank_entry(cls, ctx, gamemode, key, value, rank):  # pylint: disable=too-many-arguments, unused-argument
         """Record the rank in the database."""
         if gamemode.lower() in value["aliases"]:
 

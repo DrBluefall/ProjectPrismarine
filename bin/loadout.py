@@ -90,6 +90,7 @@ class Loadout:
 
     @staticmethod
     def generate_headgear(image, loadout):
+        """Help method to generate the headgear part of the image."""
         try:
             path = loadout["headgear"]["main"]["image"]
         except TypeError:
@@ -162,6 +163,7 @@ class Loadout:
 
     @staticmethod
     def generate_clothing(image, loadout):
+        """Help method to generate the clothing part of the image."""
         try:
             path = loadout["clothing"]["main"]["image"]
         except TypeError:
@@ -231,6 +233,7 @@ class Loadout:
 
     @staticmethod
     def generate_shoes(image, loadout):
+        """Help method to generate the shoes part of the image."""
         try:
             path = loadout["shoes"]["main"]["image"]
         except TypeError:
@@ -299,6 +302,7 @@ class Loadout:
 
     @staticmethod
     def generate_weapon(image, loadout):
+        """Help method to generate the weapon part of the image."""
         path = loadout["weapon"]["special"]["image"]
         image.paste(
             Image.open(path).convert("RGBA").resize((32, 32), Image.ANTIALIAS),

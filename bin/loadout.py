@@ -348,6 +348,7 @@ class Loadout:
 
 
 def main():
+    """Generate loadout image."""
     Loadout().generate_loadout_image(
         Loadout().convert_loadout(decoder.decode("0007004a529004a4000000000"))
     )  # pylint: disable=no-member

@@ -4,19 +4,17 @@ import logging
 import json
 import discord
 from discord.ext import commands
-from sqlalchemy import create_engine, MetaData, select
+from sqlalchemy import select
+from core import DBHandler
 
 
-class Main(commands.Cog):
+class Main(DBHandler, commands.Cog):
     """Contains all the main commands."""
 
     def __init__(self, client):
         """Init the MyModule cog."""
+        super().__init__()
         self.client = client
-        main_db = create_engine("sqlite:///main.db")
-        self.metadata = MetaData(main_db)
-        self.metadata.reflect()
-        self.c = main_db.connect()
 
     @commands.group(case_insensitive=True)
     async def main(self, ctx):
@@ -128,9 +126,9 @@ class Main(commands.Cog):
     @commands.command()
     async def prefix(self, ctx):
         """Get a server's prefix."""
-        server_prefix = self.c.execute(
-            select([self.metadata.tables["prefix"]])\
-            .where(self.metadata.tables["prefix"].c.server_id == ctx.message.guild.id)
+        server_prefix = self.get_db("main").execute(
+            select([self.get_meta("main").tables["prefix"]]).\
+            where(self.get_meta("main").tables["prefix"].c.server_id == ctx.message.guild.id)
         ).fetchone()
         if server_prefix is not None:
             await ctx.send(f"Your prefix is `{server_prefix[1]}`")

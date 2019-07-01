@@ -2,7 +2,8 @@
 # yapf: disable
 # pylint: disable=all
 
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy import Table, Column, Integer, String
 from assets.data import abilities, clothing, headgear, shoes, specials, subs, weapons
 
 class AssetDB:

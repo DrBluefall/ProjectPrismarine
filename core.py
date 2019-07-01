@@ -5,7 +5,7 @@ import json
 from itertools import cycle
 import discord
 from discord.ext import commands, tasks
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
+from sqlalchemy import create_engine, MetaData, select
 
 with open("config.json", "r") as infile:
     try:

@@ -1,6 +1,8 @@
 """Script to make dealing with loadouts in cogs easier."""
-from sqlalchemy import create_engine, MetaData, select, and_
+from sqlalchemy import create_engine, MetaData, select
+from sqlalchemy import and_
 from PIL import Image
+from core import DBHandler
 from . import decoder
 
 

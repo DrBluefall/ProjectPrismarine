@@ -40,7 +40,10 @@ c = db.connect()
 
 def get_prefix(client, message):
     """Retrieve a guild's prefix."""
-    raw_prefix_data = c.execute(select([metadata.tables["prefix"]])).fetchall()
+    try:
+        raw_prefix_data = c.execute(select([metadata.tables["prefix"]])).fetchall()
+    except KeyError:
+        return commands.when_mentioned_or(CONFIG["prefix"])
     prefix_dict = {}
     for server in raw_prefix_data:
         prefix_dict[str(server[0])] = server[1]

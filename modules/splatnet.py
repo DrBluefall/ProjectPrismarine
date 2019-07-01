@@ -351,7 +351,7 @@ def create_json_data(schedules, coop_schedules, merchandises):
                 "price": gear["price"],
                 "rarity": gear["gear"]["rarity"],
                 "ability": gear["skill"]["name"],
-                "original_ability": gear["original_gear"]["skill"]["name"],
+                "original_ability": ("undefined" if gear["original_gear"] is None else gear["original_gear"]["skill"]["name"]),
                 "expiration": datetime.fromtimestamp(gear["end_time"]).ctime(),
                 "splatnet": gear["gear"]["id"]
             } for gear in merchandises["merchandises"]

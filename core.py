@@ -40,7 +40,10 @@ c = db.connect()
 
 def get_prefix(client, message):
     """Retrieve a guild's prefix."""
-    raw_prefix_data = c.execute(select([metadata.tables["prefix"]])).fetchall()
+    try:
+        raw_prefix_data = c.execute(select([metadata.tables["prefix"]])).fetchall()
+    except KeyError:
+        return commands.when_mentioned_or(CONFIG["prefix"])
     prefix_dict = {}
     for server in raw_prefix_data:
         prefix_dict[str(server[0])] = server[1]
@@ -73,6 +76,17 @@ async def on_ready():
         stat_change.start()
         task_starter += 1
     logging.info("Project Prismarine is online.")
+
+@CLIENT.event
+async def on_command_error(ctx, err):
+    if not isinstance(err, commands.CommandNotFound):
+        await ctx.send(f"""Command Error - Unhandled Exception: 
+        ```swift
+        {err}
+        ```
+        Please report this error to the support server immediately: https://discord.gg/XpX5nKr
+        """)
+        logging.exception(err)
 
 CLIENT.remove_command("help")
 

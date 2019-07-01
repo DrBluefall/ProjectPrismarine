@@ -8,17 +8,6 @@ from discord.ext import commands, tasks
 from sqlalchemy import create_engine, MetaData, select
 
 
-def main():
-    """Run the bot."""
-    bot = Bot(command_prefix=get_prefix, status=discord.Status.online)
-
-    load_all_extensions(bot)
-    set_logging()
-
-    bot.remove_command("help")
-    bot.run(CONFIG["token"])
-
-
 class Bot(commands.Bot):
     """Class that holds discord bot events."""
 
@@ -134,6 +123,17 @@ def get_config_file():
                 "Your config.json file is either missing, or incomplete. Check your config.json and ensure it has the keys 'token', 'owner', 'dbl_token', and 'prefix'."
             )
     return infile
+
+
+def main():
+    """Run the bot."""
+    bot = Bot(command_prefix=get_prefix, status=discord.Status.online)
+
+    load_all_extensions(bot)
+    set_logging()
+
+    bot.remove_command("help")
+    bot.run(CONFIG["token"])
 
 
 if __name__ == '__main__':

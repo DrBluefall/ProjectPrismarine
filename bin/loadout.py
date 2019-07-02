@@ -48,7 +48,7 @@ class Loadout(DBHandler):
                     for v_key, v_value in value.items()
                 }
                 if key not in ("weapon", "class")
-                else (weapon_value if key == "weapon" else None)  # BUG: Weapon sub shows special
+                else (weapon_value if key == "weapon" else None)  # BUG: Weapon sub shows special, Weapon shows shoes
             )
             for key, value in raw_loadout.items()
         }  # yapf: disable

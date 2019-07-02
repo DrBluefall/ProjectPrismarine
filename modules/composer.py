@@ -5,6 +5,9 @@ import asyncio
 import discord
 from discord.ext import commands
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
+from io import BytesIO
+from bin.loadout import Loadout
+from bin.decoder import decode
 
 
 class TeamComposer(commands.Cog):
@@ -45,6 +48,7 @@ class TeamComposer(commands.Cog):
             "team_comp",
             self.metadata,
             Column("comp_id", Integer, primary_key=True),
+            Column("author_id", Integer),
             Column("name", String),
             Column("desc", String),
             Column("weapon_1", String, server_default="0000000000000000000000000"),
@@ -189,8 +193,6 @@ class TeamComposer(commands.Cog):
                 name = await self.client.wait_for("message", timeout=60, check=check)
                 name = name.content
 
-                print(players)
-
                 await ctx.send(f"Registering {name} into the database...")
 
                 ex = self.c.execute(
@@ -207,9 +209,88 @@ class TeamComposer(commands.Cog):
                 )
 
                 await ctx.send(f"Alright! You're all set up! Your team ID is {ex.inserted_primary_key}. Good luck, godspeed, and take care out there.")
+
+            elif type.lower() == "loadout":
+                comp = {
+                    "name": "",
+                    "desc": "",
+                    "weapon_1": {},
+                    "weapon_2": {},
+                    "weapon_3": {},
+                    "weapon_4": {}
+                }
+
+                await ctx.send("Starting composition creation process.")
+                for i in range(4):
+                    while True:
+                        await ctx.send(f"What's loadout #{i + 1}? \n `Please use https://selicia.github.io/en_US/#0000000000000000000000000 to specify a loadout.`")
+                        msg = await self.client.wait_for("message", timeout=600, check=check)
+                        if len(msg.content) == 58 and msg.content[:33] == "https://selicia.github.io/en_US/#":
+                            _loadout = decode(msg.content[33:])
+                            _loadout = Loadout().convert_loadout(_loadout)
+                            with Loadout().generate_loadout_image(_loadout) as loadout:
+                                out_buffer = BytesIO()
+                                loadout.save(out_buffer, "png")
+                                out_buffer.seek(0)
+                            _loadout = discord.File(fp=out_buffer,filename="loadout.png")
+                            await ctx.send("Is this correct? `[y/n]`", file=_loadout)
+                            con = await self.client.wait_for("message", timeout=30, check=check)
+                            if con.content.lower() == "y":
+                                comp[f"weapon_{i + 1}"].update(loadout=msg.content[33:])
+                                
+                                await ctx.send("Loadout registered. What is the weapon's role?")
+                                msg = await self.client.wait_for("message", timeout=120, check=check)
+                                comp[f"weapon_{i + 1}"].update(role=msg.content)
+                                await ctx.send("Role assigned. Are there any extra details you would like to give about the weapon? [Playstyle, usage, viable maps, etc.]")
+                                msg = await self.client.wait_for("message", timeout=600, check=check)
+                                comp[f"weapon_{i + 1}"].update(desc=msg.content)
+                                await ctx.send("Alright.")
+                                break
+
+                            elif con.content.lower() == "n":
+                                await ctx.send("Understood. Starting over...")
+                                continue
+                            else:
+                                await ctx.send("Command Failed - Invalid response.")
+                                return
+                await ctx.send("Ok, what will be the name of this composition?")
+                msg = await self.client.wait_for("message", timeout=300, check=check)
+                comp["name"] = msg.content
+                await ctx.send("Are there any extra details you would like to provide about this composition? [Map/Mode use, strategies, etc.]")
+                msg = await self.client.wait_for("message", timeout=600, check=check)
+                comp["desc"] = msg.content
+
+                await ctx.send(f"Inserting team composition `{comp['name']}` into the database...")
+
+                ex = self.c.execute(
+                    self.team_comps.insert(None).values(
+                        author_id=ctx.message.author.id,
+                        name=comp["name"],
+                        desc=comp["desc"],
+                        weapon_1=comp["weapon_1"]["loadout"],
+                        weapon_1_role=comp["weapon_1"]["role"],
+                        weapon_1_desc=comp["weapon_1"]["desc"],
+                        weapon_2=comp["weapon_2"]["loadout"],
+                        weapon_2_role=comp["weapon_2"]["role"],
+                        weapon_2_desc=comp["weapon_2"]["desc"],
+                        weapon_3=comp["weapon_3"]["loadout"],
+                        weapon_3_role=comp["weapon_3"]["role"],
+                        weapon_3_desc=comp["weapon_3"]["desc"],
+                        weapon_4=comp["weapon_4"]["loadout"],
+                        weapon_4_role=comp["weapon_4"]["role"],
+                        weapon_4_desc=comp["weapon_4"]["desc"],
+                    )
+                )
+
+                await ctx.send(f"Success! Your composition ID is {ex.inserted_primary_key}. Good luck, godspeed, and take care out there.")
+
+            else:
+                await ctx.send(f"Command failed - Specified type must be `team` or `loadout`, not {type}")
                          
         except asyncio.TimeoutError:
             await ctx.send("Command timed out - Process aborted.")
+
+    
 
     @comp.command()
     async def help(self, ctx):

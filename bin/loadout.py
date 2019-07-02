@@ -48,7 +48,7 @@ class Loadout(DBHandler):
                     for v_key, v_value in value.items()
                 }
                 if key not in ("weapon", "class")
-                else (weapon_value if key == "weapon" else None)  # BUG: Weapon sub shows special, Weapon shows shoes
+                else (weapon_value if key == "weapon" else None)
             )
             for key, value in raw_loadout.items()
         }  # yapf: disable
@@ -270,7 +270,15 @@ class Loadout(DBHandler):
     @staticmethod
     def generate_weapon(image, loadout):
         """Help method to generate the weapon part of the image."""
-        path = loadout["weapon"]["special"]["image"]
+        path = loadout["weapon"]["main"]["image"]
+        image.paste(
+            Image.open(path).convert("RGBA").resize((90, 90), Image.ANTIALIAS),
+            box=(23, 29),
+            mask=Image.open(path).convert("RGBA").resize(
+                (90, 90), Image.ANTIALIAS
+            ),
+        )
+        path = loadout["weapon"]["sub"]["image"]
         image.paste(
             Image.open(path).convert("RGBA").resize((32, 32), Image.ANTIALIAS),
             box=(28, 117),
@@ -286,26 +294,17 @@ class Loadout(DBHandler):
                 (32, 32), Image.ANTIALIAS
             ),
         )
-        path = loadout["shoes"]["gear"]["image"]
-        image.paste(
-            Image.open(path).convert("RGBA").resize((90, 90), Image.ANTIALIAS),
-            box=(23, 29),
-            mask=Image.open(path).convert("RGBA").resize(
-                (90, 90), Image.ANTIALIAS
-            ),
-        )
         return image
 
     def get_row(self, table, loadout_id, weapon_id=None):
         """Return row in database given table and the id."""
-        asset_c = self.get_db("assets")
         if weapon_id is None:
-            return asset_c.execute(
+            return self.get_db("assets").execute(
                 select([self.get_meta("assets").tables[table]]).\
                 where(self.get_meta("assets").tables[table].c.id == loadout_id)
             ).fetchone()
 
-        return asset_c.execute(
+        return self.get_db("assets").execute(
             select([self.get_meta("assets").tables[table]]).\
             where(
                 and_(

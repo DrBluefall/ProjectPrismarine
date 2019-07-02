@@ -41,16 +41,17 @@ class Loadout(DBHandler):
             key: (
                 {
                     v_key: (
-                        self.get_row(key, v_value) if key != "subs" else [
-                            self.get_row("abilities", s_value)
-                            for s_value in v_value
-                        ]
+                        (self.get_row(key, v_value) if v_key == "gear" else self.get_row("abilities", v_value))
+                        if v_key != "subs"
+                        else [self.get_row("abilities", s_value) for s_value in v_value]
                     )
-                    for v_key, v_value in value
-                } if key != "weapon" else weapon_value
+                    for v_key, v_value in value.items()
+                }
+                if key not in ("weapon", "class")
+                else (weapon_value if key == "weapon" else None)  # BUG: Weapon sub shows special
             )
             for key, value in raw_loadout.items()
-        }
+        }  # yapf: disable
 
         return loadout
 

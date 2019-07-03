@@ -100,6 +100,7 @@ def decode_gear(code):
             "main": The main ability
             "subs": [The, 3, subs]
         }
+
     """
     id = int(code[0:2], 16)
     raw_abilities = code[2:8]

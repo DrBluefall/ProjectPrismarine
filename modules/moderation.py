@@ -71,17 +71,20 @@ class Moderation(commands.Cog):
             - The command user does not have the `manage messages` permission.
 
         """
-        if ctx.message.author.permissions_in(ctx.message.channel).manage_messages is True:
+        if ctx.message.author.permissions_in(
+            ctx.message.channel
+        ).manage_messages is True:
             channel = self.client.get_channel(ctx.channel.id)
             deleted = await channel.purge(limit=amount)
             await ctx.send(
-                f"{len(deleted)} message(s) have been deleted.", delete_after=10
+                f"{len(deleted)} message(s) have been deleted.",
+                delete_after=10
             )
         else:
             await ctx.send(
                 "Command failed. Make sure you have the `manage_messages` permission in order to use this command."
             )
-            
+
     @commands.has_permissions(ban_members=True)
     @mod.command()
     async def ban(
@@ -105,7 +108,9 @@ class Moderation(commands.Cog):
         except IndexError:
             banned_user = int(banned_user)
             banned_user = self.client.get_user(banned_user)
-        if ctx.message.author.permissions_in(ctx.message.channel).ban_members is True:
+        if ctx.message.author.permissions_in(
+            ctx.message.channel
+        ).ban_members is True:
             try:
                 await ctx.guild.ban(
                     user=banned_user, reason=reason, delete_message_days=time
@@ -119,7 +124,7 @@ class Moderation(commands.Cog):
                 )
             except commands.BadArgument:
                 await ctx.send(
-                "Command failed. Make sure you have specified the correct parameters for this command."
+                    "Command failed. Make sure you have specified the correct parameters for this command."
                 )
         else:
             await ctx.send(
@@ -141,7 +146,9 @@ class Moderation(commands.Cog):
             - The command user does not have the `kick members` permission.
 
         """
-        if ctx.message.author.permissions_in(ctx.message.channel).kick_members is True:
+        if ctx.message.author.permissions_in(
+            ctx.message.channel
+        ).kick_members is True:
             try:
                 kicked_user = ctx.message.mentions[0]
             except IndexError:
@@ -170,12 +177,16 @@ class Moderation(commands.Cog):
         Note: This will only work on users without an assigned role.
 
         """
-        if ctx.message.author.permissions_in(ctx.message.channel).kick_members is True:
+        if ctx.message.author.permissions_in(
+            ctx.message.channel
+        ).kick_members is True:
             pruned = await ctx.guild.prune_members(
                 days=time, compute_prune_count="False"
             )
             # await ctx.send("Prune executed.")
-            await ctx.send(f"{pruned} member(s) have been pruned from the server.")
+            await ctx.send(
+                f"{pruned} member(s) have been pruned from the server."
+            )
         else:
             await ctx.send(
                 "Command failed. Make sure you have the `kick_members` permission in order to use this command."

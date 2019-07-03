@@ -62,12 +62,13 @@ class SQLEngine:
         )
 
         embed.set_thumbnail(url=user.avatar_url)
-        for name, index in \
-        zip((
+        for name, index in zip(
+            (
                 "In-Game Name:", "Friend Code:", "Level:", "Rainmaker Rank:",
                 "Tower Control Rank:", "Splat Zones Rank:", "Clam Blitz Rank:",
                 "Salmon Run Rank:"
-            ), range(8)):
+            ), range(8)
+        ):
             embed.add_field(name=name, value=profile[index + 1])
 
         if profile["loadout_string"] is not None:

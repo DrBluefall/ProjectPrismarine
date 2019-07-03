@@ -2,9 +2,10 @@
 
 import logging
 import asyncio
+import re
 import discord
 from discord.ext import commands
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select, and_
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select, and_, exc
 from io import BytesIO
 from bin.loadout import Loadout
 from bin.decoder import decode
@@ -40,6 +41,7 @@ class TeamComposer(commands.Cog):
             Column("player_6", Integer),
             Column("player_7", Integer),
             Column("name", String),
+            Column("description", String),
             Column("team_id", Integer, primary_key=True)
 
         )
@@ -50,7 +52,7 @@ class TeamComposer(commands.Cog):
             Column("comp_id", Integer, primary_key=True),
             Column("author_id", Integer),
             Column("name", String),
-            Column("desc", String),
+            Column("description", String),
             Column("weapon_1", String, server_default="0000000000000000000000000"),
             Column("weapon_1_role", String),
             Column("weapon_1_desc", String),
@@ -82,7 +84,8 @@ class TeamComposer(commands.Cog):
 
                 embed = discord.Embed(
                     title=f"Team Profile - {team_profile['name']}",
-                    color=discord.Color.orange()
+                    color=discord.Color.orange(),
+                    description=team_profile["description"]
                 )
                 cap = self.client.get_user(team_profile["captain"])
                 p_2 = self.client.get_user(team_profile["player_2"]).mention
@@ -101,8 +104,7 @@ class TeamComposer(commands.Cog):
                 embed.add_field(name="Team Captain", value=cap.mention)
                 embed.add_field(name="Team ID:", value=team_profile["team_id"])
                 
-                await ctx.send(embed=embed)
-                
+                await ctx.send(embed=embed)   
             else:
                 await ctx.send("Command failed - Team ID not provided.")
         elif type.lower() == "loadout":
@@ -119,7 +121,7 @@ class TeamComposer(commands.Cog):
                 if team_comp is not None:
                     embed = discord.Embed(
                         title=f"Weapon Composition - {team_comp['name']}",
-                        description=team_comp["desc"],
+                        description=team_comp["description"],
                         color=discord.Color.red()
                     )
                     await ctx.send(embed=embed)
@@ -232,6 +234,11 @@ class TeamComposer(commands.Cog):
                 name = await self.client.wait_for("message", timeout=60, check=check)
                 name = name.content
 
+                await ctx.send("What will be your team's description?")
+
+                desc = await self.client.wait_for("message", timeout=60, check=check)
+                desc = desc.content
+
                 await ctx.send(f"Registering {name} into the database...")
 
                 ex = self.c.execute(
@@ -243,7 +250,8 @@ class TeamComposer(commands.Cog):
                         player_5=players[4],
                         player_6=players[5],
                         player_7=players[6],
-                        name=name     
+                        name=name,
+                        description=desc  
                     )
                 )
 
@@ -252,7 +260,7 @@ class TeamComposer(commands.Cog):
             elif type.lower() == "loadout":
                 comp = {
                     "name": "",
-                    "desc": "",
+                    "description": "",
                     "weapon_1": {},
                     "weapon_2": {},
                     "weapon_3": {},
@@ -282,7 +290,7 @@ class TeamComposer(commands.Cog):
                                 comp[f"weapon_{i + 1}"].update(role=msg.content)
                                 await ctx.send("Role assigned. Are there any extra details you would like to give about the weapon? [Playstyle, usage, viable maps, etc.]")
                                 msg = await self.client.wait_for("message", timeout=600, check=check)
-                                comp[f"weapon_{i + 1}"].update(desc=msg.content)
+                                comp[f"weapon_{i + 1}"].update(description=msg.content)
                                 await ctx.send("Alright.")
                                 break
 
@@ -297,7 +305,7 @@ class TeamComposer(commands.Cog):
                 comp["name"] = msg.content
                 await ctx.send("Are there any extra details you would like to provide about this composition? [Map/Mode use, strategies, etc.]")
                 msg = await self.client.wait_for("message", timeout=600, check=check)
-                comp["desc"] = msg.content
+                comp["description"] = msg.content
 
                 await ctx.send(f"Inserting team composition `{comp['name']}` into the database...")
 
@@ -305,7 +313,7 @@ class TeamComposer(commands.Cog):
                     self.team_comps.insert(None).values(
                         author_id=ctx.message.author.id,
                         name=comp["name"],
-                        desc=comp["desc"],
+                        desc=comp["description"],
                         weapon_1=comp["weapon_1"]["loadout"],
                         weapon_1_role=comp["weapon_1"]["role"],
                         weapon_1_desc=comp["weapon_1"]["desc"],
@@ -328,8 +336,50 @@ class TeamComposer(commands.Cog):
                          
         except asyncio.TimeoutError:
             await ctx.send("Command timed out - Process aborted.")
-
+        
+    @comp.group(case_insensitive=True)
+    async def modify(self, ctx):
+        pass
     
+    @modify.command()
+    async def team(self, ctx, field = None,*,value = None):
+
+        team = self.c.execute(
+            select([self.team_profiler]).where(self.team_profiler.columns.captain == ctx.message.author.id) #pylint: disable=no-member
+        ).fetchone()
+        if team is not None:
+            if re.search(r"player_.", field) is not None:
+                try:
+                    value = ctx.message.mentions[0].id
+                except IndexError:
+                    value = self.client.get_user(int(value)).id
+                    if value is None:
+                        await ctx.send("Command Failed - Invalid player specified.")
+                        return
+                try:
+                    self.c.execute(
+                        self.team_profiler.update(None).where(self.team_profiler.columns.captain == ctx.message.author.id).values(**{field : value}) #pylint: disable=no-member
+                    )
+                    await ctx.send("Team roster updated!")
+                    
+                except exc.StatementError as except_:
+                    logging.exception(except_)
+                    await ctx.send("Command Failed - Internal Exception.")
+            elif field == "desc":
+                self.c.execute(
+                    self.team_profiler.update(None).where(self.team_profiler.columns.captain == ctx.message.author.id).values(description = value)#pylint: disable=no-member
+                )
+                await ctx.send("Description updated!")
+            elif field == "name":
+                self.c.execute(
+                    self.team_profiler.update(None).where(self.team_profiler.columns.captain == ctx.message.author.id).values(name = value)#pylint: disable=no-member
+                )
+                await ctx.send("Name updated!")
+
+
+        else:
+            await ctx.send(f"Command Failed - You do not have a team. To create a team, use `{ctx.prefix}comp create team`.")
+                
 
     @comp.command()
     async def help(self, ctx):

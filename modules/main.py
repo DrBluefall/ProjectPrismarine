@@ -52,9 +52,10 @@ class Main(DBHandler, commands.Cog):
             self.client.load_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` loaded.")
             logging.info("%s module loaded.", extension)
-        except \
-        (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) \
-        as error:
+        except (
+            commands.CommandInvokeError, commands.ExtensionNotLoaded,
+            commands.ExtensionNotFound
+        ) as error:
             await ctx.send(
                 "Module could not be loaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
             )
@@ -67,9 +68,10 @@ class Main(DBHandler, commands.Cog):
             self.client.unload_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` unloaded.")
             logging.info("%s module unloaded.", extension)
-        except \
-        (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) \
-        as error:
+        except (
+            commands.CommandInvokeError, commands.ExtensionNotLoaded,
+            commands.ExtensionNotFound
+        ) as error:
             await ctx.send(
                 "Module could not be unloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
             )
@@ -83,9 +85,10 @@ class Main(DBHandler, commands.Cog):
             self.client.load_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` reloaded.")
             logging.info("%s module reloaded.", extension)
-        except \
-        (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) \
-        as error:
+        except (
+            commands.CommandInvokeError, commands.ExtensionNotLoaded,
+            commands.ExtensionNotFound
+        ) as error:
             await ctx.send(
                 "Module could not be reloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
             )
@@ -127,8 +130,10 @@ class Main(DBHandler, commands.Cog):
     async def prefix(self, ctx):
         """Get a server's prefix."""
         server_prefix = self.get_db("main").execute(
-            select([self.get_meta("main").tables["prefix"]]).\
-            where(self.get_meta("main").tables["prefix"].c.server_id == ctx.message.guild.id)
+            select([self.get_meta("main").tables["prefix"]]).where(
+                self.get_meta("main").tables["prefix"].c.server_id ==
+                ctx.message.guild.id
+            )
         ).fetchone()
         if server_prefix is not None:
             await ctx.send(f"Your prefix is `{server_prefix[1]}`")

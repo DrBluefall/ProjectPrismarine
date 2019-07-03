@@ -25,14 +25,14 @@ class Loadout(DBHandler):
             "main": self.get_row(
                 "weapons", raw_loadout["class"], raw_loadout["weapon"]
             ),
-            "sub": self.get_db("assets").\
+            "sub": self.get_db("assets"). \
                 execute(
-                    select([self.get_meta("assets").tables["subs"]]).\
+                    select([self.get_meta("assets").tables["subs"]]). \
                     where(self.get_meta("assets").tables["subs"].c.name == self.get_row("weapons", raw_loadout["class"], raw_loadout["weapon"])["sub"])
                 ).fetchone(),
-            "special": self.get_db("assets").\
+            "special": self.get_db("assets"). \
                 execute(
-                    select([self.get_meta("assets").tables["specials"]]).\
+                    select([self.get_meta("assets").tables["specials"]]). \
                     where(self.get_meta("assets").tables["specials"].c.name == self.get_row("weapons", raw_loadout["class"], raw_loadout["weapon"])["special"])
                 ).fetchone(),
         }
@@ -300,12 +300,12 @@ class Loadout(DBHandler):
         """Return row in database given table and the id."""
         if weapon_id is None:
             return self.get_db("assets").execute(
-                select([self.get_meta("assets").tables[table]]).\
+                select([self.get_meta("assets").tables[table]]). \
                 where(self.get_meta("assets").tables[table].c.id == loadout_id)
             ).fetchone()
 
         return self.get_db("assets").execute(
-            select([self.get_meta("assets").tables[table]]).\
+            select([self.get_meta("assets").tables[table]]). \
             where(
                 and_(
                     self.get_meta("assets").tables[table].c.class_id == loadout_id,

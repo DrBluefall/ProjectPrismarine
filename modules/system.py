@@ -148,8 +148,9 @@ class System(commands.Cog):
 
         """
         if ctx.guild.id == 561529218949971989:
-            if ctx.message.author.permissions_in(ctx.message.channel) \
-            .administrator is True:
+            if ctx.message.author.permissions_in(
+                ctx.message.channel
+            ).administrator is True:
                 embed = discord.Embed(
                     title=f"An Announcement from {ctx.message.author.name}...",
                     description=text,
@@ -207,8 +208,7 @@ class System(commands.Cog):
     @system.command()
     async def help(self, ctx):
         """System command documentation."""
-        if ctx.message.author.id == 490650609641324544 \
-            or ctx.message.author.id == ctx.message.author.id == 571494333090496514:
+        if ctx.message.author.id in (490650609641324544, 571494333090496514):
             embed = discord.Embed(
                 title=
                 f"Project Prismarine - {__class__.__name__} Documentation",

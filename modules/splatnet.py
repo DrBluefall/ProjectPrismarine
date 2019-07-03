@@ -240,20 +240,28 @@ class SplatnetEmbeds:
         """Generate a Splatnet feed embed."""
         if item["type"] == "shoes":
             file = cls.c.execute(
-                select([cls.metadata.tables["shoes"].c.image]) \
-                    .where(cls.metadata.tables["shoes"].c.splatnet == item["splatnet"])
+                select([cls.metadata.tables["shoes"].c.image]). \
+                where(
+                    cls.metadata.tables["shoes"].c.splatnet == item["splatnet"]
+                )
             ).fetchone()
             file = discord.File(file["image"], filename=file["image"][17:])
         elif item["type"] == "clothes":
             file = cls.c.execute(
-                select([cls.metadata.tables["clothing"].c.image]) \
-                    .where(cls.metadata.tables["clothing"].c.splatnet == item["splatnet"])
+                select([cls.metadata.tables["clothing"].c.image]). \
+                where(
+                    cls.metadata.tables["clothing"].c.splatnet ==
+                    item["splatnet"]
+                )
             ).fetchone()
             file = discord.File(file["image"], filename=file["image"][20:])
         elif item["type"] == "head":
             file = cls.c.execute(
-                select([cls.metadata.tables["headgear"].c.image]) \
-                    .where(cls.metadata.tables["headgear"].c.splatnet == item["splatnet"])
+                select([cls.metadata.tables["headgear"].c.image]). \
+                where(
+                    cls.metadata.tables["headgear"].c.splatnet ==
+                    item["splatnet"]
+                )
             ).fetchone()
             file = discord.File(file["image"], filename=file["image"][20:])
         embed = discord.Embed(

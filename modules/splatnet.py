@@ -240,19 +240,19 @@ class SplatnetEmbeds:
         """Generate a Splatnet feed embed."""
         if item["type"] == "shoes":
             file = cls.c.execute(
-                select([cls.metadata.tables["shoes"].c.image])\
+                select([cls.metadata.tables["shoes"].c.image]) \
                     .where(cls.metadata.tables["shoes"].c.splatnet == item["splatnet"])
             ).fetchone()
             file = discord.File(file["image"], filename=file["image"][17:])
         elif item["type"] == "clothes":
             file = cls.c.execute(
-                select([cls.metadata.tables["clothing"].c.image])\
+                select([cls.metadata.tables["clothing"].c.image]) \
                     .where(cls.metadata.tables["clothing"].c.splatnet == item["splatnet"])
             ).fetchone()
             file = discord.File(file["image"], filename=file["image"][20:])
         elif item["type"] == "head":
             file = cls.c.execute(
-                select([cls.metadata.tables["headgear"].c.image])\
+                select([cls.metadata.tables["headgear"].c.image]) \
                     .where(cls.metadata.tables["headgear"].c.splatnet == item["splatnet"])
             ).fetchone()
             file = discord.File(file["image"], filename=file["image"][20:])
@@ -276,7 +276,11 @@ def create_json_data(schedules, coop_schedules, merchandises):
     i = 0
     for weapon in coop_schedules["details"][0]["weapons"]:
         if weapon["id"] == '-1':
-            coop_schedules["details"][0]["weapons"][i] = {"weapon":{"name":"*a mystery weapon!*"}}
+            coop_schedules["details"][0]["weapons"][i] = {
+                "weapon": {
+                    "name": "*a mystery weapon!*"
+                }
+            }
         i += 1
 
     data = {
@@ -346,14 +350,24 @@ def create_json_data(schedules, coop_schedules, merchandises):
         },
         "splatnet": [
             {
-                "name": gear["gear"]["name"],
-                "type": gear["kind"],
-                "price": gear["price"],
-                "rarity": gear["gear"]["rarity"],
-                "ability": gear["skill"]["name"],
-                "original_ability": ("undefined" if gear["original_gear"] is None else gear["original_gear"]["skill"]["name"]),
-                "expiration": datetime.fromtimestamp(gear["end_time"]).ctime(),
-                "splatnet": gear["gear"]["id"]
+                "name":
+                gear["gear"]["name"],
+                "type":
+                gear["kind"],
+                "price":
+                gear["price"],
+                "rarity":
+                gear["gear"]["rarity"],
+                "ability":
+                gear["skill"]["name"],
+                "original_ability": (
+                    "undefined" if gear["original_gear"] is None else
+                    gear["original_gear"]["skill"]["name"]
+                ),
+                "expiration":
+                datetime.fromtimestamp(gear["end_time"]).ctime(),
+                "splatnet":
+                gear["gear"]["id"]
             } for gear in merchandises["merchandises"]
         ]
     }

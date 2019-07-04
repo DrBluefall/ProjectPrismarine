@@ -12,7 +12,7 @@ from bin.decoder import decode
 from core import DBHandler
 
 
-class TeamComposer(commands.Cog, DBHandler):
+class TeamComposer(DBHandler, commands.Cog):
     """Module handling weapon and team compositions."""
 
     def __init__(self, client):
@@ -62,7 +62,7 @@ class TeamComposer(commands.Cog, DBHandler):
     @commands.group(
         case_insensitive=True, ignore_extra=False, invoke_without_command=True
     )
-    async def compose(self, ctx, type, id: int = None):
+    async def compose(self, ctx):
         """Team Composition command group. Does nothing on it's own."""
 
     @compose.command()

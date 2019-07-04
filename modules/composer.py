@@ -56,6 +56,7 @@ class TeamComposer(DBHandler, commands.Cog):
                       String), Column("weapon_4_desc", String)
         )
         self.get_meta("main").create_all(
+            bind=self.get_db("main"),
             tables=[self.team_profiler, self.team_comps]
         )
 

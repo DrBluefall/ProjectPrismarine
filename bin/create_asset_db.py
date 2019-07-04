@@ -1,53 +1,52 @@
 """Module that stores all weapons from Splatoon 2."""
 # yapf: disable
 
-from sqlalchemy import create_engine, MetaData
 from sqlalchemy import Table, Column, Integer, String
 from assets.data import abilities, clothing, headgear, shoes, specials, subs, weapons
+from core import DBHandler
 
-class AssetDB:
+class AssetDB(DBHandler):
     """Class containing all tables with assets for the bot."""
 
     def __init__(self):
         """Create the asset.db."""
-        engine = create_engine("sqlite:///assets/assets.db")
-        metadata = MetaData(engine)
+        super().__init__()
 
-        self.abilities_table = Table("abilities", metadata, Column("id", Integer, primary_key=True),
+        self.abilities_table = Table("abilities", self.get_meta("assets"), Column("id", Integer, primary_key=True),
             Column("name", String),
             Column("image", String))
 
-        self.clothing_table = Table("clothing", metadata, Column("id", Integer, primary_key=True),
+        self.clothing_table = Table("clothing", self.get_meta("assets"), Column("id", Integer, primary_key=True),
             Column("name", String),
             Column("image", String),
             Column("ablilty", String),
             Column("brand", String),
             Column("splatnet", Integer))
 
-        self.headgear_table = Table("headgear", metadata, Column("id", Integer, primary_key=True),
+        self.headgear_table = Table("headgear", self.get_meta("assets"), Column("id", Integer, primary_key=True),
             Column("name", String),
             Column("image", String),
             Column("ablilty", String),
             Column("brand", String),
             Column("splatnet", Integer))
 
-        self.shoes_table = Table("shoes", metadata, Column("id", Integer, primary_key=True),
+        self.shoes_table = Table("shoes", self.get_meta("assets"), Column("id", Integer, primary_key=True),
             Column("name", String),
             Column("image", String),
             Column("ablilty", String),
             Column("brand", String),
             Column("splatnet", Integer))
 
-        self.specials_table = Table("specials", metadata, Column("id", Integer, primary_key=True),
+        self.specials_table = Table("specials", self.get_meta("assets"), Column("id", Integer, primary_key=True),
             Column("name", String),
             Column("image", String))
 
-        self.subs_table = Table("subs", metadata, Column("id", Integer, primary_key=True),
+        self.subs_table = Table("subs", self.get_meta("assets"), Column("id", Integer, primary_key=True),
             Column("name", String),
             Column("image", String),
             Column("cost", Integer))
 
-        self.weapons_table = Table("weapons", metadata, Column("id", Integer, primary_key=True),
+        self.weapons_table = Table("weapons", self.get_meta("assets"), Column("id", Integer, primary_key=True),
             Column("name", String),
             Column("image", String),
             Column("loadout_ink_id", Integer),
@@ -59,10 +58,8 @@ class AssetDB:
             Column("level", Integer),
             Column("cost", String))
 
-        metadata.drop_all()
-        metadata.create_all()
-
-        self.c = engine.connect()
+        self.get_meta("assets").drop_all(bind=self.get_db("assets"))
+        self.get_meta("assets").create_all(bind=self.get_db("assets"))
 
     def insert_assets(self):
         """Insert weapons, subs, specials, and abilities into the asset database."""
@@ -71,7 +68,7 @@ class AssetDB:
             ins = self.abilities_table.insert(None).values(id=ability["id"],
                 name=ability["name"],
                 image="assets/img/abilities/"+ability["image"][28:])
-            self.c.execute(ins)
+            self.get_db("assets").execute(ins)
 
         for item in clothing:
             status(f"Inserting: 'clothing': '{item['name']}'...")
@@ -81,7 +78,7 @@ class AssetDB:
                 ablilty=item["main"],
                 brand=item["brand"],
                 splatnet=item["splatnet"])
-            self.c.execute(ins)
+            self.get_db("assets").execute(ins)
 
         for item in headgear:
             status(f"Inserting: 'headgear': '{item['name']}'...")
@@ -91,7 +88,7 @@ class AssetDB:
                 ablilty=item["main"],
                 brand=item["brand"],
                 splatnet=item["splatnet"])
-            self.c.execute(ins)
+            self.get_db("assets").execute(ins)
 
         for item in shoes:
             status(f"Inserting: 'shoes': '{item['name']}'...")
@@ -101,14 +98,14 @@ class AssetDB:
                 ablilty=item["main"],
                 brand=item["brand"],
                 splatnet=item["splatnet"])
-            self.c.execute(ins)
+            self.get_db("assets").execute(ins)
 
         for special in specials:
             status(f"Inserting: 'specials': {special['name']}...")
             ins = self.specials_table.insert(None).values(
                 name=special["name"],
                 image="assets/img/specials/"+special["image"][28:])
-            self.c.execute(ins)
+            self.get_db("assets").execute(ins)
 
         for sub in subs:
             status(f"Inserting: 'subs': {sub['name']}...")
@@ -116,7 +113,7 @@ class AssetDB:
                 name=sub["name"],
                 image="assets/img/subs/"+sub["image"][28:],
                 cost=sub["cost"])
-            self.c.execute(ins)
+            self.get_db("assets").execute(ins)
 
         for weapon_class in weapons:
             for weapon in weapon_class["weapons"]:
@@ -132,7 +129,7 @@ class AssetDB:
                     special_cost=weapon["specialCost"],
                     level=weapon["level"],
                     cost=weapon["price"])
-                self.c.execute(ins)
+                self.get_db("assets").execute(ins)
 
 
 def status(msg):

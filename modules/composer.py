@@ -75,79 +75,79 @@ class TeamComposer(commands.Cog):
         """Team Composition command group. If invoked with a team ID, it will return the team that has a matching ID."""
         if ctx.invoked_subcommand is not None:
             return
-        
-        if type.lower() == "team":
-            if id is not None:
-                team_profile = self.c.execute(
-                    select([self.team_profiler]).where(self.team_profiler.columns.team_id == id) #pylint: disable=no-member
-                ).fetchone()
+        async with ctx.typing():
+            if type.lower() == "team":
+                if id is not None:
+                    team_profile = self.c.execute(
+                        select([self.team_profiler]).where(self.team_profiler.columns.team_id == id) #pylint: disable=no-member
+                    ).fetchone()
 
-                embed = discord.Embed(
-                    title=f"Team Profile - {team_profile['name']}",
-                    color=discord.Color.orange(),
-                    description=team_profile["description"]
-                )
-                cap = self.client.get_user(team_profile["captain"])
-                p_2 = self.client.get_user(team_profile["player_2"]).mention
-                p_3 = self.client.get_user(team_profile["player_3"]).mention
-                p_4 = self.client.get_user(team_profile["player_4"]).mention
-                p_5 = self.client.get_user(team_profile["player_5"])
-                if p_5 is not None:
-                    p_5 = p_5.mention
-                p_6 = self.client.get_user(team_profile["player_6"])
-                if p_6 is not None:
-                    p_6 = p_6.mention
-                p_7 = self.client.get_user(team_profile["player_7"])
-                if p_7 is not None:
-                    p_7 = p_7.mention
-                embed.add_field(name="Team Roster:", value=f"{p_2}\n{p_3}\n{p_4}\n{p_5}\n{p_6}\n{p_7}")
-                embed.add_field(name="Team Captain", value=cap.mention)
-                embed.add_field(name="Team ID:", value=team_profile["team_id"])
-                
-                await ctx.send(embed=embed)   
-            else:
-                await ctx.send("Command failed - Team ID not provided.")
-        elif type.lower() == "loadout":
-            if id is not None:
-                team_comp = self.c.execute(
-                    select([self.team_comps]).where(
-                        and_(
-                            self.team_comps.columns.author_id == ctx.message.author.id, #pylint: disable=no-member
-                            self.team_comps.columns.comp_id == id #pylint: disable=no-member
-                        )
-                    )
-                ).fetchone()
-
-                if team_comp is not None:
                     embed = discord.Embed(
-                        title=f"Weapon Composition - {team_comp['name']}",
-                        description=team_comp["description"],
-                        color=discord.Color.red()
+                        title=f"Team Profile - {team_profile['name']}",
+                        color=discord.Color.orange(),
+                        description=team_profile["description"]
                     )
-                    await ctx.send(embed=embed)
-
-                    for i in range(4):
-                        embed = discord.Embed(
-                            description=team_comp[f"weapon_{i+1}_role"] + " - " + team_comp[f"weapon_{i+1}_desc"],
-                            color=discord.Color.dark_blue()
-                        )
-                        loadout = decode(team_comp[f"weapon_{i+1}"])
-                        loadout = Loadout().convert_loadout(loadout)
-                        with Loadout().generate_loadout_image(loadout) as _loadout:
-                            out_buffer = BytesIO()
-                            _loadout.save(out_buffer, "png")
-                            out_buffer.seek(0)
-                        _loadout = discord.File(fp=out_buffer, filename="loadout.png")
-                        embed.set_image(url="attachment://loadout.png")
-                        embed.title = f"Weapon #{i+1} - {loadout['weapon']['main']['name']}"
-
-                        await ctx.send(embed=embed, file=_loadout) 
+                    cap = self.client.get_user(team_profile["captain"])
+                    p_2 = self.client.get_user(team_profile["player_2"]).mention
+                    p_3 = self.client.get_user(team_profile["player_3"]).mention
+                    p_4 = self.client.get_user(team_profile["player_4"]).mention
+                    p_5 = self.client.get_user(team_profile["player_5"])
+                    if p_5 is not None:
+                        p_5 = p_5.mention
+                    p_6 = self.client.get_user(team_profile["player_6"])
+                    if p_6 is not None:
+                        p_6 = p_6.mention
+                    p_7 = self.client.get_user(team_profile["player_7"])
+                    if p_7 is not None:
+                        p_7 = p_7.mention
+                    embed.add_field(name="Team Roster:", value=f"{p_2}\n{p_3}\n{p_4}\n{p_5}\n{p_6}\n{p_7}")
+                    embed.add_field(name="Team Captain", value=cap.mention)
+                    embed.add_field(name="Team ID:", value=team_profile["team_id"])
+                    
+                    await ctx.send(embed=embed)   
                 else:
-                    await ctx.send("Command Failed - Composition ID is invalid.")           
+                    await ctx.send("Command failed - Team ID not provided.")
+            elif type.lower() == "loadout":
+                if id is not None:
+                    team_comp = self.c.execute(
+                        select([self.team_comps]).where(
+                            and_(
+                                self.team_comps.columns.author_id == ctx.message.author.id, #pylint: disable=no-member
+                                self.team_comps.columns.comp_id == id #pylint: disable=no-member
+                            )
+                        )
+                    ).fetchone()
+
+                    if team_comp is not None:
+                        embed = discord.Embed(
+                            title=f"Weapon Composition - {team_comp['name']}",
+                            description=team_comp["description"],
+                            color=discord.Color.red()
+                        )
+                        await ctx.send(embed=embed)
+
+                        for i in range(4):
+                            embed = discord.Embed(
+                                description=team_comp[f"weapon_{i+1}_role"] + " - " + team_comp[f"weapon_{i+1}_desc"],
+                                color=discord.Color.dark_blue()
+                            )
+                            loadout = decode(team_comp[f"weapon_{i+1}"])
+                            loadout = Loadout().convert_loadout(loadout)
+                            with Loadout().generate_loadout_image(loadout) as _loadout:
+                                out_buffer = BytesIO()
+                                _loadout.save(out_buffer, "png")
+                                out_buffer.seek(0)
+                            _loadout = discord.File(fp=out_buffer, filename="loadout.png")
+                            embed.set_image(url="attachment://loadout.png")
+                            embed.title = f"Weapon #{i+1} - {loadout['weapon']['main']['name']}"
+
+                            await ctx.send(embed=embed, file=_loadout) 
+                    else:
+                        await ctx.send("Command Failed - Composition ID is invalid.")           
+                else:
+                    await ctx.send("Command Failed - Composition ID has not been provided.")
             else:
-                await ctx.send("Command Failed - Composition ID has not been provided.")
-        else:
-            await ctx.send(f"Command Failed - `type` parameter must be `team` or `loadout`, not `{type}`.")
+                await ctx.send(f"Command Failed - `type` parameter must be `team` or `loadout`, not `{type}`.")
 
     @comp.command()
     async def create(self, ctx, type):
@@ -290,7 +290,7 @@ class TeamComposer(commands.Cog):
                                 comp[f"weapon_{i + 1}"].update(role=msg.content)
                                 await ctx.send("Role assigned. Are there any extra details you would like to give about the weapon? [Playstyle, usage, viable maps, etc.]")
                                 msg = await self.client.wait_for("message", timeout=600, check=check)
-                                comp[f"weapon_{i + 1}"].update(description=msg.content)
+                                comp[f"weapon_{i + 1}"].update(desc=msg.content)
                                 await ctx.send("Alright.")
                                 break
 
@@ -298,8 +298,8 @@ class TeamComposer(commands.Cog):
                                 await ctx.send("Understood. Starting over...")
                                 continue
                             else:
-                                await ctx.send("Command Failed - Invalid response.")
-                                return
+                                await ctx.send("Invalid Response - Restarting...")
+                                continue
                 await ctx.send("Ok, what will be the name of this composition?")
                 msg = await self.client.wait_for("message", timeout=300, check=check)
                 comp["name"] = msg.content
@@ -313,7 +313,7 @@ class TeamComposer(commands.Cog):
                     self.team_comps.insert(None).values(
                         author_id=ctx.message.author.id,
                         name=comp["name"],
-                        desc=comp["description"],
+                        description=comp["description"],
                         weapon_1=comp["weapon_1"]["loadout"],
                         weapon_1_role=comp["weapon_1"]["role"],
                         weapon_1_desc=comp["weapon_1"]["desc"],
@@ -339,13 +339,18 @@ class TeamComposer(commands.Cog):
         
     @comp.group(case_insensitive=True)
     async def modify(self, ctx):
-        pass
+        """Command group made to edit team profiles and compositions. Does nothing on it's own."""
     
     @modify.command()
-    async def team(self, ctx, field = None,*,value = None):
+    async def team(self, ctx, id, field = None,*,value = None):
 
         team = self.c.execute(
-            select([self.team_profiler]).where(self.team_profiler.columns.captain == ctx.message.author.id) #pylint: disable=no-member
+            select([self.team_profiler]).where(
+                and_(
+                    self.team_profiler.columns.captain == ctx.message.author.id, #pylint: disable=no-member
+                    self.team_profiler.columns.team_id == id #pylint: disable=no-member
+                )
+            ) 
         ).fetchone()
         if team is not None:
             if re.search(r"player_.", field) is not None:
@@ -362,9 +367,9 @@ class TeamComposer(commands.Cog):
                     )
                     await ctx.send("Team roster updated!")
                     
-                except exc.StatementError as except_:
+                except exc.CompileError as except_:
                     logging.exception(except_)
-                    await ctx.send("Command Failed - Internal Exception.")
+                    await ctx.send("Command Failed - Invalid column.")
             elif field == "desc":
                 self.c.execute(
                     self.team_profiler.update(None).where(self.team_profiler.columns.captain == ctx.message.author.id).values(description = value)#pylint: disable=no-member
@@ -379,7 +384,64 @@ class TeamComposer(commands.Cog):
 
         else:
             await ctx.send(f"Command Failed - You do not have a team. To create a team, use `{ctx.prefix}comp create team`.")
-                
+
+    @modify.command()
+    async def loadout(self, ctx, id, field = None, *, value = None):
+        loadout = self.c.execute(
+            select([self.team_comps]).where(
+                and_(
+                    self.team_comps.columns.author_id == ctx.message.author.id, #pylint: disable=no-member
+                    self.team_comps.columns.comp_id == id #pylint: disable=no-member
+                )
+            )
+        ).fetchone()
+        if loadout is not None:
+            if field == "desc":
+                self.c.execute(
+                    self.team_comps.update(None).where(
+                        and_(
+                            self.team_comps.columns.author_id == ctx.message.author.id, #pylint: disable=no-member
+                            self.team_comps.columns.comp_id == id #pylint: disable=no-member
+                        )
+                    ).values(description=value)
+                )
+                await ctx.send("Description updated!")
+            elif field == "name":
+                self.c.execute(
+                    self.team_comps.update(None).where(
+                        and_(
+                            self.team_comps.columns.author_id == ctx.message.author.id, #pylint: disable=no-member
+                            self.team_comps.columns.comp_id == id #pylint: disable=no-member
+                        )
+                    ).values(name=value)
+                )
+                await ctx.send("Name updated!")
+
+            elif re.search(r"weapon_.\b", value) is not None:
+                if len(value) == 58 and value[:33] == 'https://selicia.github.io/en_US/#':
+                    self.c.execute(
+                        self.team_comps.update(None).where(
+                            and_(
+                                self.team_comps.columns.author_id == ctx.message.author.id, #pylint: disable=no-member
+                                self.team_comps.columns.comp_id == id #pylint: disable=no-member
+                            )
+                        ).values(**{field:value})
+                    )
+                    await ctx.send("Weapon loadout updated!")
+            else:
+                try:
+                    self.c.execute(
+                        self.team_comps.update(None).where(
+                            and_(
+                                self.team_comps.columns.author_id == ctx.message.author.id, #pylint: disable=no-member
+                                self.team_comps.columns.comp_id == id #pylint: disable=no-member
+                            )
+                        ).values(**{field:value})
+                    )
+                    await ctx.send("Field updated!")
+                except exc.CompileError as except_:
+                    logging.exception(except_)
+                    await ctx.send("Command Failed - Invalid field.")   
 
     @comp.command()
     async def help(self, ctx):

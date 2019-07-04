@@ -6,7 +6,6 @@ from io import BytesIO
 import discord
 from discord.ext import commands
 from sqlalchemy import select, and_, exc
-from sqlalchemy import Table, Column, Integer, String
 from bin.loadout import Loadout
 from bin.decoder import decode
 from core import DBHandler

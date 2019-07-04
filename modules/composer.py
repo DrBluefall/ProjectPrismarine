@@ -12,18 +12,17 @@ from bin.decoder import decode
 from core import DBHandler
 
 
-class TeamComposer(commands.Cog):
+class TeamComposer(commands.Cog, DBHandler):
     """Module handling weapon and team compositions."""
 
     def __init__(self, client):
         """Init the Team Composer cog."""
+        super().__init__()
         self.client = client
         self.check = lambda m: m.author == ctx.message.author
 
-        self.dbh = DBHandler()
-
         self.team_profiler = Table(
-            "team_profile", self.dbh.get_meta("main"),
+            "team_profile", self.get_meta("main"),
             Column("captain", Integer, nullable=False),
             Column("player_2", Integer, nullable=False),
             Column("player_3", Integer, nullable=False),
@@ -35,7 +34,7 @@ class TeamComposer(commands.Cog):
         )
 
         self.team_comps = Table(
-            "team_comp", self.dbh.get_meta("main"),
+            "team_comp", self.get_meta("main"),
             Column("comp_id", Integer, primary_key=True),
             Column("author_id", Integer), Column("name", String),
             Column("description", String),
@@ -56,7 +55,7 @@ class TeamComposer(commands.Cog):
             ), Column("weapon_4_role",
                       String), Column("weapon_4_desc", String)
         )
-        self.dbh.get_meta("main").create_all(
+        self.get_meta("main").create_all(
             tables=[self.team_profiler, self.team_comps]
         )
 
@@ -70,7 +69,7 @@ class TeamComposer(commands.Cog):
     async def team(self, ctx, id: int = None):
         """Compose team command."""
         if id is not None:
-            team_profile = self.dbh.get_db("main").execute(
+            team_profile = self.get_db("main").execute(
                 select([self.team_profiler]). \
                 where(self.team_profiler.columns.team_id == id)  #pylint: disable=no-member
             ).fetchone()
@@ -108,7 +107,7 @@ class TeamComposer(commands.Cog):
     async def loadout(self, ctx, id: int = None):
         """Compose loadout command."""
         if id is not None:
-            team_comp = self.dbh.get_db("main").execute(
+            team_comp = self.get_db("main").execute(
                 select([self.team_comps]). \
                 where(and_( \
                         self.team_comps.columns.author_id ==  # pylint: disable=E1101
@@ -218,7 +217,7 @@ class TeamComposer(commands.Cog):
             "message", timeout=60, check=self.check
         )
         await ctx.send(f"Registering {name} into the database...")
-        ex = self.dbh.get_db("main").execute(
+        ex = self.get_db("main").execute(
             self.team_profiler. \
             insert(None). \
             values(
@@ -310,7 +309,7 @@ class TeamComposer(commands.Cog):
         await ctx.send(
             f"Inserting team composition `{comp['name']}` into the database..."
         )
-        ex = self.dbh.get_db("main").execute(
+        ex = self.get_db("main").execute(
             self.team_comps.insert(None).values(
                 author_id=ctx.message.author.id,
                 name=comp["name"],
@@ -340,7 +339,7 @@ class TeamComposer(commands.Cog):
     @modify.command()
     async def team(self, ctx, id, field=None, *, value=None):
         """Comp modify team command."""
-        team = self.dbh.get_db("main").execute(
+        team = self.get_db("main").execute(
             select([self.team_profiler]). \
             where(and_( \
                     self.team_profiler.columns.captain ==  # pylint: disable=E1101
@@ -362,7 +361,7 @@ class TeamComposer(commands.Cog):
                                 "Command Failed - Invalid player specified."
                             )
                             return
-                self.dbh.get_db("main").execute(
+                self.get_db("main").execute(
                     self.team_comps. \
                     update(None). \
                     where(and_( \
@@ -386,7 +385,7 @@ class TeamComposer(commands.Cog):
     @modify.command()
     async def loadout(self, ctx, id, field=None, *, value=None):
         """Comp modify loadout command."""
-        loadout = self.dbh.get_db("main").execute(
+        loadout = self.get_db("main").execute(
             select([self.team_comps]). \
             where(and_(
                     self.team_comps.columns.author_id == ctx.message.author.id,  # pylint: disable=E1101
@@ -402,7 +401,7 @@ class TeamComposer(commands.Cog):
                     and value[:33] == 'https://selicia.github.io/en_US/#'
                 ):
                     raise exc.CompileError
-                self.dbh.get_db("main").execute(
+                self.get_db("main").execute(
                     self.team_comps. \
                     update(None).\
                     where(and_(

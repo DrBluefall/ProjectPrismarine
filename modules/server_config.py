@@ -1,9 +1,12 @@
 """Module contining all server configurations for the bot (i.e. custom prefixes)."""
 import logging
 import json
+
 import discord
 from discord.ext import commands
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
+
+from sqlalchemy import create_engine, MetaData, select
+from sqlalchemy import Table, Column, Integer, String
 
 
 class DBcManager:

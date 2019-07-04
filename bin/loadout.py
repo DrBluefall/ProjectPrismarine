@@ -1,7 +1,8 @@
 """Script to make dealing with loadouts in cogs easier."""
-from sqlalchemy import create_engine, MetaData, select, and_
+from sqlalchemy import select, and_
 from PIL import Image
-from . import decoder
+from core import DBHandler
+from bin.decoder import decode
 
 class Loadout:
     """Module containing all loadout-related functionality of the bot."""
@@ -134,7 +135,9 @@ class Loadout:
             image.paste(Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS), box=(392, 126), mask=Image.open("assets/img/abilities/Unknown.png").convert("RGBA").resize((24, 24), Image.ANTIALIAS))
         image.paste(Image.open(loadout["clothing"]["gear"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS), box=(315, 29), mask=Image.open(loadout["clothing"]["gear"]["image"]).convert("RGBA").resize((90, 90), Image.ANTIALIAS))
 
-        # Shoes
+    @staticmethod
+    def generate_shoes(image, loadout):
+        """Help method to generate the shoes part of the image."""
         try:
             image.paste(Image.open(loadout["shoes"]["main"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS), box=(444, 117), mask=Image.open(loadout["shoes"]["main"]["image"]).convert("RGBA").resize((32, 32), Image.ANTIALIAS))
         except TypeError:

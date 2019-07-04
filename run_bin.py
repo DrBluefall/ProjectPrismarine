@@ -22,7 +22,7 @@ def main():
 
     print("Type the function you want to run.")
     while True:
-        function = input('> ')
+        function = input('\n> ')
         eval("bin_module." + function)
 
 

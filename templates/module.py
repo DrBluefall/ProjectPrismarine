@@ -6,9 +6,10 @@
 import logging
 import discord
 from discord.ext import commands
+from core import DBHandler  # Remove if database is not used
 
 
-class MyModule(commands.Cog):
+class MyModule(DBHandler, commands.Cog):  # Remove DBHandler if not used
     """Contains all MyModule commands."""
 
     # ... The order of methods in these classes are:
@@ -23,6 +24,7 @@ class MyModule(commands.Cog):
 
     def __init__(self, client):
         """Init the MyModule cog."""
+        super().__init__()  # Remove if database is not used
         self.client = client
 
     @commands.group(case_insensitive=True)

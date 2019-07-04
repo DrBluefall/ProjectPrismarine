@@ -1,8 +1,8 @@
 """Module that stores all weapons from Splatoon 2."""
 # yapf: disable
-# pylint: disable=all
 
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy import Table, Column, Integer, String
 from assets.data import abilities, clothing, headgear, shoes, specials, subs, weapons
 
 class AssetDB:
@@ -66,17 +66,15 @@ class AssetDB:
 
     def insert_assets(self):
         """Insert weapons, subs, specials, and abilities into the asset database."""
-        print("\nInserting: 'abilities'...")
         for ability in abilities:
-            print(f"\tInserting: {ability['name']}...")
+            status(f"Inserting: 'abilities': {ability['name']}...")
             ins = self.abilities_table.insert(None).values(id=ability["id"],
                 name=ability["name"],
                 image="assets/img/abilities/"+ability["image"][28:])
             self.c.execute(ins)
 
-        print("\nInserting: 'clothing'...")
         for item in clothing:
-            print(f"\tInserting: '{item['name']}'...")
+            status(f"Inserting: 'clothing': '{item['name']}'...")
             ins = self.clothing_table.insert(None).values(id=item["id"],
                 name=item["name"],
                 image="assets/img/clothing/"+item["image"][34:],
@@ -85,9 +83,8 @@ class AssetDB:
                 splatnet=item["splatnet"])
             self.c.execute(ins)
 
-        print("\nInserting: 'headgear'...")
         for item in headgear:
-            print(f"\tInserting: '{item['name']}'...")
+            status(f"Inserting: 'headgear': '{item['name']}'...")
             ins = self.headgear_table.insert(None).values(id=item["id"],
                 name=item["name"],
                 image="assets/img/headgear/"+item["image"][31:],
@@ -96,9 +93,8 @@ class AssetDB:
                 splatnet=item["splatnet"])
             self.c.execute(ins)
 
-        print("\nInserting: 'shoes'...")
         for item in shoes:
-            print(f"\tInserting: '{item['name']}'...")
+            status(f"Inserting: 'shoes': '{item['name']}'...")
             ins = self.shoes_table.insert(None).values(id=item["id"],
                 name=item["name"],
                 image="assets/img/shoes/"+item["image"][32:],
@@ -107,28 +103,24 @@ class AssetDB:
                 splatnet=item["splatnet"])
             self.c.execute(ins)
 
-        print("\nInserting: 'specials'...")
         for special in specials:
-            print(f"\tInserting: {special['name']}...")
+            status(f"Inserting: 'specials': {special['name']}...")
             ins = self.specials_table.insert(None).values(
                 name=special["name"],
                 image="assets/img/specials/"+special["image"][28:])
             self.c.execute(ins)
 
-        print("\nInserting: 'subs'...")
         for sub in subs:
-            print(f"\tInserting: {sub['name']}...")
+            status(f"Inserting: 'subs': {sub['name']}...")
             ins = self.subs_table.insert(None).values(
                 name=sub["name"],
                 image="assets/img/subs/"+sub["image"][28:],
                 cost=sub["cost"])
             self.c.execute(ins)
 
-        print("\nInserting: 'weapons'...")
         for weapon_class in weapons:
-            print(f"\tInserting: {weapon_class['type']}...")
             for weapon in weapon_class["weapons"]:
-                print(f"\t\tInserting: '{weapon['name']}'...")
+                status(f"Inserting: 'weapons': {weapon_class['type']}: '{weapon['name']}'...")
                 ins = self.weapons_table.insert(None).values(
                     name=weapon["name"],
                     image="assets/img/weapons/"+weapon["image"][29:],
@@ -142,10 +134,17 @@ class AssetDB:
                     cost=weapon["price"])
                 self.c.execute(ins)
 
+
+def status(msg):
+    """Print message in status format."""
+    print('\033[K\x1b[2K\r' + msg, end='\r')
+
+
 def main():
     """Create and insert assets into the DATABASE."""
-    DATABASE = AssetDB()
-    DATABASE.insert_assets()
+    asset_db = AssetDB()
+    asset_db.insert_assets()
+    status("Completed!")
 
 if __name__ == "__main__":
     main()

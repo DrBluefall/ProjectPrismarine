@@ -1,13 +1,15 @@
 """Module containing the Profiler cog."""
 import logging
 import re
+from io import BytesIO
+
 import discord
 from discord.ext import commands
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select
-from PIL import Image
-from io import BytesIO
-from bin.decoder import decode
-from bin.loadout import Loadout
+
+from sqlalchemy import create_engine, MetaData, select
+from sqlalchemy import Table, Column, Integer, String
+
+from bin.loadout import Loadout, decode
 
 
 class SQLEngine:
@@ -60,12 +62,13 @@ class SQLEngine:
         )
 
         embed.set_thumbnail(url=user.avatar_url)
-        for name, index in \
-        zip((
+        for name, index in zip(
+            (
                 "In-Game Name:", "Friend Code:", "Level:", "Rainmaker Rank:",
                 "Tower Control Rank:", "Splat Zones Rank:", "Clam Blitz Rank:",
                 "Salmon Run Rank:"
-            ), range(8)):
+            ), range(8)
+        ):
             embed.add_field(name=name, value=profile[index + 1])
 
         if profile["loadout_string"] is not None:
@@ -323,7 +326,7 @@ class Record(Profiler):
         cls.c.execute(level)
 
     @classmethod
-    def try_rank_entry(cls, ctx, gamemode, key, value, rank):
+    def try_rank_entry(cls, ctx, gamemode, key, value, rank):  # pylint: disable=too-many-arguments, unused-argument
         """Record the rank in the database."""
         if gamemode.lower() in value["aliases"]:
 

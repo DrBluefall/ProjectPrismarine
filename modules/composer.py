@@ -22,38 +22,49 @@ class TeamComposer(DBHandler, commands.Cog):
         self.check = lambda m: m.author == ctx.message.author
 
         self.team_profiler = Table(
-            "team_profile", self.get_meta("main"),
+            "team_profile",
+            self.get_meta("main"),
             Column("captain", Integer, nullable=False),
             Column("player_2", Integer, nullable=False),
             Column("player_3", Integer, nullable=False),
             Column("player_4", Integer, nullable=False),
-            Column("player_5", Integer), Column("player_6", Integer),
-            Column("player_7", Integer), Column("name", String),
+            Column("player_5", Integer),
+            Column("player_6", Integer),
+            Column("player_7", Integer),
+            Column("name", String),
             Column("description", String),
-            Column("team_id", Integer, primary_key=True)
+            Column("team_id", Integer, primary_key=True),
+            extend_existing=True
         )
 
         self.team_comps = Table(
-            "team_comp", self.get_meta("main"),
+            "team_comp",
+            self.get_meta("main"),
             Column("comp_id", Integer, primary_key=True),
-            Column("author_id", Integer), Column("name", String),
+            Column("author_id", Integer),
+            Column("name", String),
             Column("description", String),
             Column(
                 "weapon_1", String, server_default="0000000000000000000000000"
-            ), Column("weapon_1_role",
-                      String), Column("weapon_1_desc", String),
+            ),
+            Column("weapon_1_role", String),
+            Column("weapon_1_desc", String),
             Column(
                 "weapon_2", String, server_default="0000000000000000000000000"
-            ), Column("weapon_2_role",
-                      String), Column("weapon_2_desc", String),
+            ),
+            Column("weapon_2_role", String),
+            Column("weapon_2_desc", String),
             Column(
                 "weapon_3", String, server_default="0000000000000000000000000"
-            ), Column("weapon_3_role", String),
+            ),
+            Column("weapon_3_role", String),
             Column("weapon_3_desc", String),
             Column(
                 "weapon_4", String, server_default="0000000000000000000000000"
-            ), Column("weapon_4_role",
-                      String), Column("weapon_4_desc", String)
+            ),
+            Column("weapon_4_role", String),
+            Column("weapon_4_desc", String),
+            extend_existing=True
         )
         self.get_meta("main").create_all(
             bind=self.get_db("main"),

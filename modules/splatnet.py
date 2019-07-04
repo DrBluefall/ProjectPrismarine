@@ -4,7 +4,8 @@ from datetime import datetime
 import requests
 import discord
 from discord.ext import commands, tasks
-from sqlalchemy import create_engine, MetaData, select
+from sqlalchemy import select
+from core import DBHandler
 
 
 class Splatnet(commands.Cog):
@@ -85,7 +86,7 @@ class Splatnet(commands.Cog):
             return
         async with ctx.typing():
             for i in range(index):
-                embed, file = SplatnetEmbeds.splatnet(
+                embed, file = SplatnetEmbeds().splatnet(
                     self.data["splatnet"][i - 1]
                 )
                 embed.set_thumbnail(url=f"attachment://{file.filename}")
@@ -124,13 +125,50 @@ class Splatnet(commands.Cog):
             logging.info("Retrieved data successfully.")
 
 
-class SplatnetEmbeds:
+class SplatnetEmbeds(DBHandler):
     """Class handling embed generation for the module."""
 
-    asset_db = create_engine("sqlite:///assets/assets.db")
-    metadata = MetaData(asset_db)
-    metadata.reflect()
-    c = asset_db.connect()
+    def splatnet(self, item):
+        """Generate a Splatnet feed embed."""
+        if item["type"] == "shoes":
+            file = self.get_db("assets").execute(
+                select([self.get_meta("assets").tables["shoes"].columns["image"]]). \
+                where(
+                    self.get_meta("assets").tables["shoes"].columns["splatnet"] == item["splatnet"]
+                )
+            ).fetchone()
+            file = discord.File(file["image"], filename=file["image"][17:])
+        elif item["type"] == "clothes":
+            file = self.get_db("assets").execute(
+                select([self.get_meta("assets").tables["clothing"].columns["image"]]). \
+                where(
+                    self.get_meta("assets").tables["clothing"].columns["splatnet"] ==
+                    item["splatnet"]
+                )
+            ).fetchone()
+            file = discord.File(file["image"], filename=file["image"][20:])
+        elif item["type"] == "head":
+            file = self.get_db("assets").execute(
+                select([self.get_meta("assets").tables["headgear"].columns["image"]]). \
+                where(
+                    self.get_meta("assets").tables["headgear"].columns["splatnet"] ==
+                    item["splatnet"]
+                )
+            ).fetchone()
+            file = discord.File(file["image"], filename=file["image"][20:])
+        embed = discord.Embed(
+            title=f"SplatNet Gear: {item['name']}",
+            color=discord.Color.from_rgb(85, 0, 253)
+        )
+        embed.add_field(name="Gear Type:", value=item["type"].capitalize())
+        embed.add_field(name="Gear Price:", value=item["price"])
+        embed.add_field(name="Gear Rarity:", value=item["rarity"])
+        embed.add_field(
+            name="Gear Ability:",
+            value=f"~~{item['original_ability']}~~ {item['ability']}"
+        )
+        embed.add_field(name="Available Until:", value=item["expiration"])
+        return embed, file
 
     @staticmethod
     def regular(data):
@@ -234,49 +272,6 @@ class SplatnetEmbeds:
                 f'{data["weapons"][0]}, {data["weapons"][1]}, {data["weapons"][2]}, and {data["weapons"][3]}'
             )
         return embed
-
-    @classmethod
-    def splatnet(cls, item):
-        """Generate a Splatnet feed embed."""
-        if item["type"] == "shoes":
-            file = cls.c.execute(
-                select([cls.metadata.tables["shoes"].c.image]). \
-                where(
-                    cls.metadata.tables["shoes"].c.splatnet == item["splatnet"]
-                )
-            ).fetchone()
-            file = discord.File(file["image"], filename=file["image"][17:])
-        elif item["type"] == "clothes":
-            file = cls.c.execute(
-                select([cls.metadata.tables["clothing"].c.image]). \
-                where(
-                    cls.metadata.tables["clothing"].c.splatnet ==
-                    item["splatnet"]
-                )
-            ).fetchone()
-            file = discord.File(file["image"], filename=file["image"][20:])
-        elif item["type"] == "head":
-            file = cls.c.execute(
-                select([cls.metadata.tables["headgear"].c.image]). \
-                where(
-                    cls.metadata.tables["headgear"].c.splatnet ==
-                    item["splatnet"]
-                )
-            ).fetchone()
-            file = discord.File(file["image"], filename=file["image"][20:])
-        embed = discord.Embed(
-            title=f"SplatNet Gear: {item['name']}",
-            color=discord.Color.from_rgb(85, 0, 253)
-        )
-        embed.add_field(name="Gear Type:", value=item["type"].capitalize())
-        embed.add_field(name="Gear Price:", value=item["price"])
-        embed.add_field(name="Gear Rarity:", value=item["rarity"])
-        embed.add_field(
-            name="Gear Ability:",
-            value=f"~~{item['original_ability']}~~ {item['ability']}"
-        )
-        embed.add_field(name="Available Until:", value=item["expiration"])
-        return embed, file
 
 
 def create_json_data(schedules, coop_schedules, merchandises):

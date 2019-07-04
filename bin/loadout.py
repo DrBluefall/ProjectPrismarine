@@ -28,12 +28,12 @@ class Loadout(DBHandler):
             "sub": self.get_db("assets"). \
                 execute(
                     select([self.get_meta("assets").tables["subs"]]). \
-                    where(self.get_meta("assets").tables["subs"].c.name == self.get_row("weapons", raw_loadout["class"], raw_loadout["weapon"])["sub"])
+                    where(self.get_meta("assets").tables["subs"].columns["name"] == self.get_row("weapons", raw_loadout["class"], raw_loadout["weapon"])["sub"])
                 ).fetchone(),
             "special": self.get_db("assets"). \
                 execute(
                     select([self.get_meta("assets").tables["specials"]]). \
-                    where(self.get_meta("assets").tables["specials"].c.name == self.get_row("weapons", raw_loadout["class"], raw_loadout["weapon"])["special"])
+                    where(self.get_meta("assets").tables["specials"].columns["name"] == self.get_row("weapons", raw_loadout["class"], raw_loadout["weapon"])["special"])
                 ).fetchone(),
         }
 
@@ -301,15 +301,15 @@ class Loadout(DBHandler):
         if weapon_id is None:
             return self.get_db("assets").execute(
                 select([self.get_meta("assets").tables[table]]). \
-                where(self.get_meta("assets").tables[table].c.id == loadout_id)
+                where(self.get_meta("assets").tables[table].columns["id"] == loadout_id)
             ).fetchone()
 
         return self.get_db("assets").execute(
             select([self.get_meta("assets").tables[table]]). \
             where(
                 and_(
-                    self.get_meta("assets").tables[table].c.class_id == loadout_id,
-                    self.get_meta("assets").tables[table].c.loadout_ink_id == weapon_id))
+                    self.get_meta("assets").tables[table].columns["class_id"] == loadout_id,
+                    self.get_meta("assets").tables[table].columns["loadout_ink_id"] == weapon_id))
         ).fetchone()
 
 

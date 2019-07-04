@@ -5,61 +5,52 @@ import json
 import discord
 from discord.ext import commands
 
-from sqlalchemy import create_engine, MetaData, select
-from sqlalchemy import Table, Column, Integer, String
+from sqlalchemy import select
+from core import DBHandler
 
 
-class DBcManager:
+class PrefixDBHandler(DBHandler):
     """Manages Database connections for the module."""
 
-    db = create_engine("sqlite:///main.db")
-    metadata = MetaData(db)
-    prefix_table = Table(
-        "prefix", metadata, Column("server_id", Integer, primary_key=True),
-        Column("prefix", String)
-    )
+    def __init__(self):
+        """Init PrefixDBHandler."""
+        super().__init__()
+        self.prefix_table = self.get_meta("main").tables['prefix']
 
-    metadata.create_all()
-    c = db.connect()
-
-    @classmethod
-    def get_server_prefix(cls, ctx):
+    def get_server_prefix(self, ctx):
         """Retrieve a server's prefix."""
-        return cls.c.execute(
-            select(
-                [cls.prefix_table]
-            ).where(cls.prefix_table.c.server_id == ctx.message.guild.id)
+        return self.get_db("main").execute(
+            select([self.prefix_table]). \
+            where(self.prefix_table.columns["server_id"] == ctx.message.guild.id)
         ).fetchone()
 
-    @classmethod
-    def insert_server_prefix(cls, ctx, prefix):
+    def insert_server_prefix(self, ctx, prefix):
         """Insert a new server prefix into the database."""
-        return cls.c.execute(
-            cls.prefix_table.insert(None).values(
-                server_id=ctx.message.guild.id, prefix=prefix
-            )
+        return self.get_db("main").execute(
+            self.prefix_table. \
+            insert(None). \
+            values(server_id=ctx.message.guild.id, prefix=prefix)
         )
 
-    @classmethod
-    def update_server_prefix(cls, ctx, prefix):
+    def update_server_prefix(self, ctx, prefix):
         """Update a server's prefix."""
-        return cls.c.execute(
-            cls.prefix_table.update(None).where(
-                cls.prefix_table.c.server_id == ctx.message.guild.id
-            ).values(prefix=prefix)
+        return self.get_db("main").execute(
+            self.prefix_table. \
+            update(None). \
+            where(self.prefix_table.columns["server_id"] == ctx.message.guild.id). \
+            values(prefix=prefix)
         )
 
-    @classmethod
-    def delete_server_prefix(cls, ctx):
+    def delete_server_prefix(self, ctx):
         """Delete a server's prefix from the database."""
-        return cls.c.execute(
-            cls.prefix_table.delete(None).where(
-                cls.prefix_table.c.server_id == ctx.message.guild.id
-            )
-        )
+        return self.get_db("main").execute(
+            self.prefix_table. \
+            delete(None). \
+            where(self.prefix_table.columns["server_id"] == ctx.message.guild.id)
+         )
 
 
-class ServerConfig(commands.Cog, DBcManager):
+class ServerConfig(commands.Cog, PrefixDBHandler):
     """Contains all server-configuraton related functionality of the bot."""
 
     def __init__(self, client):

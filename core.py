@@ -60,8 +60,8 @@ class DBHandler:
                 "meta": MetaData()
             }
         }
-        self.dbs["main"]["meta"].reflect(self.dbs["main"]["db"])
-        self.dbs["assets"]["meta"].reflect(self.dbs["assets"]["db"])
+        self.dbs["main"]["meta"].reflect(bind=self.dbs["main"]["db"])
+        self.dbs["assets"]["meta"].reflect(bind=self.dbs["assets"]["db"])
 
     def get_db(self, key):
         """Return the database at the specified key."""

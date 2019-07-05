@@ -6,69 +6,101 @@ from io import BytesIO
 import discord
 from discord.ext import commands
 from sqlalchemy import select, and_, exc
+from sqlalchemy import Table, Column, Integer, String
 from bin.loadout import Loadout
 from bin.decoder import decode
 from core import DBHandler
 
 
-class TeamComposer(DBHandler, commands.Cog):
+class TeamComposer(commands.Cog):
     """Module handling weapon and team compositions."""
 
     def __init__(self, client):
         """Init the Team Composer cog."""
-        super().__init__()
         self.client = client
+        self.check = lambda m: m.author == ctx.message.author
 
-        self.team_profiler = self.get_table("main", "team_profile")
-        self.team_comps = self.get_table("main", "team_comp")
+        self.dbh = DBHandler()
 
-        self.get_meta("main").create_all(
-            bind=self.get_db("main"),
+        self.team_profiler = Table(
+            "team_profile", self.dbh.get_meta("main"),
+            Column("captain", Integer, nullable=False),
+            Column("player_2", Integer, nullable=False),
+            Column("player_3", Integer, nullable=False),
+            Column("player_4", Integer, nullable=False),
+            Column("player_5", Integer), Column("player_6", Integer),
+            Column("player_7", Integer), Column("name", String),
+            Column("description", String),
+            Column("team_id", Integer, primary_key=True)
+        )
+
+        self.team_comps = Table(
+            "team_comp", self.dbh.get_meta("main"),
+            Column("comp_id", Integer, primary_key=True),
+            Column("author_id", Integer), Column("name", String),
+            Column("description", String),
+            Column(
+                "weapon_1", String, server_default="0000000000000000000000000"
+            ), Column("weapon_1_role",
+                      String), Column("weapon_1_desc", String),
+            Column(
+                "weapon_2", String, server_default="0000000000000000000000000"
+            ), Column("weapon_2_role",
+                      String), Column("weapon_2_desc", String),
+            Column(
+                "weapon_3", String, server_default="0000000000000000000000000"
+            ), Column("weapon_3_role", String),
+            Column("weapon_3_desc", String),
+            Column(
+                "weapon_4", String, server_default="0000000000000000000000000"
+            ), Column("weapon_4_role",
+                      String), Column("weapon_4_desc", String)
+        )
+        self.dbh.get_meta("main").create_all(
             tables=[self.team_profiler, self.team_comps]
         )
 
-    @commands.group(case_insensitive=True)
-    async def compose(self, ctx):
+    @commands.group(
+        case_insensitive=True, ignore_extra=False, invoke_without_command=True
+    )
+    async def compose(self, ctx, type, id: int = None):
         """Team Composition command group. Does nothing on it's own."""
 
     @compose.command()
     async def team(self, ctx, id: int = None):
         """Compose team command."""
         if id is not None:
-            team_profile = self.get_db("main").execute(
+            team_profile = self.dbh.get_db("main").execute(
                 select([self.team_profiler]). \
                 where(self.team_profiler.columns.team_id == id)  #pylint: disable=no-member
             ).fetchone()
 
-            if team_profile is not None:
-                embed = discord.Embed(
-                    title=f"Team Profile - {team_profile['name']}",
-                    color=discord.Color.orange(),
-                    description=team_profile["description"]
-                )
-                cap = self.client.get_user(team_profile["captain"])
-                p_2 = self.client.get_user(team_profile["player_2"]).mention
-                p_3 = self.client.get_user(team_profile["player_3"]).mention
-                p_4 = self.client.get_user(team_profile["player_4"]).mention
-                p_5 = self.client.get_user(team_profile["player_5"])
-                if p_5 is not None:
-                    p_5 = p_5.mention
-                p_6 = self.client.get_user(team_profile["player_6"])
-                if p_6 is not None:
-                    p_6 = p_6.mention
-                p_7 = self.client.get_user(team_profile["player_7"])
-                if p_7 is not None:
-                    p_7 = p_7.mention
-                embed.add_field(
-                    name="Team Roster:",
-                    value=f"{p_2}\n{p_3}\n{p_4}\n{p_5}\n{p_6}\n{p_7}"
-                )
-                embed.add_field(name="Team Captain", value=cap.mention)
-                embed.add_field(name="Team ID:", value=team_profile["team_id"])
+            embed = discord.Embed(
+                title=f"Team Profile - {team_profile['name']}",
+                color=discord.Color.orange(),
+                description=team_profile["description"]
+            )
+            cap = self.client.get_user(team_profile["captain"])
+            p_2 = self.client.get_user(team_profile["player_2"]).mention
+            p_3 = self.client.get_user(team_profile["player_3"]).mention
+            p_4 = self.client.get_user(team_profile["player_4"]).mention
+            p_5 = self.client.get_user(team_profile["player_5"])
+            if p_5 is not None:
+                p_5 = p_5.mention
+            p_6 = self.client.get_user(team_profile["player_6"])
+            if p_6 is not None:
+                p_6 = p_6.mention
+            p_7 = self.client.get_user(team_profile["player_7"])
+            if p_7 is not None:
+                p_7 = p_7.mention
+            embed.add_field(
+                name="Team Roster:",
+                value=f"{p_2}\n{p_3}\n{p_4}\n{p_5}\n{p_6}\n{p_7}"
+            )
+            embed.add_field(name="Team Captain", value=cap.mention)
+            embed.add_field(name="Team ID:", value=team_profile["team_id"])
 
-                await ctx.send(embed=embed)
-            else:
-                await ctx.send("Command Failed - Team does not exist.")
+            await ctx.send(embed=embed)
         else:
             await ctx.send("Command failed - Team ID not provided.")
 
@@ -76,7 +108,7 @@ class TeamComposer(DBHandler, commands.Cog):
     async def loadout(self, ctx, id: int = None):
         """Compose loadout command."""
         if id is not None:
-            team_comp = self.get_db("main").execute(
+            team_comp = self.dbh.get_db("main").execute(
                 select([self.team_comps]). \
                 where(and_( \
                         self.team_comps.columns.author_id ==  # pylint: disable=E1101
@@ -119,17 +151,15 @@ class TeamComposer(DBHandler, commands.Cog):
         """Command group made to create team profiles and compositions. Does nothing on it's own."""
 
     @create.command()
-    async def new_team(self, ctx):
+    async def team(self, ctx):
         """Comp create team command."""
-        check = lambda m: m.author == ctx.message.author
-
         players = []
         await ctx.send(
             "Team Creation process initialized. Am I to assume that you are the captain of this new team? `[y/n]`"
         )
         while True:
             msg = await self.client.wait_for(
-                "message", timeout=60, check=check
+                "message", timeout=60, check=self.check
             )
 
             if msg.content.lower() == "y":
@@ -140,7 +170,7 @@ class TeamComposer(DBHandler, commands.Cog):
                     "Alright. Who is the captain? Please provide an @ mention or user ID."
                 )
                 msg = self.get_userid(
-                    await self.client.wait_for("message", timeout=120, check=check)
+                    await self.client.wait_for("message", timeout=120, check=self.check)
                 )  # yapf: disable
 
                 if msg is None:
@@ -149,7 +179,6 @@ class TeamComposer(DBHandler, commands.Cog):
                     )
                     return
                 players.append(msg)
-                break
             else:
                 await ctx.send(
                     "Invalid response - please reply `y` or `n` to continue."
@@ -165,7 +194,7 @@ class TeamComposer(DBHandler, commands.Cog):
                     "`Note: More than 4 players is optional. Respond with 'none' in order to set no player.`"
                 )
             msg = self.get_userid(
-                await self.client.wait_for("message", timeout=120, check=check)
+                await self.client.wait_for("message", timeout=120, check=self.check)
             )  # yapf: disable
 
             if msg is None:
@@ -174,7 +203,6 @@ class TeamComposer(DBHandler, commands.Cog):
                         "No player specified - Aborting creation..."
                     )
                     return
-                await ctx.send("No player specified - Assuming `None`.")
                 players.append(None)
             else:
                 players.append(msg)
@@ -182,13 +210,15 @@ class TeamComposer(DBHandler, commands.Cog):
         await ctx.send(
             "Alright, that's your roster set up! Now, what will be your team name?"
         )
-        name = await self.client.wait_for("message", timeout=60, check=check)
-        name = name.content
+        name = await self.client.wait_for(
+            "message", timeout=60, check=self.check
+        )
         await ctx.send("What will be your team's description?")
-        desc = await self.client.wait_for("message", timeout=60, check=check)
-        desc = desc.content
+        desc = await self.client.wait_for(
+            "message", timeout=60, check=self.check
+        )
         await ctx.send(f"Registering {name} into the database...")
-        ex = self.get_db("main").execute(
+        ex = self.dbh.get_db("main").execute(
             self.team_profiler. \
             insert(None). \
             values(
@@ -199,8 +229,8 @@ class TeamComposer(DBHandler, commands.Cog):
                 player_5=players[4],
                 player_6=players[5],
                 player_7=players[6],
-                name=name,
-                description=desc
+                name=name.content,
+                description=desc.content
             )
         )
         await ctx.send(
@@ -208,10 +238,9 @@ class TeamComposer(DBHandler, commands.Cog):
         )
 
     @create.command()
-    async def new_loadout(self, ctx):
+    async def loadout(self, ctx):
         """Comp create loadout command."""
         comp = {}
-
         #    "name": "",
         #    "description": "",
         #    "weapon_1": {},
@@ -220,8 +249,6 @@ class TeamComposer(DBHandler, commands.Cog):
         #    "weapon_4": {}
         #}
 
-        check = lambda m: m.author == ctx.message.author
-
         await ctx.send("Starting composition creation process.")
         for i in range(4):
             while True:
@@ -229,7 +256,7 @@ class TeamComposer(DBHandler, commands.Cog):
                     f"What's loadout #{i + 1}? \n `Please use https://selicia.github.io/en_US/ to specify a loadout.`"
                 )
                 msg = await self.client.wait_for(
-                    "message", timeout=600, check=check
+                    "message", timeout=600, check=self.check
                 )
                 if len(msg.content) == 58 and \
                 msg.content[:33] == "https://selicia.github.io/en_US/#":
@@ -237,7 +264,7 @@ class TeamComposer(DBHandler, commands.Cog):
                     image = self.create_image_loadout(msg.content[33:])
                     await ctx.send("Is this correct? `[y/n]`", file=image)
                     con = await self.client.wait_for(
-                        "message", timeout=30, check=check
+                        "message", timeout=30, check=self.check
                     )
                     if con.content.lower() == "y":
                         comp[f"weapon_{i + 1}"].update(
@@ -247,14 +274,14 @@ class TeamComposer(DBHandler, commands.Cog):
                             "Loadout registered. What is the weapon's role?"
                         )
                         msg = await self.client.wait_for(
-                            "message", timeout=120, check=check
+                            "message", timeout=120, check=self.check
                         )
                         comp[f"weapon_{i + 1}"].update(role=msg.content)
                         await ctx.send(
                             "Role assigned. Are there any extra details you would like to give about the weapon? [Playstyle, usage, viable maps, etc.]"
                         )
                         msg = await self.client.wait_for(
-                            "message", timeout=600, check=check
+                            "message", timeout=600, check=self.check
                         )
                         comp[f"weapon_{i + 1}"].update(desc=msg.content)
                         await ctx.send("Alright.")
@@ -268,18 +295,22 @@ class TeamComposer(DBHandler, commands.Cog):
                         continue
 
         await ctx.send("Ok, what will be the name of this composition?")
-        msg = await self.client.wait_for("message", timeout=300, check=check)
+        msg = await self.client.wait_for(
+            "message", timeout=300, check=self.check
+        )
         comp["name"] = msg.content
         await ctx.send(
             "Are there any extra details you would like to provide about this composition? [Map/Mode use, strategies, etc.]"
         )
-        msg = await self.client.wait_for("message", timeout=600, check=check)
+        msg = await self.client.wait_for(
+            "message", timeout=600, check=self.check
+        )
         comp["description"] = msg.content
 
         await ctx.send(
             f"Inserting team composition `{comp['name']}` into the database..."
         )
-        ex = self.get_db("main").execute(
+        ex = self.dbh.get_db("main").execute(
             self.team_comps.insert(None).values(
                 author_id=ctx.message.author.id,
                 name=comp["name"],
@@ -307,9 +338,9 @@ class TeamComposer(DBHandler, commands.Cog):
         """Command group made to edit team profiles and compositions. Does nothing on it's own."""
 
     @modify.command()
-    async def edit_team(self, ctx, id, field=None, *, value=None):
+    async def team(self, ctx, id, field=None, *, value=None):
         """Comp modify team command."""
-        team = self.get_db("main").execute(
+        team = self.dbh.get_db("main").execute(
             select([self.team_profiler]). \
             where(and_( \
                     self.team_profiler.columns.captain ==  # pylint: disable=E1101
@@ -331,21 +362,20 @@ class TeamComposer(DBHandler, commands.Cog):
                                 "Command Failed - Invalid player specified."
                             )
                             return
-                self.get_db("main").execute(
-                    self.team_profiler. \
+                self.dbh.get_db("main").execute(
+                    self.team_comps. \
                     update(None). \
                     where(and_( \
-                            self.team_profiler.columns.captain ==  # pylint: disable=E1101
+                            self.team_comps.columns.author_id ==  # pylint: disable=E1101
                             ctx.message.author.id,
-                            self.team_profiler.columns.team_id == id  # pylint: disable=E1101
+                            self.team_comps.columns.comp_id == id  # pylint: disable=E1101
                         )
-                    ).values(**{field:value})
+                    ).values(**{field: value})
                 )
-            except exc.CompileError as err:
+            except exc.CompileError:
                 await ctx.send(
                     "Command Failed - Invalid field, value, column."
                 )
-                raise exc.CompileError from err
             else:
                 await ctx.send(f"{field.title()} updated!")
         else:
@@ -354,9 +384,9 @@ class TeamComposer(DBHandler, commands.Cog):
             )
 
     @modify.command()
-    async def edit_loadout(self, ctx, id, field=None, *, value=None):
+    async def loadout(self, ctx, id, field=None, *, value=None):
         """Comp modify loadout command."""
-        loadout = self.get_db("main").execute(
+        loadout = self.dbh.get_db("main").execute(
             select([self.team_comps]). \
             where(and_(
                     self.team_comps.columns.author_id == ctx.message.author.id,  # pylint: disable=E1101
@@ -372,7 +402,7 @@ class TeamComposer(DBHandler, commands.Cog):
                     and value[:33] == 'https://selicia.github.io/en_US/#'
                 ):
                     raise exc.CompileError
-                self.get_db("main").execute(
+                self.dbh.get_db("main").execute(
                     self.team_comps. \
                     update(None).\
                     where(and_(

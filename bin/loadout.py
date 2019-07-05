@@ -317,7 +317,7 @@ def main():
     """Generate loadout image."""
     Loadout().generate_loadout_image(
         Loadout().convert_loadout(decode("0007004a529004a4000000000"))
-    )
+    ).show()
 
 
 if __name__ == "__main__":

@@ -25,10 +25,10 @@ class System(commands.Cog):
             try:
                 await self.dbl.post_guild_count()
                 logging.info("Posted server count: %s", self.dbl.guild_count())
-            except Exception as e:  # pylint: disable=broad-except, invalid-name
+            except Exception as err:  # pylint: disable=broad-except
                 logging.exception(
                     "Failed to post server count\n%s: %s",
-                    type(e).__name__, e
+                    type(err).__name__, err
                 )
             await asyncio.sleep(900)
 

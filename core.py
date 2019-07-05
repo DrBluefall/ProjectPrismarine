@@ -64,6 +64,7 @@ class DBHandler:
         self.dbs["assets"]["meta"].reflect(bind=self.dbs["assets"]["db"])
 
     def reload_meta(self, key):
+        """Set metadata at specified key to the latest information."""
         self.dbs[key]["meta"] = MetaData()
         self.dbs[key]["meta"].reflect(bind=self.dbs[key]["db"])
 

@@ -9,7 +9,6 @@ from sqlalchemy import select, and_, exc, Table, Column, Integer, String
 from bin.loadout import Loadout
 from bin.decoder import decode
 from core import DBHandler
-from pprint import pprint
 
 
 class TeamComposer(DBHandler, commands.Cog):

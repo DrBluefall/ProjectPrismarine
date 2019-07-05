@@ -8,7 +8,7 @@ from sqlalchemy import select
 from core import DBHandler
 
 
-class Main(DBHandler, commands.Cog):
+class Main(commands.Cog, DBHandler):
     """Contains all the main commands."""
 
     def __init__(self, client):

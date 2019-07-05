@@ -1,7 +1,6 @@
 # Project-specific files
 config.json
 .DS_Store
-.pylintrc
 ProjectPrismarine.db
 
 # Byte-compiled / optimized / DLL files

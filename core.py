@@ -63,6 +63,10 @@ class DBHandler:
         self.dbs["main"]["meta"].reflect(bind=self.dbs["main"]["db"])
         self.dbs["assets"]["meta"].reflect(bind=self.dbs["assets"]["db"])
 
+    def reload_meta(self, key):
+        self.dbs[key]["meta"] = MetaData()
+        self.dbs[key]["meta"].reflect(bind=self.dbs[key]["db"])
+
     def get_db(self, key):
         """Return the database at the specified key."""
         return self.dbs[key]["db"]

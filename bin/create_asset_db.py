@@ -11,6 +11,8 @@ class AssetDB(DBHandler):
     def __init__(self):
         """Create the asset.db."""
         super().__init__()
+        self.get_meta("assets").drop_all(bind=self.get_db("assets"))
+        self.reload_meta("assets")
 
         self.abilities_table = Table("abilities", self.get_meta("assets"), Column("id", Integer, primary_key=True),
             Column("name", String),
@@ -58,7 +60,6 @@ class AssetDB(DBHandler):
             Column("level", Integer),
             Column("cost", String))
 
-        self.get_meta("assets").drop_all(bind=self.get_db("assets"))
         self.get_meta("assets").create_all(bind=self.get_db("assets"))
 
     def insert_assets(self):

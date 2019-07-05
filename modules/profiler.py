@@ -20,7 +20,7 @@ class SQLEngine(DBHandler):
     def check_profile_exists(self, user_id):
         """Check if a profile exists in the database or not."""
         profile = self.get_db("main").execute(
-            select([self.table]).\
+            select([self.table]). \
             where(self.table.columns["user_id"] == user_id)
         ).fetchone()
 

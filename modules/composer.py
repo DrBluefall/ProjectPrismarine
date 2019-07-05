@@ -114,11 +114,7 @@ class TeamComposer(DBHandler, commands.Cog):
                 "Command Failed - Composition ID has not been provided."
             )
 
-    @compose.group(case_insensitive=True)
-    async def create(self, ctx):
-        """Command group made to create team profiles and compositions. Does nothing on it's own."""
-
-    @create.command()
+    @compose.command()
     async def new_team(self, ctx):
         """Comp create team command."""
         check = lambda m: m.author == ctx.message.author
@@ -207,18 +203,17 @@ class TeamComposer(DBHandler, commands.Cog):
             f"Alright! You're all set up! Your team ID is {ex.inserted_primary_key}. Good luck, godspeed, and take care out there."
         )
 
-    @create.command()
+    @compose.command()
     async def new_loadout(self, ctx):
         """Comp create loadout command."""
-        comp = {}
-
-        #    "name": "",
-        #    "description": "",
-        #    "weapon_1": {},
-        #    "weapon_2": {},
-        #    "weapon_3": {},
-        #    "weapon_4": {}
-        #}
+        comp = {
+            "name": "",
+            "description": "",
+            "weapon_1": {},
+            "weapon_2": {},
+            "weapon_3": {},
+            "weapon_4": {}
+        }
 
         check = lambda m: m.author == ctx.message.author
 
@@ -302,11 +297,7 @@ class TeamComposer(DBHandler, commands.Cog):
             f"Success! Your composition ID is {ex.inserted_primary_key}. Good luck, godspeed, and take care out there."
         )
 
-    @compose.group(case_insensitive=True)
-    async def modify(self, ctx):
-        """Command group made to edit team profiles and compositions. Does nothing on it's own."""
-
-    @modify.command()
+    @compose.command()
     async def edit_team(self, ctx, id, field=None, *, value=None):
         """Comp modify team command."""
         team = self.get_db("main").execute(
@@ -353,7 +344,7 @@ class TeamComposer(DBHandler, commands.Cog):
                 f"Command Failed - You do not have a team. To create a team, use `{ctx.prefix}comp create team`."
             )
 
-    @modify.command()
+    @compose.command()
     async def edit_loadout(self, ctx, id, field=None, *, value=None):
         """Comp modify loadout command."""
         loadout = self.get_db("main").execute(
@@ -392,6 +383,68 @@ class TeamComposer(DBHandler, commands.Cog):
             await ctx.send(
                 f"Command Failed - Loadout does not exist. To create a loadout, use `{ctx.prefix}comp create loadout`."
             )
+
+    @compose.command()
+    async def delete_team(self, ctx, id: int = None):
+        """Delete a loadout."""
+        if id is not None:
+            team = self.get_db('main').execute(
+                select([self.team_profiler]).where(
+                    and_(
+                        self.team_profiler.columns['captain'] == ctx.message.author.id,
+                        self.team_profiler.columns['team_id'] == id
+                    )
+                )
+            ).fetchone()
+
+            if team is not None:
+                await ctx.send("This is a destructive operation, are you sure you wish to delete this team? `[y/n]`")
+                confirm = await self.client.wait_for("message", timeout=60, check=lambda m: m.author == ctx.message.author)
+                if confirm.content.lower() == "y":
+                    self.get_db('main').execute(
+                        self.team_profiler.delete().where(
+                            and_(
+                                self.team_profiler.columns['captain'] == ctx.message.author.id,
+                                self.team_profiler.columns['team_id'] == id
+                            )
+                        )
+                    )
+                    await ctx.send("Understood. Team deleted.")
+                else:
+                    await ctx.send("Understood. Aborting deletion.")
+            else:
+                await ctx.send("Command Failed - Team does not exist.")
+
+    @compose.command()
+    async def delete_loadout(self, ctx, id: int = None):
+        """Delete a composition."""
+        if id is not None:
+            loadout = self.get_db('main').execute(
+                select([self.team_comps]).where(
+                    and_(
+                        self.team_comps.columns['author_id'] == ctx.message.author.id,
+                        self.team_comps.columns['comp_id'] == id
+                    )
+                )
+            ).fetchone()
+
+            if loadout is not None:
+                await ctx.send("This is a destructive operation, are you sure you wish to delete this composition? `[y/n]`")
+                confirm = await self.client.wait_for("message", timeout=60, check=lambda m: m.author == ctx.message.author)
+                if confirm.content.lower() == "y":
+                    self.get_db('main').execute(
+                        self.team_comps.delete().where(
+                            and_(
+                                self.team_comps.columns['author_id'] == ctx.message.author.id,
+                                self.team_comps.columns['comp_id'] == id
+                            )
+                        )
+                    )
+                    await ctx.send("Understood. Loadout deleted.")
+                else:
+                    await ctx.send("Understood. Aborting deletion.")
+            else:
+                await ctx.send("Command Failed - Loadout does not exist.")
 
     @compose.command()
     async def help(self, ctx):

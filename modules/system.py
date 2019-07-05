@@ -12,6 +12,13 @@ class System(commands.Cog):
 
     def __init__(self, client):
         """Init the System cog."""
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
         self.client = client
         self.dbl = dbl.Client(self.client, CONFIG["dbl_token"])
         if discord.ClientUser.id == 568469437284614174:  # pylint: disable=no-member
@@ -21,12 +28,12 @@ class System(commands.Cog):
     async def update_stats(self):
         """Update the stats of the server count."""
         while not self.client.is_closed():
-            logging.info("Posting server count...")
+            self.logger.info("Posting server count...")
             try:
                 await self.dbl.post_guild_count()
-                logging.info("Posted server count: %s", self.dbl.guild_count())
+                self.logger.info("Posted server count: %s", self.dbl.guild_count())
             except Exception as err:  # pylint: disable=broad-except
-                logging.exception(
+                self.logger.exception(
                     "Failed to post server count\n%s: %s",
                     type(err).__name__, err
                 )
@@ -122,7 +129,7 @@ class System(commands.Cog):
                 raise ValueError
             await channel.send(content)
             await ctx.send(f"Message sent to {channel}.")
-            logging.info("Message sent to %s.", channel)
+            self.logger.info("Message sent to %s.", channel)
         except commands.errors.NotOwner:
             await ctx.send(
                 ":warning: *You're not authorized to use this!* :warning:"
@@ -197,7 +204,7 @@ class System(commands.Cog):
     async def logout(self, ctx):
         """Quit the bot."""
         if ctx.message.author.id == 490650609641324544:
-            logging.info("Shutting down Project Prismarine...")
+            self.logger.info("Shutting down Project Prismarine...")
             await ctx.send("*Shutting down Project Prismarine...*")
             await self.client.logout()
         else:

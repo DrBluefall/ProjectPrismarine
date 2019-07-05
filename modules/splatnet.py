@@ -13,6 +13,13 @@ class Splatnet(commands.Cog):
 
     def __init__(self, client):
         """Init the class."""
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
         self.client = client
         self.request_data_loop.start()  # pylint: disable=E1101
         self.request_data()
@@ -96,7 +103,7 @@ class Splatnet(commands.Cog):
     async def request_data_loop(self):
         """Loop over requesting data function."""
         await self.client.wait_until_ready()
-        logging.info("Retrieving data from Splatoon2.ink...")
+        self.logger.info("Retrieving data from Splatoon2.ink...")
         self.request_data()
 
     def request_data(self):
@@ -117,12 +124,12 @@ class Splatnet(commands.Cog):
             coop_schedules.raise_for_status()
             merchandises.raise_for_status()
         except requests.exceptions.HTTPError:
-            logging.error("Retrieving data failed.")
+            self.logger.error("Retrieving data failed.")
         else:
             self.data = create_json_data(
                 schedules.json(), coop_schedules.json(), merchandises.json()
             )
-            logging.info("Retrieved data successfully.")
+            self.logger.info("Retrieved data successfully.")
 
 
 class SplatnetEmbeds(DBHandler):

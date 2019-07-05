@@ -13,6 +13,13 @@ class Main(commands.Cog, DBHandler):
 
     def __init__(self, client):
         """Init the MyModule cog."""
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
         super().__init__()
         self.client = client
 
@@ -51,7 +58,7 @@ class Main(commands.Cog, DBHandler):
         try:
             self.client.load_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` loaded.")
-            logging.info("%s module loaded.", extension)
+            self.logger.info("%s module loaded.", extension)
         except (
             commands.CommandInvokeError, commands.ExtensionNotLoaded,
             commands.ExtensionNotFound
@@ -59,7 +66,7 @@ class Main(commands.Cog, DBHandler):
             await ctx.send(
                 "Module could not be loaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
             )
-            logging.exception("%i - %s", ctx.guild.id, error)
+            self.logger.exception("%i - %s", ctx.guild.id, error)
 
     @commands.command()
     async def unload(self, ctx, extension):
@@ -67,7 +74,7 @@ class Main(commands.Cog, DBHandler):
         try:
             self.client.unload_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` unloaded.")
-            logging.info("%s module unloaded.", extension)
+            self.logger.info("%s module unloaded.", extension)
         except (
             commands.CommandInvokeError, commands.ExtensionNotLoaded,
             commands.ExtensionNotFound
@@ -75,7 +82,7 @@ class Main(commands.Cog, DBHandler):
             await ctx.send(
                 "Module could not be unloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
             )
-            logging.exception("%i - %s", ctx.guild.id, error)
+            self.logger.exception("%i - %s", ctx.guild.id, error)
 
     @commands.command()
     async def reload(self, ctx, extension):
@@ -84,7 +91,7 @@ class Main(commands.Cog, DBHandler):
             self.client.unload_extension(f"modules.{extension}")
             self.client.load_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` reloaded.")
-            logging.info("%s module reloaded.", extension)
+            self.logger.info("%s module reloaded.", extension)
         except (
             commands.CommandInvokeError, commands.ExtensionNotLoaded,
             commands.ExtensionNotFound
@@ -92,7 +99,7 @@ class Main(commands.Cog, DBHandler):
             await ctx.send(
                 "Module could not be reloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
             )
-            logging.exception("%i - %s", ctx.guild.id, error)
+            self.logger.exception("%i - %s", ctx.guild.id, error)
 
     @commands.command()
     async def credits(self, ctx):

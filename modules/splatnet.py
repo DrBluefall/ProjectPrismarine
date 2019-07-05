@@ -14,7 +14,7 @@ class Splatnet(commands.Cog):
     def __init__(self, client):
         """Init the class."""
         self.client = client
-        self.request_data_loop.start()  # pylint: disable=no-member
+        self.request_data_loop.start()  # pylint: disable=E1101
         self.request_data()
 
     @commands.group(case_insensitive=True)

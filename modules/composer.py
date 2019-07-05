@@ -37,7 +37,7 @@ class TeamComposer(DBHandler, commands.Cog):
         if id is not None:
             team_profile = self.get_db("main").execute(
                 select([self.team_profiler]). \
-                where(self.team_profiler.columns.team_id == id)  #pylint: disable=no-member
+                where(self.team_profiler.columns['team_id'] == id)  #pylint: disable=no-member
             ).fetchone()
 
             if team_profile is not None:
@@ -79,9 +79,9 @@ class TeamComposer(DBHandler, commands.Cog):
             team_comp = self.get_db("main").execute(
                 select([self.team_comps]). \
                 where(and_( \
-                        self.team_comps.columns.author_id ==  # pylint: disable=E1101
+                        self.team_comps.columns['author_id'] ==  # pylint: disable=E1101
                         ctx.message.author.id,
-                        self.team_comps.columns.comp_id == id  # pylint: disable=E1101
+                        self.team_comps.columns['comp_id'] == id  # pylint: disable=E1101
                     )
                 )
             ).fetchone()
@@ -303,9 +303,9 @@ class TeamComposer(DBHandler, commands.Cog):
         team = self.get_db("main").execute(
             select([self.team_profiler]). \
             where(and_( \
-                    self.team_profiler.columns.captain ==  # pylint: disable=E1101
+                    self.team_profiler.columns['captain'] ==  # pylint: disable=E1101
                     ctx.message.author.id,
-                    self.team_profiler.columns.team_id == id  # pylint: disable=E1101
+                    self.team_profiler.columns['team_id'] == id  # pylint: disable=E1101
                 )
             )
         ).fetchone()
@@ -326,9 +326,9 @@ class TeamComposer(DBHandler, commands.Cog):
                     self.team_profiler. \
                     update(None). \
                     where(and_( \
-                            self.team_profiler.columns.captain ==  # pylint: disable=E1101
+                            self.team_profiler.columns['captain'] ==  # pylint: disable=E1101
                             ctx.message.author.id,
-                            self.team_profiler.columns.team_id == id  # pylint: disable=E1101
+                            self.team_profiler.columns['team_id'] == id  # pylint: disable=E1101
                         )
                     ).values(**{field:value})
                 )
@@ -350,8 +350,8 @@ class TeamComposer(DBHandler, commands.Cog):
         loadout = self.get_db("main").execute(
             select([self.team_comps]). \
             where(and_(
-                    self.team_comps.columns.author_id == ctx.message.author.id,  # pylint: disable=E1101
-                    self.team_comps.columns.comp_id == id  # pylint: disable=E1101
+                    self.team_comps.columns['author_id'] == ctx.message.author.id,  # pylint: disable=E1101
+                    self.team_comps.columns['comp_id'] == id  # pylint: disable=E1101
                 )
             )
         ).fetchone()
@@ -367,9 +367,9 @@ class TeamComposer(DBHandler, commands.Cog):
                     self.team_comps. \
                     update(None).\
                     where(and_(
-                            self.team_comps.columns.author_id ==  # pylint: disable=E1101
+                            self.team_comps.columns['author_id'] ==  # pylint: disable=E1101
                             ctx.message.author.id,
-                            self.team_comps.columns.comp_id == id  # pylint: disable=E1101
+                            self.team_comps.columns['comp_id'] == id  # pylint: disable=E1101
                         )
                     ).values(**{field: value})
                 )
@@ -391,20 +391,28 @@ class TeamComposer(DBHandler, commands.Cog):
             team = self.get_db('main').execute(
                 select([self.team_profiler]).where(
                     and_(
-                        self.team_profiler.columns['captain'] == ctx.message.author.id,
+                        self.team_profiler.columns['captain'] ==
+                        ctx.message.author.id,
                         self.team_profiler.columns['team_id'] == id
                     )
                 )
             ).fetchone()
 
             if team is not None:
-                await ctx.send("This is a destructive operation, are you sure you wish to delete this team? `[y/n]`")
-                confirm = await self.client.wait_for("message", timeout=60, check=lambda m: m.author == ctx.message.author)
+                await ctx.send(
+                    "This is a destructive operation, are you sure you wish to delete this team? `[y/n]`"
+                )
+                confirm = await self.client.wait_for(
+                    "message",
+                    timeout=60,
+                    check=lambda m: m.author == ctx.message.author
+                )
                 if confirm.content.lower() == "y":
                     self.get_db('main').execute(
                         self.team_profiler.delete().where(
                             and_(
-                                self.team_profiler.columns['captain'] == ctx.message.author.id,
+                                self.team_profiler.columns['captain'] ==
+                                ctx.message.author.id,
                                 self.team_profiler.columns['team_id'] == id
                             )
                         )
@@ -422,20 +430,28 @@ class TeamComposer(DBHandler, commands.Cog):
             loadout = self.get_db('main').execute(
                 select([self.team_comps]).where(
                     and_(
-                        self.team_comps.columns['author_id'] == ctx.message.author.id,
+                        self.team_comps.columns['author_id'] ==
+                        ctx.message.author.id,
                         self.team_comps.columns['comp_id'] == id
                     )
                 )
             ).fetchone()
 
             if loadout is not None:
-                await ctx.send("This is a destructive operation, are you sure you wish to delete this composition? `[y/n]`")
-                confirm = await self.client.wait_for("message", timeout=60, check=lambda m: m.author == ctx.message.author)
+                await ctx.send(
+                    "This is a destructive operation, are you sure you wish to delete this composition? `[y/n]`"
+                )
+                confirm = await self.client.wait_for(
+                    "message",
+                    timeout=60,
+                    check=lambda m: m.author == ctx.message.author
+                )
                 if confirm.content.lower() == "y":
                     self.get_db('main').execute(
                         self.team_comps.delete().where(
                             and_(
-                                self.team_comps.columns['author_id'] == ctx.message.author.id,
+                                self.team_comps.columns['author_id'] ==
+                                ctx.message.author.id,
                                 self.team_comps.columns['comp_id'] == id
                             )
                         )

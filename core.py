@@ -1,6 +1,7 @@
 """Core file holding the Prismarine Bot."""
 import os
 import logging
+import coloredlogs
 import json
 from itertools import cycle
 import discord
@@ -163,11 +164,18 @@ def load_all_extensions(bot):
 
 def set_logging():
     """Set the basic config of logging module."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
-    )
+    coloredlogs.install(level='INFO')
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
 
+    logger.info("Log initialized.")
+
+    return logger
 
 def get_config_file():
     """Open the config.json file and check if all parameters exist, then return the config dict."""

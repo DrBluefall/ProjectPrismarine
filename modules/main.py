@@ -132,10 +132,8 @@ class Main(DBHandler, commands.Cog):
     async def prefix(self, ctx):
         """Get a server's prefix."""
         server_prefix = self.get_db("main").execute(
-            select([self.get_meta("main").tables["prefix"]]).where(
-                self.get_meta("main").tables["prefix"].columns["server_id"] ==
-                ctx.message.guild.id
-            )
+            select([self.get_table("main", "prefix")]). \
+            where(self.get_table("main", "prefix").columns["server_id"] == ctx.message.guild.id)
         ).fetchone()
         if server_prefix is not None:
             await ctx.send(f"Your prefix is `{server_prefix[1]}`")

@@ -5,7 +5,7 @@ import re
 from io import BytesIO
 import discord
 from discord.ext import commands
-from sqlalchemy import select, and_, exc, Table, Column, Integer, String
+from sqlalchemy import select, and_, exc
 from bin.loadout import Loadout
 from bin.decoder import decode
 from core import DBHandler
@@ -19,50 +19,8 @@ class TeamComposer(DBHandler, commands.Cog):
         super().__init__()
         self.client = client
 
-        self.team_profiler = Table(
-            "team_profile",
-            self.get_meta("main"),
-            Column("captain", Integer, nullable=False),
-            Column("player_2", Integer, nullable=False),
-            Column("player_3", Integer, nullable=False),
-            Column("player_4", Integer, nullable=False),
-            Column("player_5", Integer),
-            Column("player_6", Integer),
-            Column("player_7", Integer),
-            Column("name", String),
-            Column("description", String),
-            Column("team_id", Integer, primary_key=True),
-            extend_existing=True
-        )
-        self.team_comps = Table(
-            "team_comp",
-            self.get_meta("main"),
-            Column("comp_id", Integer, primary_key=True),
-            Column("author_id", Integer),
-            Column("name", String),
-            Column("description", String),
-            Column(
-                "weapon_1", String, server_default="0000000000000000000000000"
-            ),
-            Column("weapon_1_role", String),
-            Column("weapon_1_desc", String),
-            Column(
-                "weapon_2", String, server_default="0000000000000000000000000"
-            ),
-            Column("weapon_2_role", String),
-            Column("weapon_2_desc", String),
-            Column(
-                "weapon_3", String, server_default="0000000000000000000000000"
-            ),
-            Column("weapon_3_role", String),
-            Column("weapon_3_desc", String),
-            Column(
-                "weapon_4", String, server_default="0000000000000000000000000"
-            ),
-            Column("weapon_4_role", String),
-            Column("weapon_4_desc", String),
-            extend_existing=True
-        )
+        self.team_profiler = self.get_table("main", "team_profile")
+        self.team_comps = self.get_table("main", "team_comp")
 
         self.get_meta("main").create_all(
             bind=self.get_db("main"),
@@ -72,7 +30,6 @@ class TeamComposer(DBHandler, commands.Cog):
     @commands.group(case_insensitive=True)
     async def compose(self, ctx):
         """Team Composition command group. Does nothing on it's own."""
-        pass
 
     @compose.command()
     async def team(self, ctx, id: int = None):
@@ -164,9 +121,7 @@ class TeamComposer(DBHandler, commands.Cog):
     @create.command()
     async def new_team(self, ctx):
         """Comp create team command."""
-
-        def check(m):
-            return m.author == ctx.message.author
+        check = lambda m: m.author == ctx.message.author
 
         players = []
         await ctx.send(
@@ -193,9 +148,8 @@ class TeamComposer(DBHandler, commands.Cog):
                         "No captain specified - Aborting creation..."
                     )
                     return
-                else:
-                    players.append(msg)
-                    break
+                players.append(msg)
+                break
             else:
                 await ctx.send(
                     "Invalid response - please reply `y` or `n` to continue."
@@ -220,23 +174,18 @@ class TeamComposer(DBHandler, commands.Cog):
                         "No player specified - Aborting creation..."
                     )
                     return
-                else:
-                    await ctx.send("No player specified - Assuming `None`.")
-                    players.append(None)
+                await ctx.send("No player specified - Assuming `None`.")
+                players.append(None)
             else:
                 players.append(msg)
 
         await ctx.send(
             "Alright, that's your roster set up! Now, what will be your team name?"
         )
-        name = await self.client.wait_for(
-            "message", timeout=60, check=check
-        )
+        name = await self.client.wait_for("message", timeout=60, check=check)
         name = name.content
         await ctx.send("What will be your team's description?")
-        desc = await self.client.wait_for(
-            "message", timeout=60, check=check
-        )
+        desc = await self.client.wait_for("message", timeout=60, check=check)
         desc = desc.content
         await ctx.send(f"Registering {name} into the database...")
         ex = self.get_db("main").execute(
@@ -262,6 +211,7 @@ class TeamComposer(DBHandler, commands.Cog):
     async def new_loadout(self, ctx):
         """Comp create loadout command."""
         comp = {}
+
         #    "name": "",
         #    "description": "",
         #    "weapon_1": {},
@@ -270,8 +220,7 @@ class TeamComposer(DBHandler, commands.Cog):
         #    "weapon_4": {}
         #}
 
-        def check(m):
-            return m.author == ctx.message.author
+        check = lambda m: m.author == ctx.message.author
 
         await ctx.send("Starting composition creation process.")
         for i in range(4):
@@ -319,16 +268,12 @@ class TeamComposer(DBHandler, commands.Cog):
                         continue
 
         await ctx.send("Ok, what will be the name of this composition?")
-        msg = await self.client.wait_for(
-            "message", timeout=300, check=check
-        )
+        msg = await self.client.wait_for("message", timeout=300, check=check)
         comp["name"] = msg.content
         await ctx.send(
             "Are there any extra details you would like to provide about this composition? [Map/Mode use, strategies, etc.]"
         )
-        msg = await self.client.wait_for(
-            "message", timeout=600, check=check
-        )
+        msg = await self.client.wait_for("message", timeout=600, check=check)
         comp["description"] = msg.content
 
         await ctx.send(
@@ -396,11 +341,11 @@ class TeamComposer(DBHandler, commands.Cog):
                         )
                     ).values(**{field:value})
                 )
-            except exc.CompileError as e:
+            except exc.CompileError as err:
                 await ctx.send(
                     "Command Failed - Invalid field, value, column."
                 )
-                raise exc.CompileError from e
+                raise exc.CompileError from err
             else:
                 await ctx.send(f"{field.title()} updated!")
         else:

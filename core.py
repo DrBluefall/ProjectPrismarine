@@ -6,6 +6,7 @@ from itertools import cycle
 import discord
 from discord.ext import commands, tasks
 from sqlalchemy import create_engine, MetaData, select
+from bin.create_main_db import MainDB
 
 
 class Bot(commands.Bot):
@@ -67,6 +68,14 @@ class DBHandler:
         """Set metadata at specified key to the latest information."""
         self.dbs[key]["meta"] = MetaData()
         self.dbs[key]["meta"].reflect(bind=self.dbs[key]["db"])
+
+    def get_table(self, key, name):
+        """Return table from metadata at specified key."""
+        try:
+            return self.get_meta(key).tables[name]
+        except KeyError:
+            MainDB()
+            return self.get_meta(key).tables[name]
 
     def get_db(self, key):
         """Return the database at the specified key."""

@@ -11,7 +11,7 @@ from bin.decoder import decode
 from core import DBHandler
 
 
-class TeamComposer(DBHandler, commands.Cog):
+class TeamComposer(commands.Cog, DBHandler):
     """Module handling weapon and team compositions."""
 
     def __init__(self, client):
@@ -33,7 +33,19 @@ class TeamComposer(DBHandler, commands.Cog):
 
     @compose.command()
     async def team(self, ctx, id: int = None):
-        """Compose team command."""
+        """
+        Team lookup command. Looks up the team specified by the `id` argument.
+        
+        Parameters:
+            - ID (#): The ID of the team you wish to query for.
+        
+        Returns:
+            - An embed listing the team's name, roster, description, captain, and ID.
+        
+        Will not work if:
+            - The ID passed into the command does not reference an existing team, or an ID is not passed in at all.
+
+        """
         if id is not None:
             team_profile = self.get_db("main").execute(
                 select([self.team_profiler]). \
@@ -74,7 +86,19 @@ class TeamComposer(DBHandler, commands.Cog):
 
     @compose.command()
     async def loadout(self, ctx, id: int = None):
-        """Compose loadout command."""
+        """
+        Composition query command. Queries for the compositions made by the author. Only the author of a composition may query for it.
+        
+        Parameters:
+            - ID (#): The ID of the composition to query for.
+        
+        Returns:
+            - Several embeds with the composition's name, description, and weapons, along with their roles and descriptions.
+        
+        Will not work if:
+            - You are not the author of the queried composition.
+            - The ID does not reference an existing composition, or has not been passed into the command.
+        """
         if id is not None:
             team_comp = self.get_db("main").execute(
                 select([self.team_comps]). \
@@ -116,7 +140,24 @@ class TeamComposer(DBHandler, commands.Cog):
 
     @compose.command()
     async def new_team(self, ctx):
-        """Comp create team command."""
+        """
+        Create a new team. This command will guide you through the process of registering teams into the bot. Parameters are taken in as the bot asks for them, and not directly by the command.
+
+        Parameters (pass in when bot asks for them):
+        - Captain: The bot will ask you if you are the captain of the new team. If not, pass in either an @ mention or the User ID of the captain of the team.
+        - Players: Next, you will be asked to specify the next 3-6 players. Unfilled slots will display as `None`.
+        - Name: The name for the new team.
+        - Description: The description of the new team.
+
+        Returns:
+        - ID (#): The ID of the newly created team. Don't lose it.
+
+        Will not work if:
+        - An invalid captain is passed in.
+        - An invalid player is passed in while the roster is still under 4 players, including the Captain.
+
+        Keep in mind, all these fields, except for the `captain` field, may be edited later using the `compose edit_team` command.
+        """
         check = lambda m: m.author == ctx.message.author
 
         players = []
@@ -205,7 +246,22 @@ class TeamComposer(DBHandler, commands.Cog):
 
     @compose.command()
     async def new_loadout(self, ctx):
-        """Comp create loadout command."""
+        """
+        Composition creation command. Create a new team composition, with descriptions, loadouts, and more. The bot will ask you to pass these things procedurally. It is highly reccomended that you have the loadout.ink links prepared ahead of time before using this command.
+
+        Parameters (pass in when bot asks for them):
+        - For each weapon in the composition, it will ask for:
+            -- A loadout.ink link
+            -- The weapon's role in the composition
+            -- A more detailed description for what the weapon does in the composition.
+        - Name: The name of the composition.
+        - Description: The description of the overall composition.
+        
+        Returns:
+        - ID (#): The composition's ID. Make sure to save this, as it is the only way to query for, edit, and delete compositions in the bot.
+
+        Keep in mind, created compositions can be edited by the `compose edit_loadout` command, but only by the composition's author.
+        """
         comp = {
             "name": "",
             "description": "",
@@ -299,7 +355,20 @@ class TeamComposer(DBHandler, commands.Cog):
 
     @compose.command()
     async def edit_team(self, ctx, id, field=None, *, value=None):
-        """Comp modify team command."""
+        """
+        Edit a team's attributes. This command can only be invoked by the team's Captain.
+
+        Parameters:
+            - ID (#): The ID of the team you wish to edit.
+            - Field: The attribute you wish to modify.
+            -- Valid fields: `player_{#}` (Replace `{#}` with the team member you wish to modify. Remember: The first 3 players on a team cannot be `None`!), `name`, `description`.
+            - Value: The value for the field you wish to edit. To edit a player, pass in an @ mention or user ID. Otherwise, just pass in normal text.
+        
+        Will not work if:
+            - The field is specified incorrectly, or does not exist.
+            - The value is invalid for the specified field.
+
+        """
         team = self.get_db("main").execute(
             select([self.team_profiler]). \
             where(and_( \
@@ -346,7 +415,20 @@ class TeamComposer(DBHandler, commands.Cog):
 
     @compose.command()
     async def edit_loadout(self, ctx, id, field=None, *, value=None):
-        """Comp modify loadout command."""
+        """
+        Edit a composition's attributes. This command can only be invoked by the composition's author.
+
+        Parameters:
+            - ID (#): The ID of the composition you wish to edit.
+            - Field: The attribute you wish to modify.
+            -- Valid fields: `weapon_{N}` to change a weapon and it's loadout. When editing a weapon, make sure to pass in a loadout.ink link. To edit a weapon's role or description, append `_role` and `_desc`, respectively. Other fields are `name` (Composition name), `description` (Overall composition description.)
+            - Value: The value for the field you wish to edit.
+        
+        Will not work if:
+            - The field is specified incorrectly, or does not exist.
+            - The value is invalid for the specified field.
+
+        """
         loadout = self.get_db("main").execute(
             select([self.team_comps]). \
             where(and_(
@@ -363,6 +445,11 @@ class TeamComposer(DBHandler, commands.Cog):
                     and value[:33] == 'https://selicia.github.io/en_US/#'
                 ):
                     raise exc.CompileError
+                elif re.search(r"weapon_.\b", value) and (
+                    len(value) == 58
+                    and value[:33] == 'https://selicia.github.io/en_US/#'
+                ):
+                    value = value[33:]
                 self.get_db("main").execute(
                     self.team_comps. \
                     update(None).\
@@ -386,7 +473,18 @@ class TeamComposer(DBHandler, commands.Cog):
 
     @compose.command()
     async def delete_team(self, ctx, id: int = None):
-        """Delete a loadout."""
+        """
+        Delete a team. 
+        NOTE: This can only be done by the team's captain. 
+        WARNING: The bot will ask you to confirm before deleting the team. This action cannot be undone!
+
+        Parameters:
+            - ID (#): The ID of the team you wish to delete.
+        
+        Will not work if:
+            - The specified ID is invalid.
+            - You are not the captain of the specified team.
+        """
         if id is not None:
             team = self.get_db('main').execute(
                 select([self.team_profiler]).where(
@@ -426,7 +524,18 @@ class TeamComposer(DBHandler, commands.Cog):
 
     @compose.command()
     async def delete_loadout(self, ctx, id: int = None):
-        """Delete a composition."""
+        """
+        Delete a composition. 
+        NOTE: This can only be done by the composition's author. 
+        WARNING: The bot will ask you to confirm before deleting the composition. This action cannot be undone!
+
+        Parameters:
+            - ID (#): The ID of the composition you wish to delete.
+        
+        Will not work if:
+            - The specified ID is invalid.
+            - You are not the author of the specified composition.
+        """
         if id is not None:
             loadout = self.get_db('main').execute(
                 select([self.team_comps]).where(

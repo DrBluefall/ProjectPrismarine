@@ -417,9 +417,10 @@ class TeamComposer(DBHandler, commands.Cog):
                             )
                         )
                     )
-                    await ctx.send("Understood. Team deleted.")
+                    message = "Understood. Team deleted."
                 else:
-                    await ctx.send("Understood. Aborting deletion.")
+                    message = "Understood. Aborting deletion."
+                await ctx.send(message)
             else:
                 await ctx.send("Command Failed - Team does not exist.")
 
@@ -456,9 +457,10 @@ class TeamComposer(DBHandler, commands.Cog):
                             )
                         )
                     )
-                    await ctx.send("Understood. Loadout deleted.")
+                    message = "Understood. Loadout deleted."
                 else:
-                    await ctx.send("Understood. Aborting deletion.")
+                    message = "Understood. Aborting deletion."
+                await ctx.send(message)
             else:
                 await ctx.send("Command Failed - Loadout does not exist.")
 

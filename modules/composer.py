@@ -29,11 +29,10 @@ class TeamComposer(DBHandler, commands.Cog):
             tables=[self.team_profiler, self.team_comps]
         )
 
-    @commands.group(
-        case_insensitive=True, ignore_extra=False, invoke_without_command=True
-    )
+    @commands.group(case_insensitive=True)
     async def compose(self, ctx):
         """Team Composition command group. Does nothing on it's own."""
+        pass
 
     @compose.command()
     async def team(self, ctx, id: int = None):
@@ -44,32 +43,35 @@ class TeamComposer(DBHandler, commands.Cog):
                 where(self.team_profiler.columns.team_id == id)  #pylint: disable=no-member
             ).fetchone()
 
-            embed = discord.Embed(
-                title=f"Team Profile - {team_profile['name']}",
-                color=discord.Color.orange(),
-                description=team_profile["description"]
-            )
-            cap = self.client.get_user(team_profile["captain"])
-            p_2 = self.client.get_user(team_profile["player_2"]).mention
-            p_3 = self.client.get_user(team_profile["player_3"]).mention
-            p_4 = self.client.get_user(team_profile["player_4"]).mention
-            p_5 = self.client.get_user(team_profile["player_5"])
-            if p_5 is not None:
-                p_5 = p_5.mention
-            p_6 = self.client.get_user(team_profile["player_6"])
-            if p_6 is not None:
-                p_6 = p_6.mention
-            p_7 = self.client.get_user(team_profile["player_7"])
-            if p_7 is not None:
-                p_7 = p_7.mention
-            embed.add_field(
-                name="Team Roster:",
-                value=f"{p_2}\n{p_3}\n{p_4}\n{p_5}\n{p_6}\n{p_7}"
-            )
-            embed.add_field(name="Team Captain", value=cap.mention)
-            embed.add_field(name="Team ID:", value=team_profile["team_id"])
+            if team_profile is not None:
+                embed = discord.Embed(
+                    title=f"Team Profile - {team_profile['name']}",
+                    color=discord.Color.orange(),
+                    description=team_profile["description"]
+                )
+                cap = self.client.get_user(team_profile["captain"])
+                p_2 = self.client.get_user(team_profile["player_2"]).mention
+                p_3 = self.client.get_user(team_profile["player_3"]).mention
+                p_4 = self.client.get_user(team_profile["player_4"]).mention
+                p_5 = self.client.get_user(team_profile["player_5"])
+                if p_5 is not None:
+                    p_5 = p_5.mention
+                p_6 = self.client.get_user(team_profile["player_6"])
+                if p_6 is not None:
+                    p_6 = p_6.mention
+                p_7 = self.client.get_user(team_profile["player_7"])
+                if p_7 is not None:
+                    p_7 = p_7.mention
+                embed.add_field(
+                    name="Team Roster:",
+                    value=f"{p_2}\n{p_3}\n{p_4}\n{p_5}\n{p_6}\n{p_7}"
+                )
+                embed.add_field(name="Team Captain", value=cap.mention)
+                embed.add_field(name="Team ID:", value=team_profile["team_id"])
 
-            await ctx.send(embed=embed)
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send("Command Failed - Team does not exist.")
         else:
             await ctx.send("Command failed - Team ID not provided.")
 
@@ -120,7 +122,7 @@ class TeamComposer(DBHandler, commands.Cog):
         """Command group made to create team profiles and compositions. Does nothing on it's own."""
 
     @create.command()
-    async def team(self, ctx):
+    async def new_team(self, ctx):
         """Comp create team command."""
         players = []
         await ctx.send(
@@ -207,7 +209,7 @@ class TeamComposer(DBHandler, commands.Cog):
         )
 
     @create.command()
-    async def loadout(self, ctx):
+    async def new_loadout(self, ctx):
         """Comp create loadout command."""
         comp = {}
         #    "name": "",
@@ -307,7 +309,7 @@ class TeamComposer(DBHandler, commands.Cog):
         """Command group made to edit team profiles and compositions. Does nothing on it's own."""
 
     @modify.command()
-    async def team(self, ctx, id, field=None, *, value=None):
+    async def edit_team(self, ctx, id, field=None, *, value=None):
         """Comp modify team command."""
         team = self.get_db("main").execute(
             select([self.team_profiler]). \
@@ -353,7 +355,7 @@ class TeamComposer(DBHandler, commands.Cog):
             )
 
     @modify.command()
-    async def loadout(self, ctx, id, field=None, *, value=None):
+    async def edit_loadout(self, ctx, id, field=None, *, value=None):
         """Comp modify loadout command."""
         loadout = self.get_db("main").execute(
             select([self.team_comps]). \

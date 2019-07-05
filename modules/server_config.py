@@ -15,7 +15,7 @@ class PrefixDBHandler(DBHandler):
     def __init__(self):
         """Init PrefixDBHandler."""
         super().__init__()
-        self.prefix_table = self.get_meta("main").tables['prefix']
+        self.prefix_table = self.get_table("main", "prefix")
 
     def get_server_prefix(self, ctx):
         """Retrieve a server's prefix."""

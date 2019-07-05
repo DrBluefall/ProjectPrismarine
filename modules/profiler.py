@@ -10,7 +10,7 @@ from core import DBHandler
 
 
 class SQLEngine(DBHandler):
-    """Contains the methods to abstract queries for the Profiler."""
+    """Contains the methods to abstract queries for the Profiler. Documented in: `pr.profile help`"""
 
     def __init__(self):
         """Init SQLEngine."""

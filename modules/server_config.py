@@ -51,7 +51,7 @@ class PrefixDBHandler(DBHandler):
 
 
 class ServerConfig(commands.Cog, PrefixDBHandler):
-    """Contains all server-configuraton related functionality of the bot."""
+    """Contains all server-configuraton related functionality of the bot. Documented in: `pr.config help`"""
 
     def __init__(self, client):
         """Init the class."""

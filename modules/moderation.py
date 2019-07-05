@@ -6,7 +6,7 @@ from discord.ext import commands
 
 
 class Moderation(commands.Cog):
-    """Contains all Moderation commands."""
+    """Contains all Moderation commands. Documented in: `pr.mod help`"""
 
     def __init__(self, client):
         """Init the Moderation cog."""

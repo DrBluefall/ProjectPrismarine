@@ -9,7 +9,7 @@ from core import DBHandler
 
 
 class Main(commands.Cog, DBHandler):
-    """Contains all the main commands."""
+    """Contains all the main commands. Documented in: `pr.main help`"""
 
     def __init__(self, client):
         """Init the MyModule cog."""

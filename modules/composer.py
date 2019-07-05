@@ -12,7 +12,7 @@ from core import DBHandler
 
 
 class TeamComposer(commands.Cog, DBHandler):
-    """Module handling weapon and team compositions."""
+    """Module handling weapon and team compositions. Documented in: `pr.compose help`"""
 
     def __init__(self, client):
         """Init the Team Composer cog."""

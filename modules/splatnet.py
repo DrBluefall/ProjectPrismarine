@@ -9,7 +9,7 @@ from core import DBHandler
 
 
 class Splatnet(commands.Cog):
-    """Contains all SplatNet 2-related functions."""
+    """Contains all SplatNet 2-related functions. Documented in: `pr.rotation help`"""
 
     def __init__(self, client):
         """Init the class."""

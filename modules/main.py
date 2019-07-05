@@ -111,6 +111,8 @@ class Main(DBHandler, commands.Cog):
 
                 :military_medal: <@571494333090496514> - For his massive assistance in improving the backend of Project Prismarine, as well as the endless refactoring of my bodged code, and seeing solutions to issues I genuinely would have never thought of to implement myself.
 
+                :military_medal: @DaysyMarunss (Twitter) - For creating the profile image for Project Prismarine.
+
                 *Communal Commenations*
 
                 Splatoon2.ink - for providing the data used within the Splatnet module.

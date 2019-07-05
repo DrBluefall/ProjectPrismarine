@@ -132,26 +132,26 @@ class SplatnetEmbeds(DBHandler):
         """Generate a Splatnet feed embed."""
         if item["type"] == "shoes":
             file = self.get_db("assets").execute(
-                select([self.get_meta("assets").tables["shoes"].columns["image"]]). \
+                select([self.get_table("assets", "shoes").columns["image"]]). \
                 where(
-                    self.get_meta("assets").tables["shoes"].columns["splatnet"] == item["splatnet"]
+                    self.get_table("assets", "shoes").columns["splatnet"] == item["splatnet"]
                 )
             ).fetchone()
             file = discord.File(file["image"], filename=file["image"][17:])
         elif item["type"] == "clothes":
             file = self.get_db("assets").execute(
-                select([self.get_meta("assets").tables["clothing"].columns["image"]]). \
+                select([self.get_table("assets", "clothing").columns["image"]]). \
                 where(
-                    self.get_meta("assets").tables["clothing"].columns["splatnet"] ==
+                    self.get_table("assets", "clothing").columns["splatnet"] ==
                     item["splatnet"]
                 )
             ).fetchone()
             file = discord.File(file["image"], filename=file["image"][20:])
         elif item["type"] == "head":
             file = self.get_db("assets").execute(
-                select([self.get_meta("assets").tables["headgear"].columns["image"]]). \
+                select([self.get_table("assets", "headgear").columns["image"]]). \
                 where(
-                    self.get_meta("assets").tables["headgear"].columns["splatnet"] ==
+                    self.get_table("assets", "headgear").columns["splatnet"] ==
                     item["splatnet"]
                 )
             ).fetchone()

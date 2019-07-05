@@ -15,7 +15,7 @@ class SQLEngine(DBHandler):
     def __init__(self):
         """Init SQLEngine."""
         super().__init__()
-        self.table = self.get_meta("main").tables['profile']
+        self.table = self.get_table("main", "profile")
 
     def check_profile_exists(self, user_id):
         """Check if a profile exists in the database or not."""

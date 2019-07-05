@@ -1,8 +1,8 @@
 """Script to make dealing with loadouts in cogs easier."""
 from sqlalchemy import select, and_
 from PIL import Image
-from core import DBHandler
 from bin.decoder import decode
+from core import DBHandler
 
 
 class Loadout(DBHandler):
@@ -27,13 +27,13 @@ class Loadout(DBHandler):
             ),
             "sub": self.get_db("assets"). \
                 execute(
-                    select([self.get_meta("assets").tables["subs"]]). \
-                    where(self.get_meta("assets").tables["subs"].columns["name"] == self.get_row("weapons", raw_loadout["class"], raw_loadout["weapon"])["sub"])
+                    select([self.get_table("assets", "subs")]). \
+                    where(self.get_table("assets", "subs").columns["name"] == self.get_row("weapons", raw_loadout["class"], raw_loadout["weapon"])["sub"])
                 ).fetchone(),
             "special": self.get_db("assets"). \
                 execute(
-                    select([self.get_meta("assets").tables["specials"]]). \
-                    where(self.get_meta("assets").tables["specials"].columns["name"] == self.get_row("weapons", raw_loadout["class"], raw_loadout["weapon"])["special"])
+                    select([self.get_table("assets", "specials")]). \
+                    where(self.get_table("assets", "specials").columns["name"] == self.get_row("weapons", raw_loadout["class"], raw_loadout["weapon"])["special"])
                 ).fetchone(),
         }
 
@@ -300,16 +300,16 @@ class Loadout(DBHandler):
         """Return row in database given table and the id."""
         if weapon_id is None:
             return self.get_db("assets").execute(
-                select([self.get_meta("assets").tables[table]]). \
-                where(self.get_meta("assets").tables[table].columns["id"] == loadout_id)
+                select([self.get_table("assets", table)]). \
+                where(self.get_table("assets", table).columns["id"] == loadout_id)
             ).fetchone()
 
         return self.get_db("assets").execute(
-            select([self.get_meta("assets").tables[table]]). \
+            select([self.get_table("assets", table)]). \
             where(
                 and_(
-                    self.get_meta("assets").tables[table].columns["class_id"] == loadout_id,
-                    self.get_meta("assets").tables[table].columns["loadout_ink_id"] == weapon_id))
+                    self.get_table("assets", table).columns["class_id"] == loadout_id,
+                    self.get_table("assets", table).columns["loadout_ink_id"] == weapon_id))
         ).fetchone()
 
 

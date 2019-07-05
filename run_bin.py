@@ -16,14 +16,14 @@ import importlib
 def main():
     """Run the script inside of bin."""
     try:
-        bin_module = importlib.import_module("bin." + sys.argv[1])
+        bin_module = importlib.import_module("bin." + sys.argv[1])  # pylint: disable=W0612
     except (TypeError, IndexError):
         raise AttributeError("You did not specify the module.")
 
     print("Type the function you want to run.")
     while True:
         function = input('\n> ')
-        eval("bin_module." + function)
+        eval("bin_module." + function)  # pylint: disable=W0123
 
 
 if __name__ == '__main__':

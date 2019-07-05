@@ -4,7 +4,8 @@ from datetime import datetime
 import requests
 import discord
 from discord.ext import commands, tasks
-from sqlalchemy import create_engine, MetaData, select
+from sqlalchemy import select
+from core import DBHandler
 
 
 class Splatnet(commands.Cog):
@@ -12,8 +13,15 @@ class Splatnet(commands.Cog):
 
     def __init__(self, client):
         """Init the class."""
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
         self.client = client
-        self.request_data_loop.start()  # pylint: disable=no-member
+        self.request_data_loop.start()  # pylint: disable=E1101
         self.request_data()
 
     @commands.group(case_insensitive=True)
@@ -85,7 +93,7 @@ class Splatnet(commands.Cog):
             return
         async with ctx.typing():
             for i in range(index):
-                embed, file = SplatnetEmbeds.splatnet(
+                embed, file = SplatnetEmbeds().splatnet(
                     self.data["splatnet"][i - 1]
                 )
                 embed.set_thumbnail(url=f"attachment://{file.filename}")
@@ -95,7 +103,7 @@ class Splatnet(commands.Cog):
     async def request_data_loop(self):
         """Loop over requesting data function."""
         await self.client.wait_until_ready()
-        logging.info("Retrieving data from Splatoon2.ink...")
+        self.logger.info("Retrieving data from Splatoon2.ink...")
         self.request_data()
 
     def request_data(self):
@@ -116,21 +124,58 @@ class Splatnet(commands.Cog):
             coop_schedules.raise_for_status()
             merchandises.raise_for_status()
         except requests.exceptions.HTTPError:
-            logging.error("Retrieving data failed.")
+            self.logger.error("Retrieving data failed.")
         else:
             self.data = create_json_data(
                 schedules.json(), coop_schedules.json(), merchandises.json()
             )
-            logging.info("Retrieved data successfully.")
+            self.logger.info("Retrieved data successfully.")
 
 
-class SplatnetEmbeds:
+class SplatnetEmbeds(DBHandler):
     """Class handling embed generation for the module."""
 
-    asset_db = create_engine("sqlite:///assets/assets.db")
-    metadata = MetaData(asset_db)
-    metadata.reflect()
-    c = asset_db.connect()
+    def splatnet(self, item):
+        """Generate a Splatnet feed embed."""
+        if item["type"] == "shoes":
+            file = self.get_db("assets").execute(
+                select([self.get_table("assets", "shoes").columns["image"]]). \
+                where(
+                    self.get_table("assets", "shoes").columns["splatnet"] == item["splatnet"]
+                )
+            ).fetchone()
+            file = discord.File(file["image"], filename=file["image"][17:])
+        elif item["type"] == "clothes":
+            file = self.get_db("assets").execute(
+                select([self.get_table("assets", "clothing").columns["image"]]). \
+                where(
+                    self.get_table("assets", "clothing").columns["splatnet"] ==
+                    item["splatnet"]
+                )
+            ).fetchone()
+            file = discord.File(file["image"], filename=file["image"][20:])
+        elif item["type"] == "head":
+            file = self.get_db("assets").execute(
+                select([self.get_table("assets", "headgear").columns["image"]]). \
+                where(
+                    self.get_table("assets", "headgear").columns["splatnet"] ==
+                    item["splatnet"]
+                )
+            ).fetchone()
+            file = discord.File(file["image"], filename=file["image"][20:])
+        embed = discord.Embed(
+            title=f"SplatNet Gear: {item['name']}",
+            color=discord.Color.from_rgb(85, 0, 253)
+        )
+        embed.add_field(name="Gear Type:", value=item["type"].capitalize())
+        embed.add_field(name="Gear Price:", value=item["price"])
+        embed.add_field(name="Gear Rarity:", value=item["rarity"])
+        embed.add_field(
+            name="Gear Ability:",
+            value=f"~~{item['original_ability']}~~ {item['ability']}"
+        )
+        embed.add_field(name="Available Until:", value=item["expiration"])
+        return embed, file
 
     @staticmethod
     def regular(data):
@@ -235,48 +280,17 @@ class SplatnetEmbeds:
             )
         return embed
 
-    @classmethod
-    def splatnet(cls, item):
-        """Generate a Splatnet feed embed."""
-        if item["type"] == "shoes":
-            file = cls.c.execute(
-                select([cls.metadata.tables["shoes"].c.image])\
-                    .where(cls.metadata.tables["shoes"].c.splatnet == item["splatnet"])
-            ).fetchone()
-            file = discord.File(file["image"], filename=file["image"][17:])
-        elif item["type"] == "clothes":
-            file = cls.c.execute(
-                select([cls.metadata.tables["clothing"].c.image])\
-                    .where(cls.metadata.tables["clothing"].c.splatnet == item["splatnet"])
-            ).fetchone()
-            file = discord.File(file["image"], filename=file["image"][20:])
-        elif item["type"] == "head":
-            file = cls.c.execute(
-                select([cls.metadata.tables["headgear"].c.image])\
-                    .where(cls.metadata.tables["headgear"].c.splatnet == item["splatnet"])
-            ).fetchone()
-            file = discord.File(file["image"], filename=file["image"][20:])
-        embed = discord.Embed(
-            title=f"SplatNet Gear: {item['name']}",
-            color=discord.Color.from_rgb(85, 0, 253)
-        )
-        embed.add_field(name="Gear Type:", value=item["type"].capitalize())
-        embed.add_field(name="Gear Price:", value=item["price"])
-        embed.add_field(name="Gear Rarity:", value=item["rarity"])
-        embed.add_field(
-            name="Gear Ability:",
-            value=f"~~{item['original_ability']}~~ {item['ability']}"
-        )
-        embed.add_field(name="Available Until:", value=item["expiration"])
-        return embed, file
-
 
 def create_json_data(schedules, coop_schedules, merchandises):
     """Turn Splatoon2.ink json data into something more usable for the bot."""
     i = 0
     for weapon in coop_schedules["details"][0]["weapons"]:
         if weapon["id"] == '-1':
-            coop_schedules["details"][0]["weapons"][i] = {"weapon":{"name":"*a mystery weapon!*"}}
+            coop_schedules["details"][0]["weapons"][i] = {
+                "weapon": {
+                    "name": "*a mystery weapon!*"
+                }
+            }
         i += 1
 
     data = {
@@ -346,14 +360,24 @@ def create_json_data(schedules, coop_schedules, merchandises):
         },
         "splatnet": [
             {
-                "name": gear["gear"]["name"],
-                "type": gear["kind"],
-                "price": gear["price"],
-                "rarity": gear["gear"]["rarity"],
-                "ability": gear["skill"]["name"],
-                "original_ability": ("undefined" if gear["original_gear"] is None else gear["original_gear"]["skill"]["name"]),
-                "expiration": datetime.fromtimestamp(gear["end_time"]).ctime(),
-                "splatnet": gear["gear"]["id"]
+                "name":
+                gear["gear"]["name"],
+                "type":
+                gear["kind"],
+                "price":
+                gear["price"],
+                "rarity":
+                gear["gear"]["rarity"],
+                "ability":
+                gear["skill"]["name"],
+                "original_ability": (
+                    "undefined" if gear["original_gear"] is None else
+                    gear["original_gear"]["skill"]["name"]
+                ),
+                "expiration":
+                datetime.fromtimestamp(gear["end_time"]).ctime(),
+                "splatnet":
+                gear["gear"]["id"]
             } for gear in merchandises["merchandises"]
         ]
     }

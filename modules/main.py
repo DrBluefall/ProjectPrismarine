@@ -4,19 +4,24 @@ import logging
 import json
 import discord
 from discord.ext import commands
-from sqlalchemy import create_engine, MetaData, select
+from sqlalchemy import select
+from core import DBHandler
 
 
-class Main(commands.Cog):
+class Main(commands.Cog, DBHandler):
     """Contains all the main commands."""
 
     def __init__(self, client):
         """Init the MyModule cog."""
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
+        super().__init__()
         self.client = client
-        main_db = create_engine("sqlite:///main.db")
-        self.metadata = MetaData(main_db)
-        self.metadata.reflect()
-        self.c = main_db.connect()
 
     @commands.group(case_insensitive=True)
     async def main(self, ctx):
@@ -53,14 +58,15 @@ class Main(commands.Cog):
         try:
             self.client.load_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` loaded.")
-            logging.info("%s module loaded.", extension)
-        except \
-        (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) \
-        as error:
+            self.logger.info("%s module loaded.", extension)
+        except (
+            commands.CommandInvokeError, commands.ExtensionNotLoaded,
+            commands.ExtensionNotFound
+        ) as error:
             await ctx.send(
                 "Module could not be loaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
             )
-            logging.exception("%i - %s", ctx.guild.id, error)
+            self.logger.exception("%i - %s", ctx.guild.id, error)
 
     @commands.command()
     async def unload(self, ctx, extension):
@@ -68,14 +74,15 @@ class Main(commands.Cog):
         try:
             self.client.unload_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` unloaded.")
-            logging.info("%s module unloaded.", extension)
-        except \
-        (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) \
-        as error:
+            self.logger.info("%s module unloaded.", extension)
+        except (
+            commands.CommandInvokeError, commands.ExtensionNotLoaded,
+            commands.ExtensionNotFound
+        ) as error:
             await ctx.send(
                 "Module could not be unloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
             )
-            logging.exception("%i - %s", ctx.guild.id, error)
+            self.logger.exception("%i - %s", ctx.guild.id, error)
 
     @commands.command()
     async def reload(self, ctx, extension):
@@ -84,14 +91,15 @@ class Main(commands.Cog):
             self.client.unload_extension(f"modules.{extension}")
             self.client.load_extension(f"modules.{extension}")
             await ctx.send(f"Module `{extension}` reloaded.")
-            logging.info("%s module reloaded.", extension)
-        except \
-        (commands.CommandInvokeError, commands.ExtensionNotLoaded, commands.ExtensionNotFound) \
-        as error:
+            self.logger.info("%s module reloaded.", extension)
+        except (
+            commands.CommandInvokeError, commands.ExtensionNotLoaded,
+            commands.ExtensionNotFound
+        ) as error:
             await ctx.send(
                 "Module could not be reloaded. Check the console to assure that there are no errors, and that the name of the module was spelled correctly."
             )
-            logging.exception("%i - %s", ctx.guild.id, error)
+            self.logger.exception("%i - %s", ctx.guild.id, error)
 
     @commands.command()
     async def credits(self, ctx):
@@ -109,6 +117,8 @@ class Main(commands.Cog):
                 :military_medal: <@323922433654390784> - For aiding me in fixing several commands and showing me just how much of a newbie I am at Python.
 
                 :military_medal: <@571494333090496514> - For his massive assistance in improving the backend of Project Prismarine, as well as the endless refactoring of my bodged code, and seeing solutions to issues I genuinely would have never thought of to implement myself.
+
+                :military_medal: @DaysyMarunss (Twitter) - For creating the profile image for Project Prismarine.
 
                 *Communal Commenations*
 
@@ -128,9 +138,9 @@ class Main(commands.Cog):
     @commands.command()
     async def prefix(self, ctx):
         """Get a server's prefix."""
-        server_prefix = self.c.execute(
-            select([self.metadata.tables["prefix"]])\
-            .where(self.metadata.tables["prefix"].c.server_id == ctx.message.guild.id)
+        server_prefix = self.get_db("main").execute(
+            select([self.get_table("main", "prefix")]). \
+            where(self.get_table("main", "prefix").columns["server_id"] == ctx.message.guild.id)
         ).fetchone()
         if server_prefix is not None:
             await ctx.send(f"Your prefix is `{server_prefix[1]}`")

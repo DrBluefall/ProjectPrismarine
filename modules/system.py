@@ -12,6 +12,13 @@ class System(commands.Cog):
 
     def __init__(self, client):
         """Init the System cog."""
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
         self.client = client
         self.dbl = dbl.Client(self.client, CONFIG["dbl_token"])
         if discord.ClientUser.id == 568469437284614174:  # pylint: disable=no-member
@@ -21,14 +28,14 @@ class System(commands.Cog):
     async def update_stats(self):
         """Update the stats of the server count."""
         while not self.client.is_closed():
-            logging.info("Posting server count...")
+            self.logger.info("Posting server count...")
             try:
                 await self.dbl.post_guild_count()
-                logging.info("Posted server count: %s", self.dbl.guild_count())
-            except Exception as e:  # pylint: disable=broad-except, invalid-name
-                logging.exception(
+                self.logger.info("Posted server count: %s", self.dbl.guild_count())
+            except Exception as err:  # pylint: disable=broad-except
+                self.logger.exception(
                     "Failed to post server count\n%s: %s",
-                    type(e).__name__, e
+                    type(err).__name__, err
                 )
             await asyncio.sleep(900)
 
@@ -122,12 +129,14 @@ class System(commands.Cog):
                 raise ValueError
             await channel.send(content)
             await ctx.send(f"Message sent to {channel}.")
-            logging.info("Message sent to %s.", channel)
+            self.logger.info("Message sent to %s.", channel)
         except commands.errors.NotOwner:
-            await ctx.send(":warning: *You're not authorized to use this!* :warning:")
+            await ctx.send(
+                ":warning: *You're not authorized to use this!* :warning:"
+            )
         except ValueError:
             await ctx.send("Command failed - Channel ID is invalid.")
-        
+
     @commands.check(lambda ctx: ctx.guild.id == 561529218949971989)
     @commands.has_permissions(administrator=True)
     @system.command()
@@ -146,14 +155,17 @@ class System(commands.Cog):
 
         """
         if ctx.guild.id == 561529218949971989:
-            if ctx.message.author.permissions_in(ctx.message.channel).administrator is True:
+            if ctx.message.author.permissions_in(
+                ctx.message.channel
+            ).administrator is True:
                 embed = discord.Embed(
                     title=f"An Announcement from {ctx.message.author.name}...",
                     description=text,
                     color=discord.Color.blurple(),
                 )
                 embed.set_author(
-                    name="Unit 10008-RSP", icon_url=self.client.user.avatar_url
+                    name="Unit 10008-RSP",
+                    icon_url=self.client.user.avatar_url
                 )
                 embed.set_footer(
                     text=f"Solidarity, {ctx.message.author.display_name}.",
@@ -164,9 +176,13 @@ class System(commands.Cog):
                     await announce_channel.send("@everyone")
                 await announce_channel.send(embed=embed)
             else:
-                await ctx.send("Command Failed - You are not authorized to use this command! :warning:")
+                await ctx.send(
+                    "Command Failed - You are not authorized to use this command! :warning:"
+                )
         else:
-            await ctx.send("Command Failed - Command invoked outside the support server.")
+            await ctx.send(
+                "Command Failed - Command invoked outside the support server."
+            )
 
     @system.command()
     async def info(self, ctx):
@@ -188,28 +204,33 @@ class System(commands.Cog):
     async def logout(self, ctx):
         """Quit the bot."""
         if ctx.message.author.id == 490650609641324544:
-            logging.info("Shutting down Project Prismarine...")
+            self.logger.info("Shutting down Project Prismarine...")
             await ctx.send("*Shutting down Project Prismarine...*")
             await self.client.logout()
         else:
-            await ctx.send("Command Failed - You are not authorized to use this! :warning:")
+            await ctx.send(
+                "Command Failed - You are not authorized to use this! :warning:"
+            )
 
     @system.command()
     async def help(self, ctx):
         """System command documentation."""
-        if ctx.message.author.id == 490650609641324544 \
-            or ctx.message.author.id == ctx.message.author.id == 571494333090496514:
+        if ctx.message.author.id in (490650609641324544, 571494333090496514):
             embed = discord.Embed(
-                title=f"Project Prismarine - {__class__.__name__} Documentation",
+                title=
+                f"Project Prismarine - {__class__.__name__} Documentation",
                 color=discord.Color.dark_red()
             )
             for command in self.walk_commands():
                 embed.add_field(
-                    name=ctx.prefix + command.qualified_name, value=command.help
+                    name=ctx.prefix + command.qualified_name,
+                    value=command.help
                 )
             await ctx.send(embed=embed)
         else:
-            await ctx.send("Command Failed - You are not authorized to access this module! :warning:")
+            await ctx.send(
+                "Command Failed - You are not authorized to access this module! :warning:"
+            )
 
 
 with open("config.json", "r") as infile:

@@ -115,10 +115,9 @@ def decode_gear(code):
     return {"gear": id, "main": main, "subs": subs}
 
 
-def hex_to_binary(s):
+def hex_to_binary(string):
     """Convert a hexadecimal string to a binary string."""
     ret = ""
-    # lookup table for easier conversion. '0' characters are padded for '1' to '7'
     lookup_table = {
         "0": "0000",
         "1": "0001",
@@ -144,9 +143,9 @@ def hex_to_binary(s):
         "F": "1111",
     }
     i = 0
-    while i != len(s):
-        if s[i] in lookup_table:
-            ret = ret + lookup_table[s[i]]
+    while i != len(string):
+        if string[i] in lookup_table:
+            ret = ret + lookup_table[string[i]]
         else:
             return {"valid": False}
         i += 1

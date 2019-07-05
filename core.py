@@ -1,9 +1,9 @@
 """Core file holding the Prismarine Bot."""
 import os
 import logging
-import coloredlogs
 import json
 from itertools import cycle
+import coloredlogs
 import discord
 from discord.ext import commands, tasks
 from sqlalchemy import create_engine, MetaData, select

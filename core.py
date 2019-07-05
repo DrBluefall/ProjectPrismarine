@@ -167,15 +167,17 @@ def set_logging():
     coloredlogs.install(level='INFO')
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    console.setFormatter(formatter)
+    logger.addHandler(console)
     logger.info("Log initialized.")
 
     return logger
+
 
 def get_config_file():
     """Open the config.json file and check if all parameters exist, then return the config dict."""

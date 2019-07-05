@@ -1,8 +1,7 @@
 PrismarineCo. Ltd. Presents...
 # Project Prismarine!
-*`ProjectPrismarine`*
 
-An experimental moderation and Splatoon 2 discord bot!
+A fresh competitive-oriented Splatoon 2 discord bot!
 
 [![Discord Bots](https://discordbots.org/api/widget/568469437284614174.svg)](https://discordbots.org/bot/568469437284614174)
 
@@ -11,7 +10,7 @@ An experimental moderation and Splatoon 2 discord bot!
 - `SQLAlchemy` (1.3.4 or later)
 - `dbl` (0.3.0)
 
-## Running:
+## Development Enviroment:
 1. Create a `config.json` file in the project root directory.
 2. Add the key `token` with your bot token string.
 3. Add the key `owner` with your user ID integer.
@@ -21,4 +20,5 @@ An experimental moderation and Splatoon 2 discord bot!
 7. Profit!
 
 #### Footnote:
-- Make sure any file you run is ran from the project root directory *(ex. `python bin/create_asset_db.py`)*
+- Make sure any file you run is ran from the project root directory
+- Also make sure all bin files ran directly are run using `run_bin.py` *(e.g. `python run_bin.py create_asset_db`)*

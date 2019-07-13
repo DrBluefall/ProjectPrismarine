@@ -32,9 +32,9 @@ class Bot(commands.Bot):
 
     async def on_ready(self):
         """Execute on bot login."""
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
+        coloredlogs.install(
+            level='INFO',
+            fmt="%(name)s - %(levelname)s - %(asctime)s - %(message)s"
         )
         if self.task_starter == 0:
             self.stat_change.start()  # pylint: disable=E1101
@@ -44,7 +44,7 @@ class Bot(commands.Bot):
     @tasks.loop(seconds=30)
     async def stat_change(self):
         """Change the status of the bot every few seconds."""
-        await self.change_presence(activity=discord.Game(next(self.statuses)))
+        await self.change_presence(status=discord.Status.invisible, activity=discord.Game(next(self.statuses)))
 
 
 class DBHandler:

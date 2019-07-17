@@ -1,3 +1,4 @@
+requests
 discord.py>=1.1.0
 sqlalchemy
 dblpy==0.3.0

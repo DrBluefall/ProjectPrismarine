@@ -40,10 +40,6 @@ class Client(commands.Bot):
 
             logging.error("Unhandled exception in %s:\nInvocation Context: Server - %s (%i), Channel - #%s (%i)\n%s",
             ctx.command.qualified_name, ctx.guild.name, ctx.guild.id, ctx.channel.name, ctx.channel.id, err_msg)
-
-@commands.command()
-async def foo(ctx):
-    raise NotImplementedError
     
 def main():
     coloredlogs.install()
@@ -52,7 +48,6 @@ def main():
     client = Client(
         command_prefix=commands.when_mentioned_or(cfg["prefix"]),
         owners=cfg["owners"])
-    client.add_command(foo)
     client.run(cfg["token"])
 
 if __name__ == "__main__":

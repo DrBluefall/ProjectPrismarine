@@ -42,7 +42,11 @@ class Client(commands.Bot):
             ctx.command.qualified_name, ctx.guild.name, ctx.guild.id, ctx.channel.name, ctx.channel.id, err_msg)
     
 def main():
-    coloredlogs.install()
+    coloredlogs.DEFAULT_FIELD_STYLES.update({'funcName': {'color': 'cyan' }})
+    coloredlogs.DEFAULT_FIELD_STYLES["name"]["color"] = 'yellow'
+    coloredlogs.install(
+        fmt="[%(hostname)s] %(asctime)s %(funcName)s(%(lineno)s) %(name)s[%(process)d] %(levelname)s %(message)s"
+    )
     with open("../config.json") as infile:
         cfg = json.load(infile)
     client = Client(

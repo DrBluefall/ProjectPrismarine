@@ -41,12 +41,25 @@ class Client(commands.Bot):
             logging.error("Unhandled exception in %s:\nInvocation Context: Server - %s (%i), Channel - #%s (%i)\n%s",
             ctx.command.qualified_name, ctx.guild.name, ctx.guild.id, ctx.channel.name, ctx.channel.id, err_msg)
     
+def verify_config():
+    with open("../config.json") as infile:
+        cfg = json.load(infile)
+        required_keys = [
+            "token",
+            "owners",
+            "prefix"
+        ]
+        for key in required_keys:
+            if key not in cfg.keys():
+                raise Exception("Your config.json is incomplete! Please assure that it has the following keys: " + str(required_keys))
+    
 def main():
     coloredlogs.DEFAULT_FIELD_STYLES.update({'funcName': {'color': 'cyan' }})
     coloredlogs.DEFAULT_FIELD_STYLES["name"]["color"] = 'yellow'
     coloredlogs.install(
         fmt="[%(hostname)s] %(asctime)s %(funcName)s(%(lineno)s) %(name)s[%(process)d] %(levelname)s %(message)s"
     )
+    verify_config()
     with open("../config.json") as infile:
         cfg = json.load(infile)
     client = Client(

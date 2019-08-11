@@ -24,6 +24,7 @@ class Client(commands.Bot):
     async def on_ready(self):
         if not self.started_up:
             logging.info("All systems are clear. %s is online!", self.user.name)
+            self.started_up = True
     
     async def on_command_error(self, ctx, exception):
         if isinstance(

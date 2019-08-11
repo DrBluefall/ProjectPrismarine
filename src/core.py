@@ -5,6 +5,7 @@ import os
 import logging
 import traceback
 import json
+import optparse
 
 # Third-Party Imports
 
@@ -43,8 +44,8 @@ class Client(commands.Bot):
             logging.error("Unhandled exception in %s:\nInvocation Context: Server - %s (%i), Channel - #%s (%i)\n%s",
             ctx.command.qualified_name, ctx.guild.name, ctx.guild.id, ctx.channel.name, ctx.channel.id, err_msg)
     
-def verify_config():
-    with open("../config.json") as infile:
+def verify_config(path=None):
+    with open("../config.json" if path is None else path) as infile:
         cfg = json.load(infile)
         required_keys = [
             "token",
@@ -64,13 +65,23 @@ def load_extensions(client):
             logging.info("%s module: Online!", file[:-3].capitalize())
 
 def main():
+    parser = optparse.OptionParser()
+    parser.add_option('--log-level', '-l', dest="log_level")
+    parser.add_option('--config-path', '-c', dest="config_path")
+
+    options, args = parser.parse_args()
+
+    if options.log_level is not None and options.log_level.upper() not in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
+        raise Exception("Invalid logging level specified!\n\nValid levels: DEBUG, INFO, WARNING, ERROR, CRITICAL")
+
     coloredlogs.DEFAULT_FIELD_STYLES.update({'funcName': {'color': 'cyan' }})
     coloredlogs.DEFAULT_FIELD_STYLES["name"]["color"] = 'yellow'
     coloredlogs.install(
+        level="INFO" if options.log_level is None else options.log_level.upper(),
         fmt="[%(hostname)s] %(asctime)s %(funcName)s(%(lineno)s) %(name)s[%(process)d] %(levelname)s %(message)s"
     )
     verify_config()
-    with open("../config.json") as infile:
+    with open("../config.json" if options.config_path is None else options.config_path) as infile:
         cfg = json.load(infile)
     client = Client(
         command_prefix=commands.when_mentioned_or(cfg["prefix"]),

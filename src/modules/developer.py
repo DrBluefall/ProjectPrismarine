@@ -43,7 +43,10 @@ class Developer(commands.Cog):
             await ctx.send("Understood. *Shutting down %s...*" % self.client.user.name)
             logging.warning("Shutting down %s...", self.client.user.name)
             await self.client.logout()
-
+        
+    @developer.command()
+    async def ping(self, ctx):
+        await ctx.send("Client Latency: {}".format(round(self.client.latency * 1000, 3)))
 
 
 def setup(client):

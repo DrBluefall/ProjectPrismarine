@@ -53,12 +53,14 @@ def verify_config():
         for key in required_keys:
             if key not in cfg.keys():
                 raise Exception("Your config.json is incomplete! Please assure that it has the following keys: " + str(required_keys))
+            else:
+                required_keys.remove(key)
 
 def load_extensions(client):
     for file in os.listdir("./modules"):
         if file.endswith(".py"):
             client.load_extension("modules.%s" % file[:-3])
-            logging.info("%s module online", file[:-3].capitalize())
+            logging.info("%s module: Online!", file[:-3].capitalize())
 
 def main():
     coloredlogs.DEFAULT_FIELD_STYLES.update({'funcName': {'color': 'cyan' }})

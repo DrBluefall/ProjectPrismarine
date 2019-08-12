@@ -90,8 +90,16 @@
         - Once captains have left the server, or they decide to close the scrim, or after 5-10 min. of inactivity, the channel will be deleted. Captains can choose to stay in the server, but they won't be able to see anything (except maybe a rules channel.)
     
     - Future Ideas:
-        - Competitive Testing Initiative (Automated League)
+        - Competitive Testing Initiative (CTI) (Automated League)
             - Ratings based on Glicko2 rating system
             - Seasons last ~3 months
             - Results of seasons auto-broadcasted (top 10)
             - Top 10 teams get a special color on their profile, auto add "Season 1 Top 10" to past tournaments
+
+        - Localization
+            - Support multiple spoken languages.
+            - Bridge the language gap for scrims and the CTI.
+                - Provide pre-made phrases for communication between captains.
+            - Possibly branch out of Discord?
+                - Discord isn't used worldwide in the Splatoon scene.
+

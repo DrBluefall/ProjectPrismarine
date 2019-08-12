@@ -24,10 +24,11 @@ class Developer(commands.Cog):
     @commands.is_owner()
     @commands.group(aliases=["dev", "sudo"])
     async def developer(self, ctx):
-        pass
+        """Developer commands to assist in the bot's administration and gathering debug info."""
 
     @developer.command()
     async def logout(self, ctx, fast='false'):
+        """Shutdown the bot. To skip the prompt, pass `y` for the `fast` argument."""
         truth_values = ['Y', 'YES', 'TRUE', '1', 'T']
         
         if fast.upper() not in truth_values:
@@ -52,10 +53,12 @@ class Developer(commands.Cog):
         
     @developer.command()
     async def ping(self, ctx):
+        """Get the latency of the bot."""
         await ctx.send("Client Latency: {}".format(round(self.client.latency * 1000, 3)))
     
     @developer.command()
     async def info(self, ctx):
+        """Generate a report with data on the bot's current runtime."""
         embed = discord.Embed(
             title="%s - System Information" % self.client.user.name,
             color=discord.Color.from_rgb(255, 0, 0)
@@ -84,6 +87,7 @@ class Developer(commands.Cog):
     
     @developer.command()
     async def user(self, ctx, user=None):
+        """Generate a report with data on a user."""
         if user is None:
             user = ctx.message.author
         else:

@@ -81,6 +81,44 @@ class Developer(commands.Cog):
         )
         embed.set_thumbnail(url=self.client.user.avatar_url)
         await ctx.send(embed=embed)
+    
+    @developer.command()
+    async def user(self, ctx, user=None):
+        if user is None:
+            user = ctx.message.author
+        else:
+            try:
+                user = ctx.message.mentions[0]
+            except IndexError:
+                try:
+                    user = await self.client.fetch_user(int(user))
+                except (ValueError, discord.NotFound):
+                    await ctx.send("Command failed - Invalid User specified.")
+        
+        embed = discord.Embed(
+            title=f"User Report - {user.display_name}",
+            color=discord.Color.from_rgb(255, 0, 0)
+        )
+        embed.add_field(
+            name="Name:",
+            value=f"`{user.name}#{user.discriminator}`"
+        )
+        embed.add_field(
+            name="Discord ID:",
+            value=f"`{user.id}`"
+        )
+        embed.add_field(
+            name="Creation Date",
+            value=f"`{user.created_at} UTC`"
+        )
+        
+        embed.add_field(
+            name="Account Type:",
+            value=('`Bot`' if user.bot else "`User`")
+        )
+
+        embed.set_thumbnail(url=user.avatar_url)
+        await ctx.send(embed=embed)
 
 def setup(client):
     client.add_cog(Developer(client))

@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS player_profiles (
+    id INTEGER PRIMARY KEY,
+    friend_code CHARACTER(17) DEFAULT $$SW-XXXX-XXXX-XXXX$$,
+    ign CHARACTER VARYING(10) DEFAULT $$Unset!$$,
+    level INTEGER DEFAULT $$1$$,
+    sz CHARACTER VARYING(5) DEFAULT $$C-$$,
+    tc CHARACTER VARYING(5) DEFAULT $$C-$$,
+    rm CHARACTER VARYING(5) DEFAULT $$C-$$,
+    cb CHARACTER VARYING(5) DEFAULT $$C-$$,
+    sr CHARACTER VARYING(13) DEFAULT $$Intern$$,
+    position INTEGER DEFAULT 0,
+    loadout JSON,
+    team_id INTEGER,
+    team_name TEXT DEFAULT $$N/A$$,
+    is_captain BOOLEAN DEFAULT FALSE,
+    free_agent BOOLEAN DEFAULT FALSE,
+    is_private BOOLEAN DEFAULT FALSE
+);

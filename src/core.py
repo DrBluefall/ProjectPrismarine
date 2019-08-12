@@ -14,6 +14,10 @@ from discord.ext import commands
 import coloredlogs
 
 
+# Local Project Imports
+
+from utils.db_handler import DatabaseHandler
+
 
 class Client(commands.Bot):
     """The base class of Project Prismarine."""
@@ -21,6 +25,7 @@ class Client(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.started_up = False
+        self.dbh = DatabaseHandler()
     
     async def on_ready(self):
         if not self.started_up:
@@ -87,6 +92,7 @@ def main():
         command_prefix=commands.when_mentioned_or(cfg["prefix"]),
         owners=cfg["owners"])
     load_extensions(client)
+    client.dbh.gen_profile_table()
     client.run(cfg["token"])
 
 if __name__ == "__main__":

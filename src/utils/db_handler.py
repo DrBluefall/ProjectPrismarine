@@ -28,7 +28,7 @@ class DatabaseHandler:
             sr CHARACTER VARYING(13) DEFAULT $$Intern$$,
             position INTEGER DEFAULT 0,
             loadout JSON,
-            team_id INTEGER,
+            team_id INTEGER DEFAULT NULL,
             team_name TEXT DEFAULT $$N/A$$,
             is_captain BOOLEAN DEFAULT FALSE,
             free_agent BOOLEAN DEFAULT FALSE,
@@ -47,3 +47,4 @@ class DatabaseHandler:
             3: "Backline",
             4: "Flex"
         }
+        return pos_map[pos_int]

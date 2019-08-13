@@ -45,23 +45,35 @@ class DatabaseHandler:
         ON CONFLICT DO NOTHING;
         """,(user_id,))
         self.main_db.commit()
-    
-    @staticmethod
-    def get_position(pos_int = 0) -> str:
-        pos_map = {
-            0: "Not Set",
-            1: "Frontline",
-            2: "Midline",
-            3: "Backline",
-            4: "Flex"
-        }
-        return pos_map[pos_int]
 
     def update_fc(self, id: int, friend_code: str):
         friend_code = re.sub(r"\D", "", friend_code)
         self.mc.execute("""
         UPDATE player_profiles SET friend_code = %s WHERE id = %s;
         """, (friend_code, id))
+        self.main_db.commit()
+    
+    def toggle_private(self, id: int):
+        self.mc.execute("""SELECT is_private FROM player_profiles WHERE id = %s;""", (id,))
+        private = not self.mc.fetchone()[0]
+        self.mc.execute("""UPDATE player_profiles SET is_private = %s WHERE id = %s;""", (private, id))
+        self.main_db.commit()
+        return private
+
+    def toggle_free_agent(self, id: int):
+        self.mc.execute("""SELECT free_agent FROM player_profiles WHERE id = %s;""", (id,))
+        free_agent = not self.mc.fetchone()[0]
+        self.mc.execute("""UPDATE player_profiles SET free_agent = %s WHERE id = %s;""", (free_agent, id))
+        self.main_db.commit()
+        return free_agent
+
+    def toggle_captain(self, id: int):
+        self.mc.execute("""SELECT is_captain FROM player_profiles WHERE id = %s;""", (id,))
+        is_captain = not self.mc.fetchone()[0]
+        self.mc.execute("""UPDATE player_profiles SET is_captain = %s WHERE id = %s;""", (is_captain, id))
+        self.main_db.commit()
+        return is_captain
+        
 
     def update_rank(self, id: int, mode: str, rank: str) -> str:
         rank_list = (
@@ -114,6 +126,17 @@ class DatabaseHandler:
                 UPDATE player_profiles SET {modes[key]["db_alias"]} = %s WHERE id = %s;
                 """, ((rank.upper() +" "+ power), id))
                 self.main_db.commit()
+        
+    @staticmethod
+    def get_position(pos_int = 0) -> str:
+        pos_map = {
+            0: "Not Set",
+            1: "Frontline",
+            2: "Midline",
+            3: "Backline",
+            4: "Flex"
+        }
+        return pos_map[pos_int]
 
 if __name__ == "__main__":
     dbh = DatabaseHandler()
@@ -123,3 +146,6 @@ if __name__ == "__main__":
     dbh.update_rank(1, "sr", "Profreshional")
     dbh.update_fc(1, "edsefe9999eA9999eSZF9999ae")
     dbh.update_rank(1, "sz", "X99999")
+    dbh.toggle_private(1)
+    dbh.toggle_captain(1)
+    dbh.toggle_free_agent(1)

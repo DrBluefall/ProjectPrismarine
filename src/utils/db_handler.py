@@ -5,14 +5,14 @@ import re
 
 # Third-Party Imports
 
-import psycopg2 as pg
+import pg8000 as pg
 
 
 class DatabaseHandler:
     """Class related to global database management."""
 
     def __init__(self):
-        self.main_db = pg.connect(database="main", host="localhost")
+        self.main_db = pg.connect(user='prismarine-core', database="main", host="localhost")
         self.mc = self.main_db.cursor()
     
     def gen_profile_table(self):
@@ -54,26 +54,34 @@ class DatabaseHandler:
         self.main_db.commit()
     
     def toggle_private(self, id: int):
-        self.mc.execute("""SELECT is_private FROM player_profiles WHERE id = %s;""", (id,))
-        private = not self.mc.fetchone()[0]
-        self.mc.execute("""UPDATE player_profiles SET is_private = %s WHERE id = %s;""", (private, id))
+        private = not self.mc.execute("""
+        SELECT is_private FROM player_profiles WHERE id = %s;
+        """, (id,)).fetchone()[0]
+        self.mc.execute("""
+        UPDATE player_profiles SET is_private = %s WHERE id = %s;
+        """, (private, id))
         self.main_db.commit()
         return private
 
     def toggle_free_agent(self, id: int):
-        self.mc.execute("""SELECT free_agent FROM player_profiles WHERE id = %s;""", (id,))
-        free_agent = not self.mc.fetchone()[0]
-        self.mc.execute("""UPDATE player_profiles SET free_agent = %s WHERE id = %s;""", (free_agent, id))
+        free_agent = not self.mc.execute("""
+        SELECT free_agent FROM player_profiles WHERE id = %s;
+        """, (id,)).fetchone()[0]
+        self.mc.execute("""
+        UPDATE player_profiles SET free_agent = %s WHERE id = %s;
+        """, (free_agent, id))
         self.main_db.commit()
         return free_agent
 
     def toggle_captain(self, id: int):
-        self.mc.execute("""SELECT is_captain FROM player_profiles WHERE id = %s;""", (id,))
-        is_captain = not self.mc.fetchone()[0]
-        self.mc.execute("""UPDATE player_profiles SET is_captain = %s WHERE id = %s;""", (is_captain, id))
+        is_captain = not self.mc.execute("""
+        SELECT is_captain FROM player_profiles WHERE id = %s;
+        """, (id,)).fetchone()[0]
+        self.mc.execute("""
+        UPDATE player_profiles SET is_captain = %s WHERE id = %s;
+        """, (is_captain, id))
         self.main_db.commit()
         return is_captain
-        
 
     def update_rank(self, id: int, mode: str, rank: str) -> str:
         rank_list = (

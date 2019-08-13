@@ -1,4 +1,4 @@
 discord
 coloredlogs
 psutil
-psycopg2
+pg8000

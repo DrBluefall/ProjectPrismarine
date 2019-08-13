@@ -39,18 +39,35 @@ class DatabaseHandler:
         self.main_db.commit()
         logging.info("Player Profile database table generated!")
     
-    def add_profile(self, user_id: int) -> str:
+    def add_profile(self, user_id: int):
         self.mc.execute("""
         INSERT INTO player_profiles(id) VALUES (%s)
         ON CONFLICT DO NOTHING;
         """,(user_id,))
         self.main_db.commit()
+    
+    def update_level(self, id: int, level: int):
+        self.mc.execute("""
+        UPDATE player_profiles SET level = %s WHERE id = %s;
+        """, (level, id))
+        self.main_db.commit()
+    
+    def update_position(self, id: int, position: int):
+        self.mc.execute("""
+        UPDATE player_profiles SET position = %s WHERE id = %s;
+        """, (self.get_position(position), id))
 
     def update_fc(self, id: int, friend_code: str):
         friend_code = re.sub(r"\D", "", friend_code)
         self.mc.execute("""
         UPDATE player_profiles SET friend_code = %s WHERE id = %s;
         """, (friend_code, id))
+        self.main_db.commit()
+    
+    def update_ign(self, id: str, name: str):
+        self.mc.execute("""
+        UPDATE player_profiles SET ign = %s WHERE id = %s;
+        """, (name, id))
         self.main_db.commit()
     
     def toggle_private(self, id: int):
@@ -83,7 +100,7 @@ class DatabaseHandler:
         self.main_db.commit()
         return is_captain
 
-    def update_rank(self, id: int, mode: str, rank: str) -> str:
+    def update_rank(self, id: int, mode: str, rank: str):
         rank_list = (
             "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+", "S", "S+0",
             "S+1", "S+2", "S+3", "S+4", "S+5", "S+6", "S+7", "S+8", "S+9", "X"

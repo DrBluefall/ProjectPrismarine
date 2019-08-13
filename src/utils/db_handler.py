@@ -53,16 +53,25 @@ class DatabaseHandler:
         self.main_db.commit()
     
     def update_position(self, id: int, position: int):
-        self.mc.execute("""
-        UPDATE player_profiles SET position = %s WHERE id = %s;
-        """, (self.get_position(position), id))
+        position = self.get_position(position)
+        if position is not None:
+            self.mc.execute("""
+            UPDATE player_profiles SET position = %s WHERE id = %s;
+            """, (position, id))
+            self.main_db.commit()
+            return self.get_position(position)
+        else:
+            raise ValueError
 
     def update_fc(self, id: int, friend_code: str):
         friend_code = re.sub(r"\D", "", friend_code)
+        if len(friend_code) != 12:
+            return False
         self.mc.execute("""
         UPDATE player_profiles SET friend_code = %s WHERE id = %s;
         """, (friend_code, id))
         self.main_db.commit()
+        return True
     
     def update_ign(self, id: str, name: str):
         self.mc.execute("""
@@ -151,6 +160,8 @@ class DatabaseHandler:
                 UPDATE player_profiles SET {modes[key]["db_alias"]} = %s WHERE id = %s;
                 """, ((rank.upper() +" "+ power), id))
                 self.main_db.commit()
+                return True
+        return False
         
     @staticmethod
     def get_position(pos_int = 0) -> str:
@@ -161,7 +172,7 @@ class DatabaseHandler:
             3: "Backline",
             4: "Flex"
         }
-        return pos_map[pos_int]
+        return pos_map[pos_int] if pos_int in pos_map.keys() else None
 
 if __name__ == "__main__":
     dbh = DatabaseHandler()

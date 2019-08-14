@@ -82,6 +82,7 @@ class AssetDatabase:
         CREATE TABLE main_weapons (
             id SERIAL PRIMARY KEY,
             name TEXT,
+            image TEXT,
             class INTEGER,
             localized_name JSON,
             sub TEXT REFERENCES sub_weapons(name),
@@ -180,7 +181,7 @@ class AssetDatabase:
                 localized_name,
                 image
             ) VALUES (%s, %s, %s);
-            """, (special["name"], json.dumps(["localized_name"]), special["image"]))
+            """, (special["name"], json.dumps(special["localized_name"]), special["image"]))
             self.asset_db.commit()
             logging.info("Inserted %s into the database!" % special["name"])
     
@@ -210,13 +211,14 @@ class AssetDatabase:
                 self.ac.execute("""
                 INSERT INTO main_weapons(
                     name,
+                    image,
                     class,
                     localized_name,
                     sub,
                     special,
                     site_id
-                ) VALUES (%s,%s,%s,%s,%s,%s)
-                """, (weapon["name"], wep_class["id"], json.dumps(weapon["localizedName"]), weapon["sub"], weapon["special"], weapon["id"]))
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s)
+                """, (weapon["name"], weapon["image"], wep_class["id"], json.dumps(weapon["localizedName"]), weapon["sub"], weapon["special"], weapon["id"]))
                 self.asset_db.commit()
                 logging.info("Inserted %s into the database!" % weapon["name"])
 

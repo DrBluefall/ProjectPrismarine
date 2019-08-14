@@ -1,6 +1,7 @@
 # Core Language Imports
 
 from PIL import Image
+from pprint import pprint
 
 # Third-Party Imports
 
@@ -28,22 +29,22 @@ def compile_loadout_dict(loadout: dict):
         "gear": ac.execute("""
         SELECT row_to_json(headgear) FROM headgear WHERE id = %s;
         """, (loadout["head"]["gear_id"],)).fetchone(),
-        "main": ac.execute(ab_query, (loadout["head"]["main"],)).fetchone() if loadout["head"]["main"] != 0 else unknown,
-        "subs": get_subs(loadout["head"]["subs"])
+        "main": ac.execute(ab_query, (loadout["head"]["main"],)).fetchone()[0] if loadout["head"]["main"] != 0 else unknown,
+        "subs": [ val for sublist in get_subs(loadout["head"]["subs"]) for val in sublist ]
     }
     clothes = {
         "gear": ac.execute("""
         SELECT row_to_json(clothing) FROM clothing WHERE id = %s;
         """, (loadout["clothes"]["gear_id"],)).fetchone(),
-        "main": ac.execute(ab_query, (loadout["clothes"]["main"],)).fetchone() if loadout["clothes"]["main"] != 0 else unknown,
-        "subs": get_subs(loadout["clothes"]["subs"])
+        "main": ac.execute(ab_query, (loadout["clothes"]["main"],)).fetchone()[0] if loadout["clothes"]["main"] != 0 else unknown,
+        "subs": [ val for sublist in get_subs(loadout["clothes"]["subs"]) for val in sublist ]
     }
     shoes = {
         "gear": ac.execute("""
         SELECT row_to_json(shoes) FROM shoes WHERE id = %s;
         """, (loadout["shoes"]["gear_id"],)).fetchone(),
-        "main": ac.execute(ab_query, (loadout["shoes"]["main"],)).fetchone() if loadout["shoes"]["main"] != 0 else unknown,
-        "subs": get_subs(loadout["shoes"]["subs"])
+        "main": ac.execute(ab_query, (loadout["shoes"]["main"],)).fetchone()[0] if loadout["shoes"]["main"] != 0 else unknown,
+        "subs": [ val for sublist in get_subs(loadout["shoes"]["subs"]) for val in sublist ]
     }
     return {
         "main": weapon_set[0],
@@ -54,3 +55,43 @@ def compile_loadout_dict(loadout: dict):
         "shoes": shoes
     }
 
+def generate_image(loadout: dict):
+    head_coords = {
+        "main": (153, 118),
+        "subs": [
+            (189, 127),
+            (217, 127),
+            (246, 127)
+        ]
+    }
+    clothes_coords = {
+        "main": (298, 118),
+        "subs": [
+            (334, 127),
+            (363, 127),
+            (391, 127)
+        ]
+    }
+    shoe_coords = {
+        "main": (443, 118),
+        "subs": [
+            (479, 127),
+            (508, 127),
+            (536, 127)
+        ]
+    }
+    coord_map = {
+        "head": head_coords,
+        "clothes": clothes_coords,
+        "shoes": shoe_coords
+    }
+    base = Image.open("../assets/img/loadout_base.png")
+
+    for gear in ["head", "clothes", "shoes"]:
+        main = Image.open(loadout[gear]["main"]["image"]).resize((32,32), Image.ANTIALIAS)
+        base.paste(main, coord_map[gear]["main"], main)
+        for index, sub in enumerate(loadout[gear]["subs"]):
+            sub = Image.open(sub["image"]).resize((24,24), Image.ANTIALIAS)
+            base.paste(sub, coord_map[gear]["subs"][index], sub)
+
+    return base

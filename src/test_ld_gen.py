@@ -1,8 +1,9 @@
-from utils.loadout_gen import compile_loadout_dict
+from utils.loadout_gen import *
 from utils.decoder import decode
 from pprint import pprint
 
 if __name__ == "__main__":
 
-    x = compile_loadout_dict(decode('040c254a50722294006702d8c'))
-    pprint(x)
+    x = compile_loadout_dict(decode('040c254a529224a529674a529'))
+    img = generate_image(x)
+    img.show()

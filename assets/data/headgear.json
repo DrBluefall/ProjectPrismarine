@@ -1,4 +1,4 @@
-headgear = [
+[
   {
     "image": "../common/assets/img/gear/hats/Hed_FST000.png",
     "name": "White Headband",
@@ -679,7 +679,7 @@ headgear = [
     "brand": "Splash Mob",
     "stars": 3,
     "id": 30,
-    "splatnet": 2006,
+    "splatnet": 2006
   },
   {
     "image": "../common/assets/img/gear/hats/Hed_NCP008.png",
@@ -2545,7 +2545,7 @@ headgear = [
       "ru_RU": "Каска с фонарем",
       "it_IT": "Casco da minatore"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 115,
@@ -2567,7 +2567,7 @@ headgear = [
       "ru_RU": "Маска от пыли 2.5",
       "it_IT": "Maschera antipolvere"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "splatnet": 21001,
@@ -2589,7 +2589,7 @@ headgear = [
       "ru_RU": "Маска сварщика",
       "it_IT": "Maschera da saldatore"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "splatnet": 21002,
@@ -2611,7 +2611,7 @@ headgear = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 118,
@@ -2633,7 +2633,7 @@ headgear = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 119,
@@ -2655,7 +2655,7 @@ headgear = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 120,
@@ -2677,7 +2677,7 @@ headgear = [
       "ru_RU": "Шлем океанолога",
       "it_IT": "Casco da oceanografo"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "splatnet": 21006,
@@ -2699,7 +2699,7 @@ headgear = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 122,
@@ -2721,12 +2721,12 @@ headgear = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 123,
     "splatnet": 21009,
-    "unreleased": True
+    "unreleased": true
   },
   {
     "image": "../common/assets/img/gear/hats/Hed_CRC000.png",
@@ -2749,7 +2749,7 @@ headgear = [
     "stars": 3,
     "id": 124,
     "splatnet": 22000,
-    "unreleased": True
+    "unreleased": true
   },
   {
     "image": "../common/assets/img/gear/hats/Hed_HAP000.png",

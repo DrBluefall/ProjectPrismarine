@@ -1,4 +1,4 @@
-shoes = [
+[
   {
     "image": "../common/assets/img/gear/shoes/Shs_FST000.png",
     "name": "Cream Basics",
@@ -2941,7 +2941,7 @@ shoes = [
       "ru_RU": "Рабочие сапоги",
       "it_IT": "Stivali squamosi"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "splatnet": 21001,
@@ -2963,7 +2963,7 @@ shoes = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "splatnet": 21002,
@@ -2985,7 +2985,7 @@ shoes = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "splatnet": 21003,
@@ -3007,7 +3007,7 @@ shoes = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 136,
@@ -3029,7 +3029,7 @@ shoes = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "splatnet": 21005,
@@ -3051,7 +3051,7 @@ shoes = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "splatnet": 21006,

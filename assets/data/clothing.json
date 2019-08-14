@@ -1,4 +1,4 @@
-clothes = [
+[
   {
     "image": "../common/assets/img/gear/clothes/Clt_FST001.png",
     "name": "Basic Tee",
@@ -19,7 +19,7 @@ clothes = [
     "brand": "SquidForce",
     "stars": 1,
     "id": 0,
-    "splatnet": 2,
+    "splatnet": 2
   },
   {
     "image": "../common/assets/img/gear/clothes/Clt_FST002.png",
@@ -614,7 +614,7 @@ clothes = [
     "stars": 3,
     "id": 27,
     "splatnet": 1028,
-    "splatnetShop": True
+    "splatnetShop": true
   },
   {
     "image": "../common/assets/img/gear/clothes/Clt_TES029.png",
@@ -1252,7 +1252,7 @@ clothes = [
     "brand": "Zink",
     "stars": 1,
     "id": 56,
-    "splatnet": 1057,
+    "splatnet": 1057
   },
   {
     "image": "../common/assets/img/gear/clothes/Clt_TES058.png",
@@ -4504,7 +4504,7 @@ clothes = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 204,
@@ -4966,7 +4966,7 @@ clothes = [
       "ru_RU": "Майка курьера",
       "it_IT": "Polo da lavoro"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 225,
@@ -4988,7 +4988,7 @@ clothes = [
       "ru_RU": "Спасательный жилет",
       "it_IT": "Giubbotto salvavita"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 226,
@@ -5010,7 +5010,7 @@ clothes = [
       "ru_RU": "Форма заправщика",
       "it_IT": "Giacca benzinaio"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 227,
@@ -5032,7 +5032,7 @@ clothes = [
       "ru_RU": "Безрукавка и перчатки",
       "it_IT": "Set con guanti da lavoro"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 228,
@@ -5054,7 +5054,7 @@ clothes = [
       "ru_RU": "Майка «Мак-да-рак»",
       "it_IT": "T-shirt Fritto e Rifritto"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 229,
@@ -5076,7 +5076,7 @@ clothes = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 230,
@@ -5098,7 +5098,7 @@ clothes = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 231,
@@ -5120,7 +5120,7 @@ clothes = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 232,
@@ -5142,7 +5142,7 @@ clothes = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 233,
@@ -5164,7 +5164,7 @@ clothes = [
       "nl_NL": "Null",
       "ru_RU": "Null"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 234,
@@ -5186,7 +5186,7 @@ clothes = [
       "nl_NL": "Null",
       "ru_RU": "Акашический халат"
     },
-    "main": None,
+    "main": null,
     "brand": "Grizzco",
     "stars": 3,
     "id": 235,
@@ -5474,7 +5474,7 @@ clothes = [
     },
     "main": "Ability Doubler",
     "brand": "SquidForce",
-    "fixed": True,    
+    "fixed": true,    
     "stars": 3,
     "id": 248,
     "splatnet": 26000

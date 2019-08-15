@@ -20,10 +20,12 @@ class Player(commands.Cog):
     
     @commands.group()
     async def player(self, ctx):
+        """Player command group. Use this to modify your own profile, as well as view the profiles of others."""
         pass
 
     @player.command()
     async def profile(self, ctx, user=None):
+        """View a player's profile. If no user is specified, it will show your own profile."""
         if user is None:
             user = ctx.message.author
         else:
@@ -101,11 +103,13 @@ Salmon Run: {profile['sr']}
 
     @player.command()
     async def create_profile(self, ctx):
+        """Make a profile in the bot. Pretty self-explanatory."""
         self.client.dbh.add_profile(ctx.message.author.id)
         await ctx.send("Player profile created! :smiley:")
     
     @player.command()
     async def fc(self, ctx, *, friend_code):
+        """Set your friend code."""
         valid = self.client.dbh.update_fc(ctx.message.author.id, friend_code)
         if valid:
             await ctx.send("Friend code updated! :smiley:")
@@ -115,6 +119,7 @@ Salmon Run: {profile['sr']}
 
     @player.command()
     async def ign(self, ctx, *, ign):
+        """Set your in-game name."""
         if any(
                 (
                 len(ign) > 10, 
@@ -128,11 +133,20 @@ Salmon Run: {profile['sr']}
     
     @player.command()
     async def level(self, ctx, level):
+        """Set your level."""
         self.client.dbh.update_level(ctx.message.author.id, level)
         await ctx.send("Level updated! :smiley:")
     
     @player.command()
     async def rank(self, ctx, mode, *, rank):
+        """Set your rank in specific modes.
+        Aliases:
+            - Splat Zones: `sz`, `splatzones`, `sz_rank`
+            - Tower Control: `tc`, `towercontrol`, `tc_rank`
+            - Rainmaker: `rm`, `rainmaker`, `rm_rank`
+            - Clam Blitz: `cb`, `clamblitz`, `cb_rank`
+            - Salmon Run: `sr`. `salmonrun`, `sr_rank`
+        """
         updated = self.client.dbh.update_rank(ctx.message.author.id, mode, rank)
         if updated:
             await ctx.send("Rank updated! :smiley:")
@@ -141,6 +155,15 @@ Salmon Run: {profile['sr']}
     
     @player.command()
     async def position(self, ctx, position: int):
+        """Set your position. Each one is mapped to an integer, which you must pass in as your position.
+        ex) "pr.player position 2" sets your position to `Midline`.
+        Position Map:
+            0: Not Set
+            1: Frontline
+            2: Midline
+            3: Frontline
+            4: Flex
+        """
         try:
             self.client.dbh.update_position(ctx.message.author.id, position)
             await ctx.send('Set position to %s!' % self.client.dbh.get_position(position))
@@ -149,6 +172,7 @@ Salmon Run: {profile['sr']}
     
     @player.command()
     async def loadout(self, ctx, loadout_link: str):
+        """Set your loadout within the bot. Use https://selicia.github.io/en_US/ to create a loadout, and give the bot the resulting link."""
         if loadout_link.startswith('https://selicia.github.io/en_US/#'):
             loadout = compile_loadout_dict(decode(loadout_link[33:]))
             ld_image = generate_image(loadout)
@@ -165,10 +189,12 @@ Salmon Run: {profile['sr']}
 
     @player.command()
     async def toggle_fa(self, ctx):
+        """Toggle whether or not to display your profile as that of a Free Agent."""
         await ctx.send(f"Free Agent Status set to `{self.client.dbh.toggle_free_agent(ctx.message.author.id)}`")
 
     @player.command()
     async def toggle_private(self, ctx):
+        """Toggle privacy on your profile to `True` in order to hide your FC from anyone that's not you when using `pr.player profile`."""
         await ctx.send(f"Privacy Status set to `{self.client.dbh.toggle_private(ctx.message.author.id)}`")
 
 

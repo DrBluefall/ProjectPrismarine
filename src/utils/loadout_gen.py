@@ -28,21 +28,21 @@ def compile_loadout_dict(loadout: dict):
     head = {
         "gear": ac.execute("""
         SELECT row_to_json(headgear) FROM headgear WHERE id = %s;
-        """, (loadout["head"]["gear_id"],)).fetchone(),
+        """, (loadout["head"]["gear_id"],)).fetchone()[0],
         "main": ac.execute(ab_query, (loadout["head"]["main"],)).fetchone()[0] if loadout["head"]["main"] != 0 else unknown,
         "subs": [ val for sublist in get_subs(loadout["head"]["subs"]) for val in sublist ]
     }
     clothes = {
         "gear": ac.execute("""
         SELECT row_to_json(clothing) FROM clothing WHERE id = %s;
-        """, (loadout["clothes"]["gear_id"],)).fetchone(),
+        """, (loadout["clothes"]["gear_id"],)).fetchone()[0],
         "main": ac.execute(ab_query, (loadout["clothes"]["main"],)).fetchone()[0] if loadout["clothes"]["main"] != 0 else unknown,
         "subs": [ val for sublist in get_subs(loadout["clothes"]["subs"]) for val in sublist ]
     }
     shoes = {
         "gear": ac.execute("""
         SELECT row_to_json(shoes) FROM shoes WHERE id = %s;
-        """, (loadout["shoes"]["gear_id"],)).fetchone(),
+        """, (loadout["shoes"]["gear_id"],)).fetchone()[0],
         "main": ac.execute(ab_query, (loadout["shoes"]["main"],)).fetchone()[0] if loadout["shoes"]["main"] != 0 else unknown,
         "subs": [ val for sublist in get_subs(loadout["shoes"]["subs"]) for val in sublist ]
     }
@@ -57,6 +57,7 @@ def compile_loadout_dict(loadout: dict):
 
 def generate_image(loadout: dict):
     head_coords = {
+        "gear": (163, 26),
         "main": (153, 118),
         "subs": [
             (189, 127),
@@ -65,6 +66,7 @@ def generate_image(loadout: dict):
         ]
     }
     clothes_coords = {
+        "gear": (310, 26),
         "main": (298, 118),
         "subs": [
             (334, 127),
@@ -73,6 +75,7 @@ def generate_image(loadout: dict):
         ]
     }
     shoe_coords = {
+        "gear": (457, 26),
         "main": (443, 118),
         "subs": [
             (479, 127),
@@ -95,8 +98,10 @@ def generate_image(loadout: dict):
     base.paste(main_wep, (24, 24), main_wep)
 
     for gear in ["head", "clothes", "shoes"]:
+        gear_img = Image.open(loadout[gear]["gear"]["image"]).resize((96,96), Image.ANTIALIAS)
         main = Image.open(loadout[gear]["main"]["image"]).resize((32,32), Image.ANTIALIAS)
         base.paste(main, coord_map[gear]["main"], main)
+        base.paste(gear_img, coord_map[gear]["gear"], gear_img)
         for index, sub in enumerate(loadout[gear]["subs"]):
             sub = Image.open(sub["image"]).resize((24,24), Image.ANTIALIAS)
             base.paste(sub, coord_map[gear]["subs"][index], sub)

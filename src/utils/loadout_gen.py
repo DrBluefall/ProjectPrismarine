@@ -87,6 +87,11 @@ def generate_image(loadout: dict):
     }
     base = Image.open("../assets/img/loadout_base.png")
 
+    sub_wep = Image.open(loadout["sub"]["image"]).resize((32,32), Image.ANTIALIAS)
+    base.paste(sub_wep, (27, 116), sub_wep)
+    special_wep = Image.open(loadout["special"]["image"]).resize((32,32), Image.ANTIALIAS)
+    base.paste(special_wep, (78, 116), special_wep)
+
     for gear in ["head", "clothes", "shoes"]:
         main = Image.open(loadout[gear]["main"]["image"]).resize((32,32), Image.ANTIALIAS)
         base.paste(main, coord_map[gear]["main"], main)

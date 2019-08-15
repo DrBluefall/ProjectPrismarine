@@ -2,6 +2,7 @@
 
 import logging
 import re
+import json
 
 # Third-Party Imports
 
@@ -14,6 +15,11 @@ class DatabaseHandler:
     def __init__(self):
         self.main_db = pg.connect(user='prismarine-core', database="main", host="localhost")
         self.mc = self.main_db.cursor()
+    
+    def get_profile(self, user: int):
+        return self.mc.execute("""
+        SELECT row_to_json(player_profiles) FROM player_profiles WHERE id = %s;
+        """, (user,)).fetchone()[0]
     
     def gen_profile_table(self):
         self.mc.execute("""
@@ -53,13 +59,11 @@ class DatabaseHandler:
         self.main_db.commit()
     
     def update_position(self, id: int, position: int):
-        position = self.get_position(position)
         if position is not None:
             self.mc.execute("""
             UPDATE player_profiles SET position = %s WHERE id = %s;
             """, (position, id))
             self.main_db.commit()
-            return self.get_position(position)
         else:
             raise ValueError
 
@@ -155,13 +159,19 @@ class DatabaseHandler:
         else:
             power = ""
         for key, value in modes.items():
-            if mode in modes[key]["aliases"] and rank.upper() in modes[key]["rlist"]:
+            if mode in modes[key]["aliases"] and rank.capitalize() in modes[key]["rlist"]:
                 self.mc.execute(f"""
                 UPDATE player_profiles SET {modes[key]["db_alias"]} = %s WHERE id = %s;
-                """, ((rank.upper() +" "+ power), id))
+                """, ((rank.capitalize() +" "+ power), id))
                 self.main_db.commit()
                 return True
         return False
+    
+    def update_loadout(self, user: int, loadout: dict):
+        self.mc.execute("""
+        UPDATE player_profiles SET loadout = %s WHERE id = %s;
+        """, (json.dumps(loadout), user))
+        self.main_db.commit()
         
     @staticmethod
     def get_position(pos_int = 0) -> str:
@@ -185,3 +195,4 @@ if __name__ == "__main__":
     dbh.toggle_private(1)
     dbh.toggle_captain(1)
     dbh.toggle_free_agent(1)
+    print(dbh.get_profile(1))

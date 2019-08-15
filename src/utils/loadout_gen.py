@@ -16,7 +16,7 @@ unknown = {
 }
 
 def get_subs(ab_list):
-    return [ ac.execute(ab_query, (i,)).fetchone() if i != 0 else unknown for i in ab_list ]
+    return [ ac.execute(ab_query, (i,)).fetchone() if i != 0 else [unknown] for i in ab_list ]
 
 def compile_loadout_dict(loadout: dict):
     weapon_set = ac.execute("""
@@ -91,6 +91,8 @@ def generate_image(loadout: dict):
     base.paste(sub_wep, (27, 116), sub_wep)
     special_wep = Image.open(loadout["special"]["image"]).resize((32,32), Image.ANTIALIAS)
     base.paste(special_wep, (78, 116), special_wep)
+    main_wep = Image.open(loadout["main"]["image"]).resize((96,96), Image.ANTIALIAS)
+    base.paste(main_wep, (24, 24), main_wep)
 
     for gear in ["head", "clothes", "shoes"]:
         main = Image.open(loadout[gear]["main"]["image"]).resize((32,32), Image.ANTIALIAS)

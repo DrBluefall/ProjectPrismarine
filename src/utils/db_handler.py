@@ -66,7 +66,8 @@ class DatabaseHandler:
         BEGIN
         BEGIN
         ALTER TABLE player_profiles
-            ADD CONSTRAINT team_profile_id_fkey FOREIGN KEY (team_id) REFERENCES team_profiles(id);
+            ADD CONSTRAINT team_profile_id_fkey FOREIGN KEY (team_id) REFERENCES team_profiles(id)
+            ON DELETE SET NULL;
         EXCEPTION WHEN duplicate_object THEN NULL;
         END;
         END $$;

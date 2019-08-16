@@ -21,7 +21,7 @@ class DatabaseHandler:
         SELECT row_to_json(player_profiles) FROM player_profiles WHERE id = %s;
         """, (user,)).fetchone()[0]
     
-    def gen_profile_table(self):
+    def gen_tables(self):
         self.mc.execute("""
         CREATE TABLE IF NOT EXISTS player_profiles (
             id BIGINT PRIMARY KEY,
@@ -42,8 +42,37 @@ class DatabaseHandler:
             is_private BOOLEAN DEFAULT FALSE
         );
         """)
+        self.mc.execute("""
+        CREATE TABLE IF NOT EXISTS team_profiles (
+            id SERIAL PRIMARY KEY,
+            name TEXT DEFAULT $$The Default Team$$,
+            deletion_time BIGINT DEFAULT NULL,
+            captain BIGINT,
+            description TEXT DEFAULT $$This team is a mystery...$$,
+            thumbnail TEXT,
+            timezone TIMESTAMPTZ DEFAULT NOW(),
+            recruiting BOOLEAN DEFAULT FALSE,
+            recent_tournaments JSON,
+            player_1 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
+            player_2 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
+            player_3 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
+            player_4 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
+            player_5 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
+            player_6 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL
+        );
+        """)
+        self.mc.execute("""
+        DO $$
+        BEGIN
+        BEGIN
+        ALTER TABLE player_profiles
+            ADD CONSTRAINT team_profile_id_fkey FOREIGN KEY (team_id) REFERENCES team_profiles(id);
+        EXCEPTION WHEN duplicate_object THEN NULL;
+        END;
+        END $$;
+        """)
         self.main_db.commit()
-        logging.info("Player Profile database table generated!")
+        logging.info("Database tables generated!")
     
     def add_profile(self, user_id: int):
         self.mc.execute("""

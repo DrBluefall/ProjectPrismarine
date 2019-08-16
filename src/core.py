@@ -92,7 +92,7 @@ def main():
         command_prefix=commands.when_mentioned_or(cfg["prefix"]),
         owners=cfg["owners"])
     load_extensions(client)
-    client.dbh.gen_profile_table()
+    client.dbh.gen_tables()
     client.run(cfg["token"])
 
 if __name__ == "__main__":

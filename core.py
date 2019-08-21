@@ -44,7 +44,7 @@ class Bot(commands.Bot):
     @tasks.loop(seconds=30)
     async def stat_change(self):
         """Change the status of the bot every few seconds."""
-        await self.change_presence(status=discord.Status.invisible, activity=discord.Game(next(self.statuses)))
+        await self.change_presence(activity=discord.Game(next(self.statuses)))
 
 
 class DBHandler:

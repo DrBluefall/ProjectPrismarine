@@ -3,9 +3,9 @@
 
 import logging
 import os
-import sys
 import platform
 import subprocess
+from datetime import datetime
 
 # Third-Party Imports
 
@@ -76,11 +76,15 @@ class Developer(commands.Cog):
         )
         embed.add_field(
             name="Python Runtime Information:",
-            value=f"`{platform.python_implementation()} {sys.version}`"
+            value=f"`{platform.python_implementation()} {platform.python_version()} ({platform.python_build()[0]}, {platform.python_build()[1]})\n[{platform.python_compiler()}]`"
         )
         embed.add_field(
-            name="Host Node:",
-            value=f"{platform.node()}"
+            name="Host Data:",
+            value=f"Node Name: `{platform.node()}`\n Operating System: {platform.version()}"
+        )
+        embed.add_field(
+            name="Operation Time:",
+            value=f"{datetime.now() - self.client.start_time}"
         )
         embed.set_thumbnail(url=self.client.user.avatar_url)
         await ctx.send(embed=embed)

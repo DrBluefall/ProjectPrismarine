@@ -6,6 +6,7 @@ import logging
 import traceback
 import json
 import optparse
+from datetime import datetime
 
 # Third-Party Imports
 
@@ -31,6 +32,7 @@ class Client(commands.Bot):
         if not self.started_up:
             logging.info("All systems are clear. %s is online!", self.user.name)
             self.started_up = True
+            self.start_time = datetime.now()
     
     async def on_command_error(self, ctx, exception):
         if isinstance(

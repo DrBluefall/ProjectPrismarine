@@ -19,12 +19,12 @@ class Player(commands.Cog):
         self.client = client
     
     @commands.group()
-    async def player(self, ctx):
+    async def player(self, ctx: commands.Context):
         """Player command group. Use this to modify your own profile, as well as view the profiles of others."""
         pass
 
     @player.command()
-    async def profile(self, ctx, user=None):
+    async def profile(self, ctx: commands.Context, user=None):
         """View a player's profile. If no user is specified, it will show your own profile."""
         if user is None:
             user = ctx.message.author
@@ -102,13 +102,13 @@ Salmon Run: {profile['sr']}
 
 
     @player.command()
-    async def create_profile(self, ctx):
+    async def create_profile(self, ctx: commands.Context):
         """Make a profile in the bot. Pretty self-explanatory."""
         self.client.dbh.add_profile(ctx.message.author.id)
         await ctx.send("Player profile created! :smiley:")
     
     @player.command()
-    async def fc(self, ctx, *, friend_code):
+    async def fc(self, ctx: commands.Context, *, friend_code):
         """Set your friend code."""
         valid = self.client.dbh.update_fc(ctx.message.author.id, friend_code)
         if valid:
@@ -118,7 +118,7 @@ Salmon Run: {profile['sr']}
     
 
     @player.command()
-    async def ign(self, ctx, *, ign):
+    async def ign(self, ctx: commands.Context, *, ign):
         """Set your in-game name."""
         if any(
                 (
@@ -132,13 +132,13 @@ Salmon Run: {profile['sr']}
             await ctx.send("In-Game Name updated! :smiley:")
     
     @player.command()
-    async def level(self, ctx, level):
+    async def level(self, ctx: commands.Context, level):
         """Set your level."""
         self.client.dbh.update_level(ctx.message.author.id, level)
         await ctx.send("Level updated! :smiley:")
     
     @player.command()
-    async def rank(self, ctx, mode, *, rank):
+    async def rank(self, ctx: commands.Context, mode, *, rank):
         """Set your rank in specific modes.
         Aliases:
             - Splat Zones: `sz`, `splatzones`, `sz_rank`
@@ -154,7 +154,7 @@ Salmon Run: {profile['sr']}
             await ctx.send("Command Failed - Invalid Mode or Rank specified.")
     
     @player.command()
-    async def position(self, ctx, position: int):
+    async def position(self, ctx: commands.Context, position: int):
         """Set your position. Each one is mapped to an integer, which you must pass in as your position.
         ex) "pr.player position 2" sets your position to `Midline`.
         Position Map:
@@ -171,7 +171,7 @@ Salmon Run: {profile['sr']}
             await ctx.send("Command Failed - Invalid Position specified.")
     
     @player.command()
-    async def loadout(self, ctx, loadout_link: str):
+    async def loadout(self, ctx: commands.Context, loadout_link: str):
         """Set your loadout within the bot. Use https://selicia.github.io/en_US/ to create a loadout, and give the bot the resulting link."""
         if loadout_link.startswith('https://selicia.github.io/en_US/#'):
             loadout = compile_loadout_dict(decode(loadout_link[33:]))
@@ -187,14 +187,86 @@ Salmon Run: {profile['sr']}
                 await ctx.send('Loadout Updated! :smiley:')
             elif msg.content.lower() == 'n':
                 await ctx.send("Understood. Aborting update.")
+    
+    def set_head(self, msg: discord.Message):
+        raise NotImplementedError
+
+    def set_clothes(self, msg: discord.Message):
+        raise NotImplementedError
+
+    def set_pants(self, msg: discord.Message):
+        raise NotImplementedError
 
     @player.command()
-    async def toggle_fa(self, ctx):
+    async def ldgui(self, ctx: commands.Context):
+        """Use a built in loadout GUI to set your loadout within the bot!"""
+
+        embed = discord.Embed(
+            title="Welcome to the Loadout Creation GUI!",
+            description="""
+This GUI will assist in getting your loadout within the bot. Below, you'll see reactions that you can, well, react to, and use to pick what gear you would like to set, what you would like to set (the gear itself, mains, subs), and finally, finalize the whole thing.
+Here are the options:
+
+🎩 - Hat
+
+👕 - Clothes
+
+👢 - Shoes
+
+✅ - Confirm your new loadout!
+
+❌ - Quit, discard all changes
+            """,
+            color=discord.Color.from_rgb(255, 0, 0)
+        )
+        embed.set_author(
+            name=self.client.user.name,
+            icon_url=self.client.user.avatar_url
+        )
+        loadout_msg = await ctx.send(embed=embed)
+        for i in ["🎩", "👕", "👢", "✅", "❌"]:
+            await loadout_msg.add_reaction(i)
+        ld_dict = {
+            'clothes': {
+                'gear_id': 0, 
+                'main': 0, 
+                'subs': [0, 0, 0]
+                },
+            'head': {
+                'gear_id': 0, 
+                'main': 0, 
+                'subs': [0, 0, 0]
+                },
+            'id': 0,
+            'set': 0,
+            'shoes': {
+                'gear_id': 0, 
+                'main': 0, 
+                'subs': [0, 0, 0]
+                }
+            }
+        switch = {
+            "🎩": self.set_head, 
+            "👕": self.set_clothes,
+            "👢": self.set_pants
+        }
+        while True:
+            reaction, user = await self.client.wait_for(
+                'reaction_add', 
+                check=lambda r, u: u == ctx.message.author \
+                and str(r.emoji) in ["🎩", "👕", "👢", "✅", "❌"]
+            )
+            await loadout_msg.remove_reaction(reaction, user)
+            if str(reaction.emoji) in switch.keys():
+                switch[str(reaction.emoji)](loadout_msg)
+
+    @player.command()
+    async def toggle_fa(self, ctx: commands.Context):
         """Toggle whether or not to display your profile as that of a Free Agent."""
         await ctx.send(f"Free Agent Status set to `{self.client.dbh.toggle_free_agent(ctx.message.author.id)}`")
 
     @player.command()
-    async def toggle_private(self, ctx):
+    async def toggle_private(self, ctx: commands.Context):
         """Toggle privacy on your profile to `True` in order to hide your FC from anyone that's not you when using `pr.player profile`."""
         await ctx.send(f"Privacy Status set to `{self.client.dbh.toggle_private(ctx.message.author.id)}`")
 

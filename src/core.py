@@ -94,6 +94,10 @@ def main():
     load_extensions(client)
     client.dbh.gen_tables()
     client.run(cfg["token"])
+    logging.warning("Closing Database connections.")
+    client.dbh.mc.close()
+    client.dbh.main_db.close()
+    logging.info("Connections closed. Shutdown complete.")
 
 if __name__ == "__main__":
     main()

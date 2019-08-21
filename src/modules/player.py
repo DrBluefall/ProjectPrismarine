@@ -184,8 +184,9 @@ Salmon Run: {profile['sr']}
             msg = await self.client.wait_for('message', check=lambda m: all((m.author == ctx.message.author, (m.content.lower() == 'y' or m.content.lower() == 'n'))))
             if msg.content.lower() == 'y':
                 self.client.dbh.update_loadout(ctx.message.author.id, loadout)
-                await ctx.send('foo')
-            pass
+                await ctx.send('Loadout Updated! :smiley:')
+            elif msg.content.lower() == 'n':
+                await ctx.send("Understood. Aborting update.")
 
     @player.command()
     async def toggle_fa(self, ctx):

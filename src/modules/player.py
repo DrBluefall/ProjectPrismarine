@@ -63,11 +63,11 @@ class Player(commands.Cog):
         embed.add_field(
             name="Ranks:",
             value=f"""
-Splat Zones: {profile['sz']}
-Tower Control: {profile['tc']}
-Rainmaker: {profile['rm']}
-Clam Blitz: {profile['cb']}
-Salmon Run: {profile['sr']}
+__Splat Zones__: {profile['sz']}
+__Tower Control__: {profile['tc']}
+__Rainmaker__: {profile['rm']}
+__Clam Blitz__: {profile['cb']}
+__Salmon Run__: {profile['sr']}
             """
         )
         embed.add_field(

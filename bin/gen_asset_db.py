@@ -1,12 +1,14 @@
 # Core Language Imports
 
 import json
-import logging
+import sys
 
 # Third-Party Imports
 
 import pg8000 as pg
-import coloredlogs
+
+def status(s):
+    sys.stdout.write("\r\033[1m\033[K\033[38;5;082m" + s + "\033[0m")
 
 class AssetDatabase:
 
@@ -95,7 +97,6 @@ class AssetDatabase:
         with open("../assets/data/headgear.json", "r") as infile:
             headgear = json.load(infile)
         for head in headgear:
-            logging.info(f"Inserting {head['name']}...")
             head["image"] = "../assets/img/gear/hats/" + head["image"][31:]
             self.ac.execute("""
             INSERT INTO headgear(
@@ -109,14 +110,13 @@ class AssetDatabase:
             ) VALUES (%s,%s,%s,%s,%s,%s,%s)
             """, (head["name"], head["image"], json.dumps(head["localizedName"]), head["main"], head["stars"], head["id"], head["splatnet"]))
             self.asset_db.commit()
-            logging.info("Inserted '%s' into the database!" % head["name"])
+            status("Inserted '%s' into the database!" % head["name"])
         
     
     def insert_clothing(self):
         with open("../assets/data/clothing.json", "r") as infile:
             gear = json.load(infile)
         for item in gear:
-            logging.info(f"Inserting {item['name']}...")
             item["image"] = "../assets/img/gear/clothes/" + item["image"][34:]
             self.ac.execute("""
             INSERT INTO clothing(
@@ -130,13 +130,12 @@ class AssetDatabase:
             ) VALUES (%s,%s,%s,%s,%s,%s,%s)
             """, (item["name"], item["image"], json.dumps(item["localizedName"]), item["main"], item["stars"], item["id"], item["splatnet"]))
             self.asset_db.commit()
-            logging.info("Inserted %s into the database!" % item["name"])
+            status("Inserted %s into the database!" % item["name"])
 
     def insert_shoes(self):
         with open("../assets/data/shoes.json", "r") as infile:
             gear = json.load(infile)
         for item in gear:
-            logging.info(f"Inserting {item['name']}...")
             item["image"] = "../assets/img/gear/shoes/" + item["image"][32:]
             self.ac.execute("""
             INSERT INTO shoes(
@@ -150,14 +149,13 @@ class AssetDatabase:
             ) VALUES (%s,%s,%s,%s,%s,%s,%s)
             """, (item["name"], item["image"], json.dumps(item["localizedName"]), item["main"], item["stars"], item["id"], item["splatnet"]))
             self.asset_db.commit()
-            logging.info("Inserted %s into the database!" % item["name"])
+            status("Inserted %s into the database!" % item["name"])
 
     def insert_abilities(self):
         with open("../assets/data/skills.json", "r") as infile:
             abilities = json.load(infile)
         for ability in abilities:
             ability["image"] = "../assets/img/skills/" + ability["image"][28:]
-            logging.info(f"Inserting {ability['name']}...")
             self.ac.execute("""
             INSERT INTO abilities(
                 name,
@@ -167,14 +165,13 @@ class AssetDatabase:
             ) VALUES (%s,%s,%s,%s);
             """, (ability["name"], json.dumps(ability["localized_name"]), ability["image"], ability["id"]))
             self.asset_db.commit()
-            logging.info("Inserted %s into the database!" % ability["name"])
+            status("Inserted %s into the database!" % ability["name"])
     
     def insert_specials(self):
         with open("../assets/data/specials.json") as infile:
             specials = json.load(infile)
         for special in specials:
             special["image"] = "../assets/img/subs_specials/" + special["image"][28:]
-            logging.info(f"Inserting {special['name']}...")
             self.ac.execute("""
             INSERT INTO special_weapons(
                 name,
@@ -183,13 +180,12 @@ class AssetDatabase:
             ) VALUES (%s, %s, %s);
             """, (special["name"], json.dumps(special["localized_name"]), special["image"]))
             self.asset_db.commit()
-            logging.info("Inserted %s into the database!" % special["name"])
+            status("Inserted %s into the database!" % special["name"])
     
     def insert_subs(self):
         with open("../assets/data/subs.json") as infile:
             subs = json.load(infile)
         for sub in subs:
-            logging.info(f"Inserting {sub['name']}...")
             sub["image"] = "../assets/img/subs_specials/" + sub["image"][28:]
             self.ac.execute("""
             INSERT INTO sub_weapons(
@@ -199,7 +195,7 @@ class AssetDatabase:
             ) VALUES (%s,%s,%s);
             """, (sub["name"], json.dumps(sub["localized_name"]), sub["image"]))
             self.asset_db.commit()
-            logging.info("Inserted %s into the database!" % sub["name"])
+            status("Inserted %s into the database!" % sub["name"])
     
     def insert_weapons(self):
         with open("../assets/data/weapons.json") as infile:
@@ -207,7 +203,6 @@ class AssetDatabase:
         for wep_class in wep_classes:
             for weapon in wep_class["weapons"]:
                 weapon["image"] = "../assets/img/weapons/" + weapon["image"][29:]
-                logging.info(f"Inserting {weapon['name']}...")
                 self.ac.execute("""
                 INSERT INTO main_weapons(
                     name,
@@ -220,15 +215,11 @@ class AssetDatabase:
                 ) VALUES (%s,%s,%s,%s,%s,%s,%s)
                 """, (weapon["name"], weapon["image"], wep_class["id"], json.dumps(weapon["localizedName"]), weapon["sub"], weapon["special"], weapon["id"]))
                 self.asset_db.commit()
-                logging.info("Inserted %s into the database!" % weapon["name"])
+                status("Inserted %s into the database!" % weapon["name"])
+
+
 
 if __name__ == "__main__":
-    coloredlogs.DEFAULT_FIELD_STYLES.update({'funcName': {'color': 'cyan'}})
-    coloredlogs.DEFAULT_FIELD_STYLES["name"]["color"] = 'yellow'
-    coloredlogs.install(
-        level="INFO",
-        fmt="[%(hostname)s] %(asctime)s %(funcName)s(%(lineno)s) %(name)s[%(process)d] %(levelname)s %(message)s"
-    )
     asd = AssetDatabase()
     asd.regen_tables()
     asd.insert_headgear()
@@ -238,3 +229,4 @@ if __name__ == "__main__":
     asd.insert_specials()
     asd.insert_subs()
     asd.insert_weapons()
+    status("Asset database generated! Farewell!\n")

@@ -45,9 +45,9 @@ class DatabaseHandler:
         """)
         self.mc.execute("""
         CREATE TABLE IF NOT EXISTS team_profiles (
+            captain BIGINT PRIMARY KEY REFERENCES player_profiles(id) ON DELETE CASCADE,
             name TEXT DEFAULT $$The Default Team$$,
             deletion_time TIMESTAMP DEFAULT NULL,
-            captain BIGINT,
             description TEXT DEFAULT $$This team is a mystery...$$,
             thumbnail TEXT,
             timezone TIMESTAMP DEFAULT NOW(),
@@ -59,7 +59,7 @@ class DatabaseHandler:
             player_4 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
             player_5 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
             player_6 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
-            PRIMARY KEY(captain)
+            player_7 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL
         );
         """)
         self.mc.execute("""

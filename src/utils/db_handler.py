@@ -3,6 +3,7 @@
 import logging
 import re
 import json
+from pprint import pprint
 
 # Third-Party Imports
 
@@ -44,13 +45,12 @@ class DatabaseHandler:
         """)
         self.mc.execute("""
         CREATE TABLE IF NOT EXISTS team_profiles (
-            id SERIAL PRIMARY KEY,
             name TEXT DEFAULT $$The Default Team$$,
-            deletion_time BIGINT DEFAULT NULL,
+            deletion_time TIMESTAMP DEFAULT NULL,
             captain BIGINT,
             description TEXT DEFAULT $$This team is a mystery...$$,
             thumbnail TEXT,
-            timezone TIMESTAMPTZ DEFAULT NOW(),
+            timezone TIMESTAMP DEFAULT NOW(),
             recruiting BOOLEAN DEFAULT FALSE,
             recent_tournaments JSON,
             player_1 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
@@ -58,7 +58,8 @@ class DatabaseHandler:
             player_3 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
             player_4 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
             player_5 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
-            player_6 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL
+            player_6 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
+            PRIMARY KEY(captain)
         );
         """)
         self.mc.execute("""
@@ -66,7 +67,7 @@ class DatabaseHandler:
         BEGIN
         BEGIN
         ALTER TABLE player_profiles
-            ADD CONSTRAINT team_profile_id_fkey FOREIGN KEY (team_id) REFERENCES team_profiles(id)
+            ADD CONSTRAINT team_profile_id_fkey FOREIGN KEY (team_id) REFERENCES team_profiles(captain)
             ON DELETE SET NULL;
         EXCEPTION WHEN duplicate_object THEN NULL;
         END;
@@ -202,6 +203,14 @@ class DatabaseHandler:
         UPDATE player_profiles SET loadout = %s WHERE id = %s;
         """, (json.dumps(loadout), user))
         self.main_db.commit()
+
+    def new_team(self, captain: int, name: str):
+        """Enter a new team into the database."""
+        return self.mc.execute("""
+        INSERT INTO team_profiles(captain, name) VALUES (%s, %s)
+            ON CONFLICT DO NOTHING
+            RETURNING captain;
+        """, (captain, name)).fetchone()
         
     @staticmethod
     def get_position(pos_int = 0) -> str:
@@ -216,13 +225,5 @@ class DatabaseHandler:
 
 if __name__ == "__main__":
     dbh = DatabaseHandler()
-    dbh.gen_profile_table()
-    dbh.add_profile(1)
-    dbh.update_rank(1, "tc_rank", "B+")
-    dbh.update_rank(1, "sr", "Profreshional")
-    dbh.update_fc(1, "edsefe9999eA9999eSZF9999ae")
-    dbh.update_rank(1, "sz", "X99999")
-    dbh.toggle_private(1)
-    dbh.toggle_captain(1)
-    dbh.toggle_free_agent(1)
-    print(dbh.get_profile(1))
+    dbh.new_team(1, "foo")
+    pprint(dbh.mc.execute("SELECT row_to_json(team_profiles) FROM team_profiles;").fetchall())

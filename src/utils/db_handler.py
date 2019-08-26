@@ -18,9 +18,14 @@ class DatabaseHandler:
         self.mc = self.main_db.cursor()
     
     def get_profile(self, user: int):
-        return self.mc.execute("""
+
+        res = self.mc.execute("""
         SELECT row_to_json(player_profiles) FROM player_profiles WHERE id = %s;
-        """, (user,)).fetchone()[0]
+        """, (user,)).fetchone()
+        if res is None:
+            return None
+        else:
+            return res[0]
     
     def gen_tables(self):
         self.mc.execute("""
@@ -38,7 +43,6 @@ class DatabaseHandler:
             loadout JSON,
             team_id INTEGER,
             team_name TEXT DEFAULT $$N/A$$,
-            is_captain BOOLEAN DEFAULT FALSE,
             free_agent BOOLEAN DEFAULT FALSE,
             is_private BOOLEAN DEFAULT FALSE
         );
@@ -52,14 +56,7 @@ class DatabaseHandler:
             thumbnail TEXT,
             timezone TIMESTAMP DEFAULT NOW(),
             recruiting BOOLEAN DEFAULT FALSE,
-            recent_tournaments JSON,
-            player_1 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
-            player_2 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
-            player_3 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
-            player_4 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
-            player_5 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
-            player_6 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL,
-            player_7 BIGINT REFERENCES player_profiles(id) ON DELETE SET NULL
+            recent_tournaments JSON
         );
         """)
         self.mc.execute("""
@@ -211,6 +208,28 @@ class DatabaseHandler:
             ON CONFLICT DO NOTHING
             RETURNING captain;
         """, (captain, name)).fetchone()
+    
+    def get_team(self, captain: int):
+        team = self.mc.execute("""
+        SELECT row_to_json(team_profiles) FROM team_profiles WHERE captain = %s;
+        """, (captain,)).fetchone()
+        if team is None:
+            return None
+        else:
+            team = team[0]
+        players = self.mc.execute("""
+        SELECT row_to_json(player_profiles) FROM player_profiles WHERE team_id = %s; 
+        """, (captain,)).fetchall()
+        return {
+            "team": team,
+            "players": players
+        }
+    
+    def add_player(self, captain: int, player: int):
+        team = self.get_team(captain)
+        player = self.mc.execute("""
+        UPDATE player_profiles SET team_id = %s, team_name = %s WHERE id = %s;
+        """, (team['captain'], team['name'], player))
         
     @staticmethod
     def get_position(pos_int = 0) -> str:
@@ -226,4 +245,4 @@ class DatabaseHandler:
 if __name__ == "__main__":
     dbh = DatabaseHandler()
     dbh.new_team(1, "foo")
-    pprint(dbh.mc.execute("SELECT row_to_json(team_profiles) FROM team_profiles;").fetchall())
+    pprint(dbh.get_team(1))

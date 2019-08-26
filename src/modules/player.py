@@ -17,7 +17,7 @@ class Player(commands.Cog):
 
     def __init__(self, client):
         self.client = client
-    
+
     @commands.group()
     async def player(self, ctx: commands.Context):
         """Player command group. Use this to modify your own profile, as well as view the profiles of others."""
@@ -44,8 +44,7 @@ class Player(commands.Cog):
         if profile is None:
             await ctx.send("Command Failed - User does not have a profile.")
             return
-        
-        
+
         embed = discord.Embed(
             title="Player Profile: %s" % user.display_name,
             color=discord.Color.from_rgb(255, 0, 0) \
@@ -57,9 +56,12 @@ class Player(commands.Cog):
         )
         embed.add_field(
             name="Friend Code:",
-            value=(f"SW-{profile['friend_code'][:4]}-{profile['friend_code'][4:8]}-{profile['friend_code'][8:12]}" \
-                if any((profile['is_private'] is False, profile['id'] == ctx.message.author.id)) else "SW-XXXX-XXXX-XXXX")
-        )
+            value=(f"SW-{profile['friend_code'][:4]}-{profile['friend_code'][4:8]}-{profile['friend_code'][8:12]}"
+                   if any((
+                            profile['is_private'] is False,
+                            profile['id'] == ctx.message.author.id)
+                          ) else "SW-XXXX-XXXX-XXXX")
+                    )
         embed.add_field(
             name="Ranks:",
             value=f"""
@@ -81,7 +83,7 @@ __Salmon Run__: {profile['sr']}
         embed.add_field(
             name="Team:",
             value=(profile['team_name'] + " :crown: ") \
-                if profile['is_captain'] is True else profile['team_name']
+                if profile['team_id'] == profile['id'] else profile['team_name']
         )
         embed.set_thumbnail(url=user.avatar_url)
 
@@ -89,7 +91,7 @@ __Salmon Run__: {profile['sr']}
             embed.set_footer(
                 text="This user is a free agent! Perhaps you should consider recruiting them?",
                 icon_url=self.client.user.avatar_url
-                )
+            )
         loadout = None
         if profile['loadout'] is not None:
             loadout = generate_image(profile['loadout'])
@@ -100,13 +102,12 @@ __Salmon Run__: {profile['sr']}
             embed.set_image(url='attachment://loadout.png')
         await ctx.send(embed=embed, file=loadout)
 
-
     @player.command()
-    async def create_profile(self, ctx: commands.Context):
+    async def create(self, ctx: commands.Context):
         """Make a profile in the bot. Pretty self-explanatory."""
         self.client.dbh.add_profile(ctx.message.author.id)
         await ctx.send("Player profile created! :smiley:")
-    
+
     @player.command()
     async def fc(self, ctx: commands.Context, *, friend_code):
         """Set your friend code."""
@@ -115,28 +116,22 @@ __Salmon Run__: {profile['sr']}
             await ctx.send("Friend code updated! :smiley:")
         else:
             await ctx.send("Command Failed - Invalid Friend Code passed.")
-    
 
     @player.command()
     async def ign(self, ctx: commands.Context, *, ign):
         """Set your in-game name."""
-        if any(
-                (
-                len(ign) > 10, 
-                len(ign) < 1
-                )
-            ):
+        if any((len(ign) > 10, len(ign) < 1)):
             await ctx.send("Command Failed - Invalid Name specified.")
         else:
             self.client.dbh.update_ign(ctx.message.author.id, ign)
             await ctx.send("In-Game Name updated! :smiley:")
-    
+
     @player.command()
     async def level(self, ctx: commands.Context, level):
         """Set your level."""
         self.client.dbh.update_level(ctx.message.author.id, level)
         await ctx.send("Level updated! :smiley:")
-    
+
     @player.command()
     async def rank(self, ctx: commands.Context, mode, *, rank):
         """Set your rank in specific modes.
@@ -152,7 +147,7 @@ __Salmon Run__: {profile['sr']}
             await ctx.send("Rank updated! :smiley:")
         else:
             await ctx.send("Command Failed - Invalid Mode or Rank specified.")
-    
+
     @player.command()
     async def position(self, ctx: commands.Context, position: int):
         """Set your position. Each one is mapped to an integer, which you must pass in as your position.
@@ -169,7 +164,7 @@ __Salmon Run__: {profile['sr']}
             await ctx.send('Set position to %s!' % self.client.dbh.get_position(position))
         except ValueError:
             await ctx.send("Command Failed - Invalid Position specified.")
-    
+
     @player.command()
     async def loadout(self, ctx: commands.Context, loadout_link: str):
         """Set your loadout within the bot. Use https://selicia.github.io/en_US/ to create a loadout, and give the bot the resulting link."""
@@ -181,13 +176,14 @@ __Salmon Run__: {profile['sr']}
             buffer.seek(0)
             ld_image = discord.File(filename='loadout.png', fp=buffer)
             await ctx.send("Is this correct? `[Y/n]`", file=ld_image)
-            msg = await self.client.wait_for('message', check=lambda m: all((m.author == ctx.message.author, (m.content.lower() == 'y' or m.content.lower() == 'n'))))
+            msg = await self.client.wait_for('message', check=lambda m: all(
+                (m.author == ctx.message.author, (m.content.lower() == 'y' or m.content.lower() == 'n'))))
             if msg.content.lower() == 'y':
                 self.client.dbh.update_loadout(ctx.message.author.id, loadout)
                 await ctx.send('Loadout Updated! :smiley:')
             elif msg.content.lower() == 'n':
                 await ctx.send("Understood. Aborting update.")
-    
+
     def set_head(self, msg: discord.Message):
         raise NotImplementedError
 
@@ -228,33 +224,33 @@ Here are the options:
             await loadout_msg.add_reaction(i)
         ld_dict = {
             'clothes': {
-                'gear_id': 0, 
-                'main': 0, 
+                'gear_id': 0,
+                'main': 0,
                 'subs': [0, 0, 0]
-                },
+            },
             'head': {
-                'gear_id': 0, 
-                'main': 0, 
+                'gear_id': 0,
+                'main': 0,
                 'subs': [0, 0, 0]
-                },
+            },
             'id': 0,
             'set': 0,
             'shoes': {
-                'gear_id': 0, 
-                'main': 0, 
+                'gear_id': 0,
+                'main': 0,
                 'subs': [0, 0, 0]
-                }
             }
+        }
         switch = {
-            "🎩": self.set_head, 
+            "🎩": self.set_head,
             "👕": self.set_clothes,
             "👢": self.set_pants
         }
         while True:
             reaction, user = await self.client.wait_for(
-                'reaction_add', 
+                'reaction_add',
                 check=lambda r, u: u == ctx.message.author \
-                and str(r.emoji) in ["🎩", "👕", "👢", "✅", "❌"]
+                                   and str(r.emoji) in ["🎩", "👕", "👢", "✅", "❌"]
             )
             await loadout_msg.remove_reaction(reaction, user)
             if str(reaction.emoji) in switch.keys():

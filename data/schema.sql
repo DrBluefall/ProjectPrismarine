@@ -12,11 +12,21 @@ CREATE TABLE player_profiles (
     sr CHARACTER VARYING(13) DEFAULT $$Intern$$,
     position INTEGER DEFAULT 0,
     loadout JSON,
-    team_id INTEGER,
+    team_id INTEGER REFERENCES team_profiles(captain),
     team_name TEXT DEFAULT $$N/A$$,
-    is_captain BOOLEAN DEFAULT FALSE,
     free_agent BOOLEAN DEFAULT FALSE,
     is_private BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE team_profiles (
+    captain BIGINT PRIMARY KEY REFERENCES player_profiles(id) ON DELETE CASCADE,
+    name TEXT DEFAULT $$The Default Team$$,
+    deletion_time TIMESTAMP DEFAULT NULL,
+    description TEXT DEFAULT $$This team is a mystery...$$,
+    thumbnail TEXT,
+    timezone TIMESTAMP DEFAULT NOW(),
+    recruiting BOOLEAN DEFAULT FALSE,
+    recent_tournaments JSON
 );
 
 -- Asset Database Tables:

@@ -1,5 +1,6 @@
 # Editor metafiles
 .vscode/
+.idea/
 
 # Project Configuration files
 config.json

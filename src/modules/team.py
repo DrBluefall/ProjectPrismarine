@@ -39,7 +39,7 @@ class Team(commands.Cog):
     @team.command()
     async def invite(self, ctx: commands.Context, player = None):
 
-        team = self.client.dbh.get_team(ctx.message.author.id)["team"]
+        team = self.client.dbh.get_team(ctx.message.author.id)
         if team is None:
             await ctx.send(f"Command Failed - You don't have a team! Create one with `{ctx.prefix}team create`.")
 
@@ -79,18 +79,18 @@ class Team(commands.Cog):
         await msg.add_reaction('❌')
         reaction, _ = await self.client.wait_for(
                             'reaction_add',
-                            check=lambda r, u: u == ctx.message.author and (r.emoji == '✅' or r.emoji == '❌')
+            check=lambda r, u: u == player and str(r.emoji) in ['✅', '❌']
                             )
         del _
 
-        if reaction.emoji == '❌':
+        if str(reaction.emoji) == '❌':
             await msg.delete()
             await dm_channel.send("Understood. I will alert the captain of your response.")
             dm_channel = (await ctx.message.author.create_dm()
                           if ctx.message.author.dm_channel is None else ctx.message.author.dm_channel)
             await dm_channel.send(f"Your invitation sent to {player.name} has been rejected. Sorry about that :/")
             return
-        elif reaction.emoji == '✅':
+        elif str(reaction.emoji) == '✅':
             await msg.delete()
             await dm_channel.send("Understood! I will update your profile and alert your new captain immediately!")
             self.client.dbh.add_player(ctx.message.author.id, player.id)

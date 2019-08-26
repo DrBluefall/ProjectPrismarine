@@ -42,6 +42,8 @@ class Team(commands.Cog):
         team = self.client.dbh.get_team(ctx.message.author.id)
         if team is None:
             await ctx.send(f"Command Failed - You don't have a team! Create one with `{ctx.prefix}team create`.")
+        else:
+            team = team["team"]
 
         if player is None:
             await ctx.send("Command Failed - No player specified.")
@@ -65,6 +67,8 @@ class Team(commands.Cog):
         elif player_profile['is_private'] is True:
             await ctx.send("Command Failed - Recipient has set their profile to `private`, and therefore cannot receive invites. Sorry about that :/")
             return
+        elif player_profile['team_id'] is not None:
+            await ctx.send("Command Failed - Recipient is already on a team.")
         
         dm_channel = await player.create_dm() if player.dm_channel is None else player.dm_channel
         embed = discord.Embed(
@@ -73,30 +77,34 @@ class Team(commands.Cog):
             You have been invited to {ctx.message.author.name}'s team, `{team['name']}`! Do you wish to accept the invite?
             """
         )
+        await ctx.send("Invite Sent!")
 
         msg = await dm_channel.send(embed=embed)
         await msg.add_reaction('✅')
         await msg.add_reaction('❌')
-        reaction, _ = await self.client.wait_for(
-                            'reaction_add',
-            check=lambda r, u: u == player and str(r.emoji) in ['✅', '❌']
-                            )
-        del _
+        while True:
+            reaction, _ = await self.client.wait_for(
+                'reaction_add',
+                check=lambda r, u: u == player and str(r.emoji) in ['✅', '❌']
+            )
+            del _
 
-        if str(reaction.emoji) == '❌':
-            await msg.delete()
-            await dm_channel.send("Understood. I will alert the captain of your response.")
-            dm_channel = (await ctx.message.author.create_dm()
-                          if ctx.message.author.dm_channel is None else ctx.message.author.dm_channel)
-            await dm_channel.send(f"Your invitation sent to {player.name} has been rejected. Sorry about that :/")
-            return
-        elif str(reaction.emoji) == '✅':
-            await msg.delete()
-            await dm_channel.send("Understood! I will update your profile and alert your new captain immediately!")
-            self.client.dbh.add_player(ctx.message.author.id, player.id)
-            dm_channel = (await ctx.message.author.create_dm()
-                          if ctx.message.author.dm_channel is None else ctx.message.author.dm_channel)
-            await dm_channel.send(f"Your invite sent to {player.name} has been accepted! Cheers! :smiley:")
+            if str(reaction.emoji) == '❌':
+                await msg.delete()
+                await dm_channel.send("Understood. I will alert the captain of your response.")
+                dm_channel = (await ctx.message.author.create_dm()
+                              if ctx.message.author.dm_channel is None else ctx.message.author.dm_channel)
+                await dm_channel.send(f"Your invitation sent to {player.name} has been rejected. Sorry about that :/")
+                return
+            elif str(reaction.emoji) == '✅':
+                await msg.delete()
+                await dm_channel.send("Understood! I will update your profile and alert your new captain immediately!")
+                self.client.dbh.add_player(ctx.message.author.id, player.id)
+                dm_channel = (await ctx.message.author.create_dm()
+                              if ctx.message.author.dm_channel is None else ctx.message.author.dm_channel)
+                await dm_channel.send(f"Your invite sent to {player.name} has been accepted! Cheers! :smiley:")
+            else:
+                continue
 
 
 def setup(client):

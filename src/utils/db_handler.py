@@ -41,7 +41,7 @@ class DatabaseHandler:
             sr CHARACTER VARYING(13) DEFAULT $$Intern$$,
             position INTEGER DEFAULT 0,
             loadout JSON,
-            team_id INTEGER,
+            team_id BIGINT,
             team_name TEXT DEFAULT $$N/A$$,
             free_agent BOOLEAN DEFAULT FALSE,
             is_private BOOLEAN DEFAULT FALSE
@@ -209,6 +209,11 @@ class DatabaseHandler:
             RETURNING captain;
         """, (captain, name)).fetchone()
         self.main_db.commit()
+        if ret is not None:
+            self.mc.execute("""
+            UPDATE player_profiles SET team_id = %s, team_name = %s WHERE id = %s;
+            """, (captain, name, captain))
+            self.main_db.commit()
         return ret
     
     def get_team(self, captain: int):
@@ -232,6 +237,7 @@ class DatabaseHandler:
         player = self.mc.execute("""
         UPDATE player_profiles SET team_id = %s, team_name = %s WHERE id = %s;
         """, (team['team']['captain'], team['team']['name'], player))
+        self.main_db.commit()
         
     @staticmethod
     def get_position(pos_int = 0) -> str:

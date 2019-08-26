@@ -203,12 +203,13 @@ class DatabaseHandler:
 
     def new_team(self, captain: int, name: str):
         """Enter a new team into the database."""
-        return self.mc.execute("""
+        ret = self.mc.execute("""
         INSERT INTO team_profiles(captain, name) VALUES (%s, %s)
             ON CONFLICT DO NOTHING
             RETURNING captain;
         """, (captain, name)).fetchone()
         self.main_db.commit()
+        return ret
     
     def get_team(self, captain: int):
         team = self.mc.execute("""
@@ -230,7 +231,7 @@ class DatabaseHandler:
         team = self.get_team(captain)
         player = self.mc.execute("""
         UPDATE player_profiles SET team_id = %s, team_name = %s WHERE id = %s;
-        """, (team['captain'], team['name'], player))
+        """, (team['team']['captain'], team['team']['name'], player))
         
     @staticmethod
     def get_position(pos_int = 0) -> str:

@@ -208,6 +208,7 @@ class DatabaseHandler:
             ON CONFLICT DO NOTHING
             RETURNING captain;
         """, (captain, name)).fetchone()
+        self.main_db.commit()
     
     def get_team(self, captain: int):
         team = self.mc.execute("""

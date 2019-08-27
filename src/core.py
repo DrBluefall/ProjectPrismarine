@@ -10,10 +10,8 @@ from datetime import datetime
 
 # Third-Party Imports
 
-import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import coloredlogs
-
 
 # Local Project Imports
 
@@ -27,18 +25,19 @@ class Client(commands.Bot):
         super().__init__(*args, **kwargs)
         self.started_up = False
         self.dbh = DatabaseHandler()
-    
+        self.start_time = datetime.now()
+
     async def on_ready(self):
         if not self.started_up:
+            self.clean_db.start()
             logging.info("All systems are clear. %s is online!", self.user.name)
             self.started_up = True
-            self.start_time = datetime.now()
-    
+
     async def on_command_error(self, ctx, exception):
         if isinstance(
-            exception,
-            (commands.CommandNotFound, commands.UserInputError)
-            ):
+                exception,
+                (commands.CommandNotFound, commands.UserInputError)
+        ):
             return
         elif isinstance(exception, (commands.NotOwner, commands.MissingPermissions)):
             await ctx.send("Command Failed - *You are not authorized to use this!* :warning:")
@@ -49,8 +48,15 @@ class Client(commands.Bot):
             err_msg = ''.join(err_msg)
 
             logging.error("Unhandled exception in %s:\nInvocation Context: Server - %s (%i), Channel - #%s (%i)\n%s",
-            ctx.command.qualified_name, ctx.guild.name, ctx.guild.id, ctx.channel.name, ctx.channel.id, err_msg)
-    
+                          ctx.command.qualified_name,
+                          ctx.guild.name, ctx.guild.id,
+                          ctx.channel.name, ctx.channel.id, err_msg)
+
+    @tasks.loop(hours=1)
+    async def clean_db(self):
+        self.dbh.clear_teams()
+
+
 def verify_config(path=None):
     with open("../config.json" if path is None else path) as infile:
         cfg = json.load(infile)
@@ -61,9 +67,11 @@ def verify_config(path=None):
         ]
         for key in required_keys:
             if key not in cfg.keys():
-                raise Exception("Your config.json is incomplete! Please assure that it has the following keys: " + str(required_keys))
+                raise Exception("Your config.json is incomplete! Please assure that it has the following keys: " + str(
+                    required_keys))
             else:
                 required_keys.remove(key)
+
 
 def load_extensions(client):
     for file in os.listdir("./modules"):
@@ -71,17 +79,20 @@ def load_extensions(client):
             client.load_extension("modules.%s" % file[:-3])
             logging.info("%s module: Online!", file[:-3].capitalize())
 
+
 def main():
+    os.system('cls' if os.name == 'nt' else 'clear')
     parser = optparse.OptionParser()
     parser.add_option('--log-level', '-l', dest="log_level")
     parser.add_option('--config-path', '-c', dest="config_path")
 
     options, args = parser.parse_args()
 
-    if options.log_level is not None and options.log_level.upper() not in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
+    if options.log_level is not None and options.log_level.upper() not in ["DEBUG", "INFO", "WARNING", "ERROR",
+                                                                           "CRITICAL"]:
         raise Exception("Invalid logging level specified!\n\nValid levels: DEBUG, INFO, WARNING, ERROR, CRITICAL")
 
-    coloredlogs.DEFAULT_FIELD_STYLES.update({'funcName': {'color': 'cyan' }})
+    coloredlogs.DEFAULT_FIELD_STYLES.update({'funcName': {'color': 'cyan'}})
     coloredlogs.DEFAULT_FIELD_STYLES["name"]["color"] = 'yellow'
     coloredlogs.install(
         level="INFO" if options.log_level is None else options.log_level.upper(),
@@ -100,6 +111,7 @@ def main():
     client.dbh.mc.close()
     client.dbh.main_db.close()
     logging.info("Connections closed. Shutdown complete.")
+
 
 if __name__ == "__main__":
     main()

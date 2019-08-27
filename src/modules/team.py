@@ -1,3 +1,7 @@
+# Standard Library Imports
+
+from asyncio import TimeoutError
+
 # Third-Party Imports
 
 import discord
@@ -37,7 +41,7 @@ class Team(commands.Cog):
                 \rThat's all for now. Good luck and godspeed.""")
     
     @team.command()
-    async def invite(self, ctx: commands.Context, player = None):
+    async def invite(self, ctx: commands.Context, player=None):
 
         team = self.client.dbh.get_team(ctx.message.author.id)
         if team is None:
@@ -105,6 +109,68 @@ class Team(commands.Cog):
                 await dm_channel.send(f"Your invite sent to {player.name} has been accepted! Cheers! :smiley:")
             else:
                 continue
+
+    @team.command()
+    async def set_desc(self, ctx: commands.Context, *, text):
+        self.client.dbh.update_desc(ctx.message.author.id, text)
+        await ctx.send("Description updated!")
+
+    @team.command()
+    async def recruiting(self, ctx: commands.Context):
+        await ctx.send(f"Team recruiting status set to `{self.client.dbh.toggle_recruit(ctx.message.author.id)}`!")
+
+    @team.command()
+    async def thumbnail(self, ctx: commands.Context, *, url=None):
+        print("foo")
+        if url is None:
+            try:
+                url = ctx.message.attachments[0]
+                url = url.url
+            except IndexError:
+                await ctx.send("Command Failed - No URL/Image provided.")
+                return
+        self.client.dbh.update_thumbnail(ctx.message.author.id, url)
+        await ctx.send("Updated thumbnail! :smiley:")
+
+    @team.command()
+    async def add_tourney(self, ctx: commands.Context, place: int = None, *, tourney_name: str = None):
+        self.client.dbh.add_tourney(ctx.message.author.id, tourney_name, place)
+        await ctx.send("Added tournament record to profile! :smiley:")
+
+    @team.command()
+    async def delete(self, ctx: commands.Context):
+        confirm = await ctx.send(
+            "This is a destructive operation, with no means of undoing it. Are you *absolutely* sure that you want to delete your team?"
+        )
+        await confirm.add_reaction('❌')
+        await confirm.add_reaction('✅')
+        try:
+            reaction, _ = await self.client.wait_for(
+                'reaction_add',
+                check=lambda r, u: u == ctx.message.author and str(r.emoji) in ['❌', '✅'],
+                timeout=60
+            )
+            del _
+            if str(reaction.emoji) == '❌':
+                await confirm.delete()
+                await ctx.send("Understood. Aborting deletion.")
+                return
+            elif str(reaction.emoji) == '✅':
+                await confirm.delete()
+                self.client.dbh.delete_team(ctx.message.author.id)
+                await ctx.send(f"""
+                Understood. There will be a 3-day buffer between now and when your team is deleted. During this time, you have the ability to recover your team with `{ctx.prefix}team recover`. During this time, you will also not be able to create a new team. Certain commands will also be made unusable during the deletion process.
+                
+                \rFor now, take care out there.
+                """)
+        except TimeoutError:
+            await ctx.send("Deletion Aborted - Command timed out.")
+            return
+
+    @team.command()
+    async def recover(self, ctx: commands.Context):
+        self.client.dbh.recover_team(ctx.message.author.id)
+        await ctx.send("Team recovered!")
 
 
 def setup(client):

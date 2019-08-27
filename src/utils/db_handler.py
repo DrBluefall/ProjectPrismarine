@@ -4,6 +4,7 @@ import logging
 import re
 import json
 from pprint import pprint
+from datetime import datetime, timedelta
 
 # Third-Party Imports
 
@@ -16,7 +17,7 @@ class DatabaseHandler:
     def __init__(self):
         self.main_db = pg.connect(user='prismarine-core', database="main", host="localhost")
         self.mc = self.main_db.cursor()
-    
+
     def get_profile(self, user: int):
 
         res = self.mc.execute("""
@@ -26,7 +27,7 @@ class DatabaseHandler:
             return None
         else:
             return res[0]
-    
+
     def gen_tables(self):
         self.mc.execute("""
         CREATE TABLE IF NOT EXISTS player_profiles (
@@ -72,20 +73,20 @@ class DatabaseHandler:
         """)
         self.main_db.commit()
         logging.info("Database tables generated!")
-    
+
     def add_profile(self, user_id: int):
         self.mc.execute("""
         INSERT INTO player_profiles(id) VALUES (%s)
         ON CONFLICT DO NOTHING;
-        """,(user_id,))
+        """, (user_id,))
         self.main_db.commit()
-    
+
     def update_level(self, id: int, level: int):
         self.mc.execute("""
         UPDATE player_profiles SET level = %s WHERE id = %s;
         """, (level, id))
         self.main_db.commit()
-    
+
     def update_position(self, id: int, position: int):
         if position is not None:
             self.mc.execute("""
@@ -104,13 +105,13 @@ class DatabaseHandler:
         """, (friend_code, id))
         self.main_db.commit()
         return True
-    
+
     def update_ign(self, id: str, name: str):
         self.mc.execute("""
         UPDATE player_profiles SET ign = %s WHERE id = %s;
         """, (name, id))
         self.main_db.commit()
-    
+
     def toggle_private(self, id: int):
         private = not self.mc.execute("""
         SELECT is_private FROM player_profiles WHERE id = %s;
@@ -130,16 +131,6 @@ class DatabaseHandler:
         """, (free_agent, id))
         self.main_db.commit()
         return free_agent
-
-    def toggle_captain(self, id: int):
-        is_captain = not self.mc.execute("""
-        SELECT is_captain FROM player_profiles WHERE id = %s;
-        """, (id,)).fetchone()[0]
-        self.mc.execute("""
-        UPDATE player_profiles SET is_captain = %s WHERE id = %s;
-        """, (is_captain, id))
-        self.main_db.commit()
-        return is_captain
 
     def update_rank(self, id: int, mode: str, rank: str):
         rank_list = (
@@ -190,11 +181,11 @@ class DatabaseHandler:
             if mode in modes[key]["aliases"] and rank.capitalize() in modes[key]["rlist"]:
                 self.mc.execute(f"""
                 UPDATE player_profiles SET {modes[key]["db_alias"]} = %s WHERE id = %s;
-                """, ((rank.capitalize() +" "+ power), id))
+                """, ((rank.capitalize() + " " + power), id))
                 self.main_db.commit()
                 return True
         return False
-    
+
     def update_loadout(self, user: int, loadout: dict):
         self.mc.execute("""
         UPDATE player_profiles SET loadout = %s WHERE id = %s;
@@ -215,7 +206,7 @@ class DatabaseHandler:
             """, (captain, name, captain))
             self.main_db.commit()
         return ret
-    
+
     def get_team(self, captain: int):
         team = self.mc.execute("""
         SELECT row_to_json(team_profiles) FROM team_profiles WHERE captain = %s;
@@ -231,16 +222,80 @@ class DatabaseHandler:
             "team": team,
             "players": players
         }
-    
+
     def add_player(self, captain: int, player: int):
         team = self.get_team(captain)
         player = self.mc.execute("""
         UPDATE player_profiles SET team_id = %s, team_name = %s WHERE id = %s;
         """, (team['team']['captain'], team['team']['name'], player))
         self.main_db.commit()
-        
+
+    def update_desc(self, captain: int, desc: str):
+        self.mc.execute("""
+        UPDATE team_profiles SET description = %s WHERE captain = %s;
+        """, (desc, captain))
+        self.main_db.commit()
+
+    def toggle_recruit(self, captain):
+        rc = not self.mc.execute("""
+        SELECT recruiting FROM team_profiles WHERE captain = %s;
+        """, (captain,)).fetchone()[0]
+        self.mc.execute("""
+        UPDATE team_profiles SET recruiting = %s WHERE captain = %s;
+        """, (rc, captain))
+        self.main_db.commit()
+        return rc
+
+    def add_tourney(self, captain: int, tourney_name: str, place: int):
+        tourney_list = self.mc.execute("""
+        SELECT recent_tournaments FROM team_profiles WHERE captain = %s;
+        """, (captain,)).fetchone()[0]
+        if tourney_list is None:
+            tourney_list = []
+        tourney_dict = {
+            "place": place,
+            "tourney": tourney_name,
+            "date": datetime.now().timestamp()
+        }
+        tourney_list.insert(0, tourney_dict)
+        if len(tourney_list) > 3:
+            tourney_list.pop(3)
+        self.mc.execute("""
+        UPDATE team_profiles SET recent_tournaments = %s WHERE captain = %s;
+        """, (json.dumps(tourney_list), captain))
+        self.main_db.commit()
+
+    def update_thumbnail(self, captain: int, url: str):
+        self.mc.execute("""
+        UPDATE team_profiles SET thumbnail = %s WHERE captain = %s;
+        """, (url, captain))
+        self.main_db.commit()
+
+    def delete_team(self, captain):
+        self.mc.execute("""
+        UPDATE team_profiles SET deletion_time = %s WHERE captain = %s;
+        """, ((datetime.now() + timedelta(days=3)).ctime(), captain))
+        self.main_db.commit()
+
+    def recover_team(self, captain):
+        self.mc.execute("""
+        UPDATE team_profiles SET deletion_time = NULL WHERE captain = %s;
+        """, (captain,))
+        self.main_db.commit()
+
+    def clear_teams(self):
+        teams = self.mc.execute("""
+        SELECT deletion_time, captain FROM team_profiles WHERE deletion_time IS NOT NULL;
+        """).fetchall()
+        for team in teams:
+            if team[0] < datetime.now():
+                self.mc.execute("""
+                DELETE FROM team_profiles WHERE captain = %s;
+                """, team[1])
+                self.main_db.commit()
+
     @staticmethod
-    def get_position(pos_int = 0) -> str:
+    def get_position(pos_int=0) -> str:
         pos_map = {
             0: "Not Set",
             1: "Frontline",
@@ -249,6 +304,7 @@ class DatabaseHandler:
             4: "Flex"
         }
         return pos_map[pos_int] if pos_int in pos_map.keys() else None
+
 
 if __name__ == "__main__":
     dbh = DatabaseHandler()

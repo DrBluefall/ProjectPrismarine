@@ -55,7 +55,7 @@ class DatabaseHandler:
             deletion_time TIMESTAMP DEFAULT NULL,
             description TEXT DEFAULT $$This team is a mystery...$$,
             thumbnail TEXT,
-            timezone TIMESTAMP DEFAULT NOW(),
+            creation_time TEXT,
             recruiting BOOLEAN DEFAULT FALSE,
             recent_tournaments JSON
         );
@@ -195,10 +195,10 @@ class DatabaseHandler:
     def new_team(self, captain: int, name: str):
         """Enter a new team into the database."""
         ret = self.mc.execute("""
-        INSERT INTO team_profiles(captain, name) VALUES (%s, %s)
+        INSERT INTO team_profiles(captain, name, creation_time) VALUES (%s, %s, %s)
             ON CONFLICT DO NOTHING
             RETURNING captain;
-        """, (captain, name)).fetchone()
+        """, (captain, name, datetime.now().strftime("Time: %I:%M:%S %p Date: %d %B %Y"))).fetchone()
         self.main_db.commit()
         if ret is not None:
             self.mc.execute("""
@@ -220,12 +220,12 @@ class DatabaseHandler:
         """, (captain,)).fetchall()
         return {
             "team": team,
-            "players": players
+            "players": [item for sublist in players for item in sublist]
         }
 
     def add_player(self, captain: int, player: int):
         team = self.get_team(captain)
-        player = self.mc.execute("""
+        self.mc.execute("""
         UPDATE player_profiles SET team_id = %s, team_name = %s WHERE id = %s;
         """, (team['team']['captain'], team['team']['name'], player))
         self.main_db.commit()

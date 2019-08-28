@@ -40,7 +40,7 @@ class DatabaseHandler:
             rm CHARACTER VARYING(6) DEFAULT $$C-$$,
             cb CHARACTER VARYING(6) DEFAULT $$C-$$,
             sr CHARACTER VARYING(13) DEFAULT $$Intern$$,
-            position INTEGER DEFAULT 0,
+            position SMALLINT DEFAULT 0,
             loadout JSON,
             team_id BIGINT,
             team_name TEXT DEFAULT $$N/A$$,
@@ -52,12 +52,25 @@ class DatabaseHandler:
         CREATE TABLE IF NOT EXISTS team_profiles (
             captain BIGINT PRIMARY KEY REFERENCES player_profiles(id) ON DELETE CASCADE,
             name TEXT DEFAULT $$The Default Team$$,
-            deletion_time TIMESTAMP DEFAULT NULL,
+            deletion_time BIGINT DEFAULT NULL,
             description TEXT DEFAULT $$This team is a mystery...$$,
             thumbnail TEXT,
             creation_time TEXT,
             recruiting BOOLEAN DEFAULT FALSE,
             recent_tournaments JSON
+        );
+        """)
+        self.mc.execute("""
+        CREATE TABLE IF NOT EXISTS scrims (
+            id SERIAL PRIMARY KEY, --self-explanatory.
+            team_alpha JSON NOT NULL, --stores data for the team requesting a scrim.
+            captain_alpha BIGINT UNIQUE NOT NULL, -- Captain for team alpha.
+            team_bravo JSON, --stores data for a respondent team.
+            captain_bravo BIGINT UNIQUE, -- Captain for team bravo.
+            status SMALLINT DEFAULT 0, -- Status for the scrim. Corresponds to 'Open', 'In-Progress', and 'Finishing'.
+            register_time BIGINT, -- time the scrim was registered in the database.
+            expire_time BIGINT, -- the time an invite is set to expire. Set to a day after the scrim is registered.
+            details TEXT -- details that an invite can contain (division, maps/modes to play, etc.)
         );
         """)
         self.mc.execute("""
@@ -274,7 +287,7 @@ class DatabaseHandler:
     def delete_team(self, captain):
         self.mc.execute("""
         UPDATE team_profiles SET deletion_time = %s WHERE captain = %s;
-        """, ((datetime.now() + timedelta(days=3)).ctime(), captain))
+        """, ((datetime.now() + timedelta(days=3)).timestamp(), captain))
         self.main_db.commit()
 
     def recover_team(self, captain):
@@ -288,11 +301,33 @@ class DatabaseHandler:
         SELECT deletion_time, captain FROM team_profiles WHERE deletion_time IS NOT NULL;
         """).fetchall()
         for team in teams:
-            if team[0] < datetime.now():
+            if datetime.fromtimestamp(team[0]) < datetime.now():
                 self.mc.execute("""
                 DELETE FROM team_profiles WHERE captain = %s;
                 """, team[1])
                 self.main_db.commit()
+
+    def add_scrim(self, captain: int, details: str) -> int:
+        team = self.get_team(captain)
+        if team is None:
+            return 1
+        elif team['team']['deletion_time'] is not None:
+            return 3
+
+        ret = self.mc.execute("""
+        INSERT INTO scrims(team_alpha, captain_alpha, register_time, expire_time, details)
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT DO NOTHING
+        RETURNING team_alpha;
+        """, (
+            json.dumps(team),
+            captain,
+            datetime.now().timestamp(),
+            (datetime.now() + timedelta(hours=24)).timestamp(),
+            details
+        )).fetchone()
+        self.main_db.commit()
+        return 0 if ret is not None else 2
 
     @staticmethod
     def get_position(pos_int=0) -> str:

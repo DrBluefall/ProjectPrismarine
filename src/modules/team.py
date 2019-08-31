@@ -65,7 +65,7 @@ class Team(commands.Cog):
             )
         team_embed.add_field(
             name='Roster:',
-            value='\n'.join([(await self.client.fetch_user(team['players'][i]['id'])).mention for i in range(len(team['players']))])
+            value='\n'.join([self.client.get_user(team['players'][i]['id']) for i in range(len(team['players']))])
         )
         team_embed.add_field(
             name="Captain:",
@@ -148,28 +148,35 @@ __Salmon Run__: {profile['sr']}
         await player_msg.add_reaction('❌')
         index = 0
         while True:
-            reaction, user = await self.client.wait_for(
-                'reaction_add',
-                check=lambda r, u: u == ctx.message.author and str(r.emoji) in ['◀', '▶', '❌']
-            )
-            await reaction.remove(user)
-            if str(reaction.emoji) == '❌':
+            try:
+                reaction, user = await self.client.wait_for(
+                    'reaction_add',
+                    check=lambda r, u: u == ctx.message.author and str(r.emoji) in ['◀', '▶', '❌'],
+                    timeout=300
+                )
+                await reaction.remove(user)
+                if str(reaction.emoji) == '❌':
+                    await player_msg.delete()
+                    await team_msg.delete()
+                    await ctx.message.delete()
+                    return
+                elif str(reaction.emoji) == '▶':
+                    if index < len(player_embeds) - 1:
+                        index += 1
+                    else:
+                        index = 0
+                    await player_msg.edit(**player_embeds[index])
+                elif str(reaction.emoji) == '◀':
+                    if index >= 0:
+                        index -= 1
+                    else:
+                        index = len(player_embeds) - 1
+                    await player_msg.edit(**player_embeds[index])
+            except TimeoutError:
                 await player_msg.delete()
                 await team_msg.delete()
                 await ctx.message.delete()
                 return
-            elif str(reaction.emoji) == '▶':
-                if index < len(player_embeds) - 1:
-                    index += 1
-                else:
-                    index = 0
-                await player_msg.edit(**player_embeds[index])
-            elif str(reaction.emoji) == '◀':
-                if index >= 0:
-                    index -= 1
-                else:
-                    index = len(player_embeds) - 1
-                await player_msg.edit(**player_embeds[index])
 
     @team.command()
     async def create(self, ctx: commands.Context, name: str = None):

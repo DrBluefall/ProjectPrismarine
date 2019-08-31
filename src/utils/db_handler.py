@@ -307,6 +307,12 @@ class DatabaseHandler:
                 """, team[1])
                 self.main_db.commit()
 
+    def get_scrims(self, captain):
+        ret = self.mc.execute("""
+        SELECT row_to_json(scrims) FROM scrims WHERE captain_alpha != %s AND status = 0;
+        """, (captain,)).fetchall()
+        return tuple([item for sublist in ret for item in sublist])
+
     def add_scrim(self, captain: int, details: str) -> int:
         team = self.get_team(captain)
         if team is None:
@@ -329,6 +335,11 @@ class DatabaseHandler:
         self.main_db.commit()
         return 0 if ret is not None else 2
 
+    def get_scrim(self, scrim_id):
+        return self.mc.execute("""
+        SELECT row_to_json(scrims) FROM scrims WHERE id = %s;
+        """, (scrim_id,)).fetchone()[0]
+
     @staticmethod
     def get_position(pos_int=0) -> str:
         pos_map = {
@@ -340,8 +351,16 @@ class DatabaseHandler:
         }
         return pos_map[pos_int] if pos_int in pos_map.keys() else None
 
+    @staticmethod
+    def get_status(stat: int = 0) -> str:
+        stat_map = {
+            0: "Open!",
+            1: "Scrim In Progress!",
+            2: "Finished!"
+        }
+        return stat_map[stat] if stat in stat_map.keys() else None
+
 
 if __name__ == "__main__":
     dbh = DatabaseHandler()
-    dbh.new_team(1, "foo")
-    pprint(dbh.get_team(1))
+    dbh.get_scrims(1)

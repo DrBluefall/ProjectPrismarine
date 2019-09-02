@@ -415,8 +415,17 @@ class ScrimOrganization(commands.Cog):
                 await team_msg.delete()
                 return
 
+
+class ScrimController:
+
+    def __init__(self, client: commands.Bot, team_alpha: dict, team_bravo: dict):
+        self.client = client
+        self.team_alpha = team_alpha
+        self.team_bravo = team_bravo
+
     async def set_up_scrim_room(self):
         pass
+
 
 def setup(client):
     client.add_cog(ScrimOrganization(client))

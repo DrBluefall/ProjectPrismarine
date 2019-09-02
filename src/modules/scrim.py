@@ -216,7 +216,7 @@ class ScrimOrganization(commands.Cog):
                 loadout = discord.File(filename='loadout.png', fp=buffer)
                 pembed.set_image(url='attachment://loadout.png')
             player_embeds.append({"embed": pembed, "file": loadout})
-        scrim_msg = await ctx.send(embed=embed)
+        scrim_msg = await ctx.send(content="Do you want to scrim this team?", embed=embed)
         player_msg = await ctx.send(**player_embeds[0])
         await player_msg.add_reaction('◀')
         await player_msg.add_reaction('▶')
@@ -258,7 +258,7 @@ class ScrimOrganization(commands.Cog):
                         alpha_team = scrim['team_alpha']
                         bravo_cap = ctx.message.author
                         bravo_team = self.client.dbh.get_team(ctx.message.author.id)
-                        response = await self.bravo_cap_msg(alpha_cap, alpha_team, bravo_cap, bravo_team)
+                        await self.bravo_cap_msg(ctx, alpha_cap, alpha_team, bravo_cap, bravo_team)
                     except discord.NotFound:
                         await ctx.send("Command Failed - Unable to track down opposing captain.")
                         return
@@ -269,12 +269,154 @@ class ScrimOrganization(commands.Cog):
                 return
 
     async def bravo_cap_msg(self,
+                            ctx: commands.Context,
                             alpha_cap: discord.User,
                             alpha_team: dict,
                             bravo_cap: discord.User,
                             bravo_team: dict):
-        pass
+        alpha_dm = await alpha_cap.create_dm() if alpha_cap.dm_channel is None else alpha_cap.dm_channel
+        bravo_dm = await bravo_cap.create_dm() if bravo_cap.dm_channel is None else bravo_cap.dm_channel
 
+        team_embed = discord.Embed(
+            title=f"Team Profile - {bravo_team['team']['name']}",
+            color=discord.Color.from_rgb(148, 0, 211),
+            description=bravo_team['team']['description']
+        )
+        tl = []
+        if bravo_team['team']['recent_tournaments'] is not None:
+            for tourney in bravo_team['team']['recent_tournaments']:
+                s = f"""Tournament: `{tourney['tourney']}`\nPlace: `{tourney['place']}`\nResult Registered: `{datetime.fromtimestamp(tourney['date']).strftime("%d %B %Y")}`"""
+                tl.append(s)
+            team_embed.add_field(
+                name="Recent Tournaments:",
+                value='\n\n'.join(tl),
+                inline=True
+            )
+        team_embed.add_field(
+            name='Roster:',
+            value='\n'.join(
+                [str(self.client.get_user(bravo_team['players'][i]['id'])) for i in range(len(bravo_team['players']))])
+        )
+        team_embed.add_field(
+            name="Captain:",
+            value=bravo_cap.mention
+        )
+        team_embed.add_field(
+            name="Team Created:",
+            value=bravo_team['team']['creation_time']
+        )
+
+        if bravo_team['team']['thumbnail'] is not None:
+            team_embed.set_thumbnail(url=bravo_team['team']['thumbnail'])
+
+        player_embeds = []
+
+        for profile in bravo_team['players']:
+            player = await self.client.fetch_user(profile['id'])
+            embed = discord.Embed(
+                title=f"Player Profile - {player.name}",
+                color=discord.Color.from_rgb(148, 0, 211)
+            )
+
+            embed.add_field(
+                name="In-Game Name:",
+                value=f"`{profile['ign']}`"
+            )
+            embed.add_field(
+                name="Friend Code:",
+                value=(f"SW-{profile['friend_code'][:4]}-{profile['friend_code'][4:8]}-{profile['friend_code'][8:12]}"
+                       if any((
+                    profile['is_private'] is False,
+                    profile['id'] == ctx.message.author.id)
+                ) else "SW-XXXX-XXXX-XXXX")
+            )
+            embed.add_field(
+                name="Ranks:",
+                value=f"""
+        __Splat Zones__: {profile['sz']}
+        __Tower Control__: {profile['tc']}
+        __Rainmaker__: {profile['rm']}
+        __Clam Blitz__: {profile['cb']}
+        __Salmon Run__: {profile['sr']}
+                                """
+            )
+            embed.add_field(
+                name="Level:",
+                value=profile['level']
+            )
+            embed.add_field(
+                name="Position:",
+                value=f"`{self.client.dbh.get_position(profile['position'])}`"
+            )
+            embed.add_field(
+                name="Team:",
+                value=(profile['team_name'] + " :crown: ")
+                if profile['team_id'] == profile['id'] else profile['team_name']
+            )
+            embed.set_thumbnail(url=player.avatar_url)
+
+            if profile['free_agent'] is True:
+                embed.set_footer(
+                    text="This user is a free agent! Perhaps you should consider recruiting them?",
+                    icon_url=self.client.user.avatar_url
+                )
+            loadout = None
+            if profile['loadout'] is not None:
+                loadout = generate_image(profile['loadout'])
+                buffer = BytesIO()
+                loadout.save(buffer, "png")
+                buffer.seek(0)
+                loadout = discord.File(filename='loadout.png', fp=buffer)
+                embed.set_image(url='attachment://loadout.png')
+            player_embeds.append({"embed": embed, "file": loadout})
+
+        team_msg = await alpha_dm.send(
+            content="You've gotten a response from an opponent! Here are their details. If you want to accept, react to ✅ to alert the opponent team captain and I'll set up a scrim room for you! If not, just react to ❌ and I'll be on my way.",
+            embed=team_embed
+        )
+
+        player_msg = await alpha_dm.send(**player_embeds[0])
+        await player_msg.add_reaction('◀')
+        await player_msg.add_reaction('▶')
+        await player_msg.add_reaction('❌')
+        await player_msg.add_reaction('✅')
+        index = 0
+        while True:
+            try:
+                reaction, user = await self.client.wait_for(
+                    'reaction_add',
+                    check=lambda r, u: u == alpha_cap and str(r.emoji) in ['◀', '▶', '❌', '✅'],
+                    timeout=300
+                )
+                if str(reaction.emoji) == '❌':
+                    await player_msg.delete()
+                    await team_msg.delete()
+                    await alpha_dm.send(
+                        "Understood. I'll let the opponent captain know and be on my way.",
+                        delete_after=5
+                    )
+                    return
+                elif str(reaction.emoji) == '▶':
+                    if index < len(player_embeds) - 1:
+                        index += 1
+                    else:
+                        index = 0
+                    await player_msg.edit(**player_embeds[index])
+                elif str(reaction.emoji) == '◀':
+                    if index >= 0:
+                        index -= 1
+                    else:
+                        index = len(player_embeds) - 1
+                    await player_msg.edit(**player_embeds[index])
+                elif str(reaction.emoji) == '✅':
+                    pass
+            except TimeoutError:
+                await player_msg.delete()
+                await team_msg.delete()
+                return
+
+    async def set_up_scrim_room(self):
+        pass
 
 def setup(client):
     client.add_cog(ScrimOrganization(client))

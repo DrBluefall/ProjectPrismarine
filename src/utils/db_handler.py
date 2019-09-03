@@ -70,7 +70,10 @@ class DatabaseHandler:
             status SMALLINT DEFAULT 0, -- Status for the scrim. Corresponds to 'Open', 'In-Progress', and 'Finishing'.
             register_time BIGINT, -- time the scrim was registered in the database.
             expire_time BIGINT, -- the time an invite is set to expire. Set to a day after the scrim is registered.
-            details TEXT -- details that an invite can contain (division, maps/modes to play, etc.)
+            details TEXT, -- details that an invite can contain (division, maps/modes to play, etc.)
+            alpha_role_id BIGINT, -- the role generated for Team Alpha in the scrim server.
+            bravo_role_id BIGINT, -- the role generated for Team Alpha in the scrim server.
+            channel_id BIGINT -- the channel generated for the scrim.
         );
         """)
         self.mc.execute("""
@@ -334,6 +337,21 @@ class DatabaseHandler:
         )).fetchone()
         self.main_db.commit()
         return 0 if ret is not None else 2
+
+    def add_opponent(self, scrim_id, bravo_captain):
+        self.mc.execute("""
+        UPDATE scrims 
+        SET team_bravo = (SELECT row_to_json(team_profiles) FROM team_profiles WHERE captain = %s), captain_bravo = %s
+        WHERE id = %s;
+        """, (bravo_captain, bravo_captain, scrim_id))
+        self.main_db.commit()
+        pass
+
+    def update_scrim_stat(self, scrim_id: int, stat: int):
+        self.mc.execute("""
+        UPDATE scrims SET status = %s WHERE id = %s;
+        """, (stat, scrim_id))
+        self.main_db.commit()
 
     def get_scrim(self, scrim_id):
         return self.mc.execute("""

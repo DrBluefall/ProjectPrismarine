@@ -2,7 +2,7 @@
 
 from io import BytesIO
 from datetime import datetime
-from asyncio import TimeoutError
+from asyncio import TimeoutError, sleep
 
 # Third-Party Imports
 
@@ -173,9 +173,9 @@ class ScrimOrganization(commands.Cog):
                 name="Friend Code:",
                 value=(f"SW-{profile['friend_code'][:4]}-{profile['friend_code'][4:8]}-{profile['friend_code'][8:12]}"
                        if any((
-                            profile['is_private'] is False,
-                            profile['id'] == ctx.message.author.id)
-                        ) else "SW-XXXX-XXXX-XXXX")
+                    profile['is_private'] is False,
+                    profile['id'] == ctx.message.author.id)
+                ) else "SW-XXXX-XXXX-XXXX")
             )
             pembed.add_field(
                 name="Ranks:",
@@ -258,7 +258,7 @@ class ScrimOrganization(commands.Cog):
                         alpha_team = scrim['team_alpha']
                         bravo_cap = ctx.message.author
                         bravo_team = self.client.dbh.get_team(ctx.message.author.id)
-                        await self.bravo_cap_msg(ctx, alpha_cap, alpha_team, bravo_cap, bravo_team)
+                        await self.bravo_cap_msg(ctx, alpha_cap, bravo_cap, bravo_team, scrim['id'])
                     except discord.NotFound:
                         await ctx.send("Command Failed - Unable to track down opposing captain.")
                         return
@@ -271,9 +271,9 @@ class ScrimOrganization(commands.Cog):
     async def bravo_cap_msg(self,
                             ctx: commands.Context,
                             alpha_cap: discord.User,
-                            alpha_team: dict,
                             bravo_cap: discord.User,
-                            bravo_team: dict):
+                            bravo_team: dict,
+                            scrim_id: int):
         alpha_dm = await alpha_cap.create_dm() if alpha_cap.dm_channel is None else alpha_cap.dm_channel
         bravo_dm = await bravo_cap.create_dm() if bravo_cap.dm_channel is None else bravo_cap.dm_channel
 
@@ -409,22 +409,100 @@ class ScrimOrganization(commands.Cog):
                         index = len(player_embeds) - 1
                     await player_msg.edit(**player_embeds[index])
                 elif str(reaction.emoji) == '✅':
-                    pass
+                    await player_msg.delete()
+                    await team_msg.delete()
+                    await alpha_dm.send(
+                        "Awesome! I'll let the opposing captain know that you're down, and I'll set up a room in the scrim server!"
+                    )
+                    async with scrimctl(self.client, scrim_id):
+                        pass
+                    return
             except TimeoutError:
                 await player_msg.delete()
                 await team_msg.delete()
                 return
 
 
-class ScrimController:
+class scrimctl(object):
 
-    def __init__(self, client: commands.Bot, team_alpha: dict, team_bravo: dict):
+    def __init__(self, client: commands.Bot, scrim_id: int):
         self.client = client
-        self.team_alpha = team_alpha
-        self.team_bravo = team_bravo
+        self.scrim: dict = self.client.dbh.get_scrim(scrim_id)
 
-    async def set_up_scrim_room(self):
-        pass
+    scrim_channel: discord.TextChannel = None
+    alpha_voice: discord.VoiceChannel = None
+    bravo_voice: discord.VoiceChannel = None
+    alpha_role: discord.Role = None
+    bravo_role: discord.Role = None
+
+    async def __aenter__(self):
+        self.alpha_role = await self.client.scrim_server.create_role(f"Scrim {self.scrim['id']} - Team Alpha")
+        self.bravo_role = await self.client.scrim_server.create_role(f"Scrim {self.scrim['id']} - Team Bravo")
+
+        perms = {
+            "add_reactions": True,
+            "read_messages": True,
+            "send_messages": True,
+            "read_message_history": True,
+            "external_emojis": True,
+            "connect": True,
+            "speak": True,
+            "use_voice_activation": True
+        }
+
+        self.scrim_channel = self.client.scrim_category.create_text_channel(f"scrim-{self.scrim['id']}",
+                                                                            overwrites={
+                                                                                self.alpha_role: discord.PermissionOverwrite(
+                                                                                    **perms),
+                                                                                self.bravo_role: discord.PermissionOverwrite(
+                                                                                    **perms)
+                                                                            })
+        self.alpha_voice = self.client.scrim_category.create_voice_channel(f"Scrim {self.scrim['id']} - Team Alpha",
+                                                                           overwrites={
+                                                                               self.alpha_role: discord.PermissionOverwrite(
+                                                                                   **{"connect": True, "speak": True}),
+                                                                               self.bravo_role: discord.PermissionOverwrite(
+                                                                                   **{"connect": False, "speak": False})
+                                                                           })
+        self.bravo_voice = self.client.scrim_category.create_voice_channel(f"Scrim {self.scrim['id']} - Team Bravo",
+                                                                           overwrites={
+                                                                               self.alpha_role: discord.PermissionOverwrite(
+                                                                                   **{"connect": False,
+                                                                                      "speak": False}),
+                                                                               self.bravo_role: discord.PermissionOverwrite(
+                                                                                   **{"connect": True, "speak": True})
+                                                                           })
+
+        await self.scrim_channel.send(f"""
+        ⚔ *__Welcome to the scrim channel!__* ⚔
+        
+        Two voice channels have been provided for you. One for Team Alpha ({self.scrim['team_alpha']['team']['name']}), and one for Team Bravo ({self.scrim['team_bravo']['team']['name']}). Upon arrival, you should have been assigned a role with your scrim ID and team. These channels will exist for as long as you need them, although they will be closed automatically after 20 minutes of inactivity.
+        
+        And that's all I have to say for now. Good luck, and godspeed! ^^)
+        """)
+
+        return self.scrim_channel.create_invite(reason=f"Scrim created! Scrim ID:{self.scrim['id']}")
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+
+        while True:
+            try:
+                await self.client.wait_for('message', check=lambda m: m.author != self.client.user, timeout=900)
+            except TimeoutError:
+                await self.scrim_channel.send(
+                    "*WARNING* - Channel has been inactive for 15 minutes. This channel will be deleted in 5 minutes if this channel continues to be inactive.")
+                while True:
+                    try:
+                        await self.client.wait_for('message', check=lambda m: m.author != self.client.user, timeout=300)
+                        break
+                    except TimeoutError:
+                        await self.scrim_channel.send(
+                            "*WARNING* - Channel has been inactive for 20 minutes. Deleting channels and associated roles.")
+                        await self.bravo_role.delete(reason="Scrim finished!")
+                        await self.alpha_role.delete(reason="Scrim finished!")
+                        await self.alpha_voice.delete(reason="Scrim finished!")
+                        await self.bravo_voice.delete(reason="Scrim finished!")
+                        await self.scrim_channel.delete(reason="Scrim finished!")
 
 
 def setup(client):

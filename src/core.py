@@ -32,7 +32,7 @@ class Client(commands.Bot):
             self.clean_db.start()
             self.scrim_server = await self.fetch_guild(615963256166678540)
             logging.info(f"Scrim Server Retrieved! Name: {self.scrim_server.name}")
-            self.scrim_category = (await self.fetch_channel(616411963953512471)).category
+            self.scrim_category = await self.fetch_channel(615963735701585920)
             logging.info("All systems are clear. %s is online!", self.user.name)
             self.started_up = True
 

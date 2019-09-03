@@ -1,6 +1,7 @@
 # Editor metafiles
 .vscode/
 .idea/
+*.swp
 
 # Project Configuration files
 config.json
@@ -130,3 +131,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .DS_Store
+

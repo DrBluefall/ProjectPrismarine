@@ -1,79 +1,32 @@
 """Core file and entry point for the bot."""
-# Core Language Imports
+# Standard Library Imports:
 
-import os
 import logging
-import traceback
-import json
-import optparse
+import os
 from datetime import datetime
 
-# Third-Party Imports
+# Third-Party Imports:
 
-from discord.ext import commands, tasks
+from discord.ext import commands
 import coloredlogs
 
 # Local Project Imports
 
-from utils.db_handler import DatabaseHandler
+from config import token, owner_ids, prefix
 
 
 class Client(commands.Bot):
-    """The base class of Project Prismarine."""
+    """The core class of Project Prismarine."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.start_time = datetime.utcnow()
         self.started_up = False
-        self.dbh = DatabaseHandler()
-        self.start_time = datetime.now()
 
     async def on_ready(self):
         if not self.started_up:
-            self.clean_db.start()
-            self.scrim_server = await self.fetch_guild(615963256166678540)
-            logging.info(f"Scrim Server Retrieved! Name: {self.scrim_server.name}")
-            self.scrim_category = await self.fetch_channel(615963735701585920)
-            logging.info("All systems are clear. %s is online!", self.user.name)
+            logging.info(f"""All systems are clear. {self.user.name} is online!""")
             self.started_up = True
-
-    async def on_command_error(self, ctx, exception):
-        if isinstance(
-                exception,
-                (commands.CommandNotFound, commands.UserInputError)
-        ):
-            return
-        elif isinstance(exception, (commands.NotOwner, commands.MissingPermissions)):
-            await ctx.send("Command Failed - *You are not authorized to use this!* :warning:")
-        else:
-            err_msg = traceback.format_exception(
-                type(exception), exception, exception.__traceback__
-            )
-            err_msg = ''.join(err_msg)
-
-            logging.error("Unhandled exception in %s:\nInvocation Context: Server - %s (%i), Channel - #%s (%i)\n%s",
-                          ctx.command.qualified_name,
-                          ctx.guild.name, ctx.guild.id,
-                          ctx.channel.name, ctx.channel.id, err_msg)
-
-    @tasks.loop(hours=1)
-    async def clean_db(self):
-        self.dbh.clear_teams()
-
-
-def verify_config(path=None):
-    with open("../config.json" if path is None else path) as infile:
-        cfg = json.load(infile)
-        required_keys = [
-            "token",
-            "owners",
-            "prefix"
-        ]
-        for key in required_keys:
-            if key not in cfg.keys():
-                raise Exception("Your config.json is incomplete! Please assure that it has the following keys: " + str(
-                    required_keys))
-            else:
-                required_keys.remove(key)
 
 
 def load_extensions(client):
@@ -84,36 +37,16 @@ def load_extensions(client):
 
 
 def main():
-    os.system('cls' if os.name == 'nt' else 'clear')
-    parser = optparse.OptionParser()
-    parser.add_option('--log-level', '-l', dest="log_level")
-    parser.add_option('--config-path', '-c', dest="config_path")
-
-    options, args = parser.parse_args()
-
-    if options.log_level is not None and options.log_level.upper() not in ["DEBUG", "INFO", "WARNING", "ERROR",
-                                                                           "CRITICAL"]:
-        raise Exception("Invalid logging level specified!\n\nValid levels: DEBUG, INFO, WARNING, ERROR, CRITICAL")
-
     coloredlogs.DEFAULT_FIELD_STYLES.update({'funcName': {'color': 'cyan'}})
     coloredlogs.DEFAULT_FIELD_STYLES["name"]["color"] = 'yellow'
     coloredlogs.install(
-        level="INFO" if options.log_level is None else options.log_level.upper(),
-        fmt="[%(hostname)s] %(asctime)s %(funcName)s(%(lineno)s) %(name)s[%(process)d] %(levelname)s %(message)s"
+        level="INFO",
+        fmt="[%(hostname)s] %(asctime)s %(funcName)s:%(lineno)s %(name)s %(levelname)s %(message)s"
     )
-    verify_config()
-    with open("../config.json" if options.config_path is None else options.config_path) as infile:
-        cfg = json.load(infile)
-    client = Client(
-        command_prefix=commands.when_mentioned_or(cfg["prefix"]),
-        owners=cfg["owners"])
+    logging.debug("Log configuration complete.")
+    client = Client(command_prefix=commands.when_mentioned_or(prefix), owners=owner_ids)
     load_extensions(client)
-    client.dbh.gen_tables()
-    client.run(cfg["token"])
-    logging.warning("Closing Database connections.")
-    client.dbh.mc.close()
-    client.dbh.main_db.close()
-    logging.info("Connections closed. Shutdown complete.")
+    client.run(token)
 
 
 if __name__ == "__main__":

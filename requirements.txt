@@ -1,5 +1,2 @@
 discord
 coloredlogs
-psutil
-pg8000
-pillow

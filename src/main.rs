@@ -44,7 +44,7 @@ group!({
         prefix: "sudo",
         owners_only: true
     },
-    commands: [logout, latency]
+    commands: [logout, latency, user]
 });
 
 fn main() {

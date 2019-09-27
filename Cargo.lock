@@ -789,6 +789,7 @@ dependencies = [
 name = "project_prismarine"
 version = "0.0.1-R"
 dependencies = [
+ "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "pretty_env_logger 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serenity 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",

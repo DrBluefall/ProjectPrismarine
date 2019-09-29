@@ -1,5 +1,6 @@
 use crate::{APIClientContainer, ShardManagerContainer, TokenHolder};
 use chrono::offset::Utc;
+use discord_bots_org::builder::widget::LargeWidget;
 use discord_bots_org::model::ShardStats;
 use log::*;
 use serenity::utils::Colour as Color;
@@ -198,4 +199,22 @@ fn update_stats(ctx: &mut Context, msg: &Message) -> CommandResult {
 
         sleep(Duration::from_secs(60));
     }
+}
+
+#[command]
+fn info(ctx: &mut Context, msg: &Message) -> CommandResult {
+    let mut widget = LargeWidget::new(*ctx.http.get_current_user().unwrap().id.as_u64());
+
+    (&mut widget).top_color("b30000");
+
+    let widget = widget.build().unwrap().replace(".svg", ".png");
+    let _ = msg.channel_id.send_message(&ctx, |m| {
+        m.embed(|e| {
+            e.image(widget);
+            e
+        });
+        m
+    });
+
+    Ok(())
 }

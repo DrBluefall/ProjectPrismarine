@@ -53,7 +53,7 @@ group!({
         prefix: "sudo",
         owners_only: true
     },
-    commands: [logout, latency, user, update_stats]
+    commands: [info, logout, latency, user, update_stats]
 });
 
 fn main() {

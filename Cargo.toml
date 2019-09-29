@@ -10,7 +10,15 @@ edition = "2018"
 log = "0.4.8"
 pretty_env_logger = "0.3.1"
 chrono = "0.4"
+reqwest = "0.9"
+dotenv_codegen = "0.14.1"
+dotenv = "0.14.1"
 
 [dependencies.serenity]
 version = "0.7.0"
 features = ["framework", "standard_framework"]
+
+[dependencies.discord-bots-org]
+version = "0.1"
+default-features = false
+features = [ "reqwest-sync-support" ]

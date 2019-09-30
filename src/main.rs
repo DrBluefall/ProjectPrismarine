@@ -1,4 +1,7 @@
 #[macro_use]
+extern crate serde;
+extern crate serde_json;
+#[macro_use]
 extern crate dotenv_codegen;
 extern crate discord_bots_org;
 extern crate dotenv;
@@ -9,6 +12,7 @@ extern crate log;
 mod modules;
 use discord_bots_org::ReqwestSyncClient as APIClient;
 use dotenv::dotenv;
+// use modules::player::*;
 use modules::sudo::*;
 use reqwest::Client as ReqwestClient;
 use serenity::{
@@ -55,6 +59,13 @@ group!({
     },
     commands: [info, logout, latency, user, update_stats]
 });
+group!({
+    name: "player",
+    options: {
+        prefixes: ["p", "player"]
+    },
+    commands: []
+});
 
 fn main() {
     dotenv().ok();
@@ -90,7 +101,8 @@ fn main() {
     client.with_framework(
         StandardFramework::new()
             .configure(|c| c.owners(owners).on_mention(Some(bot_id)).prefix("pc."))
-            .group(&SUDO_GROUP),
+            .group(&SUDO_GROUP)
+            .group(&PLAYER_GROUP),
     );
     info!("Framework prepared!");
 

@@ -1,1 +1,1 @@
-pub mod player;
+pub mod models;

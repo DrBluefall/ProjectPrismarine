@@ -10,9 +10,11 @@ extern crate reqwest;
 #[macro_use]
 extern crate log;
 mod modules;
+mod utils;
 use discord_bots_org::ReqwestSyncClient as APIClient;
 use dotenv::dotenv;
 // use modules::player::*;
+use crate::utils::db::*;
 use modules::sudo::*;
 use reqwest::Client as ReqwestClient;
 use serenity::{
@@ -22,7 +24,6 @@ use serenity::{
     prelude::*,
 };
 use std::{collections::HashSet, sync::Arc};
-
 struct ShardManagerContainer;
 struct APIClientContainer;
 

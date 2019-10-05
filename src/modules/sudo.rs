@@ -23,7 +23,7 @@ fn logout(ctx: &mut Context, msg: &Message) -> CommandResult {
         manager.lock().shutdown_all();
     } else {
         let _ = msg.reply(&ctx, "Command Failed - Could not retrieve shard manager, bot will need to be shutdown manually.");
-        error!("Was unable to retrieve shard manager at command invokation");
+        error!("Was unable to retrieve shard manager at command invocation");
     }
     Ok(())
 }

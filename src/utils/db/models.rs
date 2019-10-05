@@ -1,21 +1,82 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use postgres::Connection;
+use postgres::rows::Row;
+use postgres::Result as PgResult;
+#[macro_use]
+use log;
+use crate::utils::misc::pos_map;
+use serde_json;
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Player<'a> {
-    pub id: u64,
-    in_game_name: String,
+pub struct Player {
+    id: i64,
     friend_code: String,
-    pub level: u32,
+    ign: String,
+    pub level: i64,
     sz: String,
     tc: String,
     rm: String,
     cb: String,
     sr: String,
-    position: &'a str,
-    team_id: Option<u64>,
+    position: i64,
+    loadout: Option<Loadout>,
+    team_id: Option<i64>,
     free_agent: Option<bool>,
     is_private: Option<bool>,
+}
+
+impl Player {
+    pub fn add_to_db(conn: &Connection, user_id: u64) -> PgResult<()> {
+        let ins_res = conn.execute("
+        INSERT INTO public.player_profiles(id) VALUES ($1)
+        ON CONFLICT DO NOTHING;
+        ", &[&(user_id as i64)]);
+        Ok(())
+    }
+    pub fn from_db<'a>(conn: &Connection, user_id: u64) -> Option<Player> {
+        let mut row: Row;
+        match conn.query("SELECT", &[&(user_id as i64)]) {
+            Ok(v) => row = v.get(0),
+            Err(e) => {
+                error!("Error in player data retrieval: {:#?}", e);
+                return None;
+            }
+        };
+        Some(Player {
+            id: row.get("id"),
+            friend_code: row.get("friend_code"),
+            ign: row.get("ign"),
+            level: row.get("level"),
+            sz: row.get("sz"),
+            tc: row.get("tc"),
+            rm: row.get("rm"),
+            cb: row.get("cb"),
+            sr: row.get("sr"),
+            position: row.get("position"),
+            loadout: None,
+            team_id: row.get("team_id"),
+            free_agent: row.get("free_agent"),
+            is_private: row.get("is_private")
+        })
+    }
+    pub fn id(&self) -> &i64 {&self.id}
+    pub fn fc(&self) -> &String {&self.friend_code}
+    pub fn ranks(&self) -> HashMap<&'static str, &String> {
+        let mut hm = HashMap::new();
+        hm.insert("Splat Zones", &self.sz);
+        hm.insert("Tower Control", &self.tc);
+        hm.insert("Rainmaker", &self.rm);
+        hm.insert("Clam Blitz", &self.cb);
+        hm.insert("Salmon Run", &self.sr);
+        hm
+    }
+    pub fn pos(&self, pos_int: i8) -> &'static str {
+        pos_map().get(&pos_int).unwrap_or(&"Invalid")
+    }
+    pub fn loadout(&self) -> &Option<Loadout> {&self.loadout}
+    pub fn team_id(&self) -> &Option<i64> {&self.team_id}
+    pub fn is_free_agent(&self) -> &Option<bool> {&self.free_agent}
+    pub fn is_private(&self) -> &Option<bool> {&self.is_private}
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -25,8 +86,8 @@ pub struct Loadout {
     clothes: GearItem,
     shoes: GearItem,
     main_wep: MainWeapon,
-    sub_wep: SubSpecial,
-    special_wep: SubSpecial,
+    sub_wep: SubWeapon,
+    special_wep: SpecialWeapon,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -38,23 +99,18 @@ struct RawLoadout {
     shoes: RawGearItem,
 }
 
+impl RawLoadout {
+    pub fn deserialize(dat: &str) -> RawLoadout {
+        let ld: RawLoadout = serde_json::from_str(dat);
+        ld
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
-enum RawGearItem {
-    Head {
-        gear_id: u32,
-        main: u32,
-        subs: Vec<u32>,
-    },
-    Clothes {
-        gear_id: u32,
-        main: u32,
-        subs: Vec<u32>,
-    },
-    Shoes {
-        gear_id: u32,
-        main: u32,
-        subs: Vec<u32>,
-    },
+struct RawGearItem {
+    gear_id: u32,
+    main: u32,
+    subs: Vec<u32>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -84,20 +140,19 @@ struct MainWeapon {
     site_id: u32,
     name: String,
     image: String,
-    special: SubSpecial,
-    sub: SubSpecial,
+    special: SubWeapon,
+    sub: SpecialWeapon,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-enum SubSpecial {
-    SubWeapon {
-        image: String,
-        localized_name: HashMap<String, String>,
-        name: String,
-    },
-    SpecialWeapon {
-        image: String,
-        localized_name: HashMap<String, String>,
-        name: String,
-    },
+struct SubWeapon {
+    image: String,
+    localized_name: HashMap<String, String>,
+    name: String,
+}
+#[derive(Serialize, Deserialize, Debug)]
+struct SpecialWeapon {
+    image: String,
+    localized_name: HashMap<String, String>,
+    name: String,
 }

@@ -14,6 +14,5 @@ pub fn pos_map() -> HashMap<i8, &'static str> {
     hm.insert(2, "Midline");
     hm.insert(3, "Backline");
     hm.insert(4, "Flex");
-
     hm
 }

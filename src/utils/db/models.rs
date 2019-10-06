@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use postgres::Connection;
-use postgres::rows::Row;
+use postgres::rows::{Row, Rows};
 use postgres::Result as PgResult;
 #[macro_use]
 use log;
@@ -34,19 +34,25 @@ impl Player {
         Ok(())
     }
     pub fn from_db<'a>(conn: &Connection, user_id: u64) -> Option<Player> {
-        let mut row: Row;
-        match conn.query("SELECT", &[&(user_id as i64)]) {
-            Ok(v) => row = v.get(0),
+        let mut rows: Option<Rows> = None;
+        rows = match conn.query("SELECT * FROM public.player_profiles WHERE id = $1", &[&(user_id as i64)]) {
+            Ok(v) => Some(v),
             Err(e) => {
                 error!("Error in player data retrieval: {:#?}", e);
                 return None;
             }
         };
+        if rows.is_none() {
+            return None;
+        }
+        let rows = rows.unwrap();
+        let row = rows.get(0);
+        let lv: i64 = row.get("level");
         Some(Player {
             id: row.get("id"),
             friend_code: row.get("friend_code"),
             ign: row.get("ign"),
-            level: row.get("level"),
+            level: lv,
             sz: row.get("sz"),
             tc: row.get("tc"),
             rm: row.get("rm"),
@@ -100,9 +106,8 @@ struct RawLoadout {
 }
 
 impl RawLoadout {
-    pub fn deserialize(dat: &str) -> RawLoadout {
-        let ld: RawLoadout = serde_json::from_str(dat);
-        ld
+    pub fn deserialize(dat: &str) -> Result<RawLoadout, serde_json::Error> {
+       serde_json::from_str::<RawLoadout>(dat)
     }
 }
 
@@ -155,4 +160,29 @@ struct SpecialWeapon {
     image: String,
     localized_name: HashMap<String, String>,
     name: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use dotenv::dotenv;
+    use postgres::{Connection, TlsMode};
+
+    fn get_conn() -> Connection {
+        dotenv().ok();
+        Connection::connect(match std::env::var("PRISBOT_DATABASE") {
+            Ok(v) => v,
+            Err(e) => panic!("{:#?}", e),
+        }, TlsMode::None).unwrap()
+    }
+
+    #[test]
+    fn add() {
+        Player::add_to_db(&get_conn(), 1).unwrap();
+    }
+
+    #[test]
+    fn from() {
+        Player::from_db(&get_conn(), 1).unwrap();
+    }
 }

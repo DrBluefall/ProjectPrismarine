@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use postgres::Connection;
 use postgres::rows::{Row, Rows};
 use postgres::Result as PgResult;
+use postgres::Error;
 #[macro_use]
 use log;
 use crate::utils::misc::pos_map;
@@ -26,12 +27,11 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn add_to_db(conn: &Connection, user_id: u64) -> Result<()> {
-        let _ = conn.execute("
+    pub fn add_to_db(conn: &Connection, user_id: u64) -> Result<u64, Error> {
+      conn.execute("
         INSERT INTO public.player_profiles(id) VALUES ($1)
         ON CONFLICT DO NOTHING;
-        ", &[&(user_id as i64)]);
-        Ok(())
+        ", &[&(user_id as i64)])
     }
     pub fn from_db<'a>(conn: &Connection, user_id: u64) -> Option<Player> {
         let mut rows: Option<Rows> = None;
@@ -83,6 +83,38 @@ impl Player {
     pub fn team_id(&self) -> &Option<i64> {&self.team_id}
     pub fn is_free_agent(&self) -> &Option<bool> {&self.free_agent}
     pub fn is_private(&self) -> &Option<bool> {&self.is_private}
+    pub fn update(&self, conn: &Connection) -> Result<u64, Error> {
+        let ld_raw: Option<&RawLoadout> = match self.loadout() {
+            Some(loadout) => Some(&loadout.raw),
+            None => None
+        };
+        conn.execute(
+            "
+UPDATE public.player_profiles
+SET
+    friend_code = $1,
+    ign = $2,
+    level = $3,
+    sz = $4, tc = $5, rm = $6, cb = $7, sr = $8,
+    position = $9,
+    loadout = $10,
+    team_id = $11,
+    is_private = $12
+WHERE id = $13;
+                    ",
+            &[
+                &self.friend_code,
+                &self.ign,
+                &self.level,
+                &self.sz, &self.tc, &self.rm, &self.cb, &self.sr,
+                &self.position,
+                &serde_json::to_string_pretty(&ld_raw).unwrap_or(String::from("{}")),
+                &self.team_id,
+                &self.is_private,
+                &self.id
+            ]
+        )
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -184,5 +216,12 @@ mod tests {
     #[test]
     fn from() {
         Player::from_db(&get_conn(), 1).unwrap();
+    }
+
+    #[test]
+    fn up() {
+        let mut player = Player::from_db(&get_conn(), 1).unwrap();
+        player.level = 42;
+        player.update(&get_conn()).unwrap();
     }
 }

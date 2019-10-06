@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS player_profiles (
     cb CHARACTER VARYING(6) DEFAULT $$C-$$,
     sr CHARACTER VARYING(13) DEFAULT $$Intern$$,
     position SMALLINT DEFAULT 0, -- int to indicate position. Maps to {0: "Not Set", 1: "Frontline", 2: "Midline", 3: "Backline", 4: "Flex"}
-    loadout JSON, -- JSON data detailing the loadout of a player.
+    loadout TEXT, -- JSON data detailing the loadout of a player. Represented
+    -- as TEXT in order to work around an issue with rust-postgres.
     team_id BIGINT, -- if not `NULL`, this will reference a team in `team_profiles`. The constraint is added later on.
     free_agent BOOLEAN DEFAULT FALSE, -- displays a `Free Agent!` marker on a player's profile.
     is_private BOOLEAN DEFAULT FALSE -- hide FC if 'TRUE', and prevent invites from being received for teams.

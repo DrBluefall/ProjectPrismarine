@@ -12,13 +12,13 @@ pub struct Player {
     id: i64,
     friend_code: String,
     ign: String,
-    pub level: i64,
+    pub level: i32,
     sz: String,
     tc: String,
     rm: String,
     cb: String,
     sr: String,
-    position: i64,
+    position: i16,
     loadout: Option<Loadout>,
     team_id: Option<i64>,
     free_agent: Option<bool>,
@@ -26,8 +26,8 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn add_to_db(conn: &Connection, user_id: u64) -> PgResult<()> {
-        let ins_res = conn.execute("
+    pub fn add_to_db(conn: &Connection, user_id: u64) -> Result<()> {
+        let _ = conn.execute("
         INSERT INTO public.player_profiles(id) VALUES ($1)
         ON CONFLICT DO NOTHING;
         ", &[&(user_id as i64)]);
@@ -47,7 +47,7 @@ impl Player {
         }
         let rows = rows.unwrap();
         let row = rows.get(0);
-        let lv: i64 = row.get("level");
+        let lv: i32 = row.get("level");
         Some(Player {
             id: row.get("id"),
             friend_code: row.get("friend_code"),

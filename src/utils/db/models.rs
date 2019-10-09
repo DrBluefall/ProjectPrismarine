@@ -329,6 +329,15 @@ mod tests {
     #[test]
     fn raw_deserialize() { // NOTE: Run this test w/ `--nocapture` to see the output
         let test_str = "080311694ac62098ce6e214e5";
-        println!("{:#?}", RawLoadout::parse(test_str));
+        let out = RawLoadout::parse(test_str);
+        println!("{:#?}", out);
+        // Output should look something like this (the JSON from the Python implementation,
+        // pretty printed):
+        // {'clothes': {'gear_id': 98, 'main': 1, 'subs': [6, 6, 14]},
+        // 'head': {'gear_id': 17, 'main': 13, 'subs': [5, 5, 12]},
+        // 'id': 3,
+        // 'set': 8,
+        // 'shoes': {'gear_id': 110, 'main': 4, 'subs': [5, 7, 5]}}
+        println!("{}", serde_json::to_string_pretty(&out).unwrap().as_str());
     }
 }

@@ -22,7 +22,6 @@ pub fn pos_map() -> HashMap<i8, &'static str> {
 pub struct HexError;
 
 pub fn hex_to_bin(input: String) -> Result<String, HexError> {
-    println!("I: {}", input);
     let mut result = String::new();
     let mut map: HashMap<char, &str> = HashMap::new();
     map.insert('0', "0000");
@@ -54,6 +53,5 @@ pub fn hex_to_bin(input: String) -> Result<String, HexError> {
             Some(v) => result.push_str(v),
         }
     }
-    println!("O: {}", result);
     Ok(result)
 }

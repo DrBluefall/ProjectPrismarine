@@ -6,8 +6,55 @@ use postgres::Result as PgResult;
 use postgres::Error;
 #[macro_use]
 use log;
-use crate::utils::misc::pos_map;
+use crate::utils::misc;
 use serde_json;
+
+// Thank god for answers on the internet...
+use std::ops::{Bound, RangeBounds};
+use crate::utils::misc::hex_to_bin;
+
+trait StringUtils {
+    fn substring(&self, start: usize, len: usize) -> &str;
+    fn slice(&self, range: impl RangeBounds<usize>) -> &str;
+}
+impl StringUtils for str {
+    fn substring(&self, start: usize, len: usize) -> &str {
+        let mut char_pos = 0;
+        let mut byte_start = 0;
+        let mut it = self.chars();
+        loop {
+            if char_pos == start { break; }
+            if let Some(c) = it.next() {
+                char_pos += 1;
+                byte_start += c.len_utf8();
+            }
+            else { break; }
+        }
+        char_pos = 0;
+        let mut byte_end = byte_start;
+        loop {
+            if char_pos == len { break; }
+            if let Some(c) = it.next() {
+                char_pos += 1;
+                byte_end += c.len_utf8();
+            }
+            else { break; }
+        }
+        &self[byte_start..byte_end]
+    }
+    fn slice(&self, range: impl RangeBounds<usize>) -> &str {
+        let start = match range.start_bound() {
+            Bound::Included(bound) | Bound::Excluded(bound) => *bound,
+            Bound::Unbounded => 0,
+        };
+        let len = match range.end_bound() {
+            Bound::Included(bound) => *bound + 1,
+            Bound::Excluded(bound) => *bound,
+            Bound::Unbounded => self.len(),
+        } - start;
+        self.substring(start, len)
+    }
+}
 
 pub struct Player {
     id: i64,
@@ -77,7 +124,7 @@ impl Player {
         hm
     }
     pub fn pos(&self, pos_int: i8) -> &'static str {
-        pos_map().get(&pos_int).unwrap_or(&"Invalid")
+        misc::pos_map().get(&pos_int).unwrap_or(&"Invalid")
     }
     pub fn loadout(&self) -> &Option<Loadout> {&self.loadout}
     pub fn team_id(&self) -> &Option<i64> {&self.team_id}
@@ -138,8 +185,37 @@ struct RawLoadout {
 }
 
 impl RawLoadout {
-    pub fn deserialize(dat: &str) -> Result<RawLoadout, serde_json::Error> {
-       serde_json::from_str::<RawLoadout>(dat)
+    /// Deserialize a raw base-16 encoded string into a RawLoadout struct
+    /// ## Arguments
+    /// * `dat`: The base-16 encoded string you want to deserialize. The function will verify if
+    /// the string is valid before conversion.
+    /// ## Return Value:
+    /// * `Result<RawLoadout, serde_json::Error>`: A result wrapping either a RawLoadout instance
+    /// or the error that resulted.
+    pub fn parse(dat: &str) -> Option<RawLoadout> {
+        if u32::from_str_radix(
+            misc::hex_to_bin(
+                String::from(
+                    dat.slice(0..1)
+                )
+            ).unwrap_or(String::from("1")).as_str(), 2).unwrap() != 0 {
+            return None;
+        }
+        let set = u32::from_str_radix(
+            misc::hex_to_bin(
+                String::from(
+                    dat.slice(1..2)
+                )
+            ).unwrap_or(String::new()).as_str(), 2).unwrap();
+        let id =  u32::from_str_radix(misc::hex_to_bin(String::from(dat.slice(2..4)))
+                                               .unwrap_or(String::new()).as_str(), 2).unwrap();
+        let head = RawGearItem::parse(String::from(dat.slice(4..11))
+                                               .as_str()).unwrap();
+        let clothes = RawGearItem::parse(String::from(dat.slice(11..18))
+                                               .as_str()).unwrap();
+        let shoes = RawGearItem::parse(String::from(dat.slice(18..25))
+                                               .as_str()).unwrap();
+        Some(RawLoadout { id, set, head, clothes, shoes })
     }
 }
 
@@ -148,6 +224,31 @@ struct RawGearItem {
     gear_id: u32,
     main: u32,
     subs: Vec<u32>,
+}
+
+impl RawGearItem {
+    pub fn parse(dat: &str) -> Option<RawGearItem> {
+        let gear_id = u32::from_str_radix(dat.slice(0..2), 16).unwrap();
+        let bin_str = hex_to_bin(dat.slice(2..7).to_string()).unwrap();
+        let mut subs: Vec<u32> = Vec::new();
+        println!("{}, {}, {}, {}",
+                 bin_str.slice(0..5),
+                 bin_str.slice(5..10),
+                 bin_str.slice(10..15),
+                 bin_str.slice(15..20));
+        let main = u32::from_str_radix(bin_str.slice(0..5), 2).unwrap();
+        subs.push(
+            u32::from_str_radix(bin_str.slice(5..10), 2).unwrap()
+        );
+        subs.push(
+            u32::from_str_radix(bin_str.slice(10..15), 2).unwrap()
+        );
+        subs.push(
+            u32::from_str_radix(bin_str.slice(15..20), 2).unwrap()
+        );
+
+        Some(RawGearItem {gear_id, main, subs})
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -223,5 +324,11 @@ mod tests {
         let mut player = Player::from_db(&get_conn(), 1).unwrap();
         player.level = 42;
         player.update(&get_conn()).unwrap();
+    }
+
+    #[test]
+    fn raw_deserialize() { // NOTE: Run this test w/ `--nocapture` to see the output
+        let test_str = "080311694ac62098ce6e214e5";
+        println!("{:#?}", RawLoadout::parse(test_str));
     }
 }

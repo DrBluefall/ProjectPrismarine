@@ -8,6 +8,11 @@ use postgres::Error;
 use log;
 use crate::utils::misc;
 use serde_json;
+use regex::Regex;
+
+lazy_static! {
+        static ref FCRE: Regex = Regex::new(r"\D").unwrap();
+}
 
 // Thank god for answers on the internet...
 use std::ops::{Bound, RangeBounds};
@@ -80,7 +85,7 @@ impl Player {
         ON CONFLICT DO NOTHING;
         ", &[&(user_id as i64)])
     }
-    pub fn from_db<'a>(conn: &Connection, user_id: u64) -> Option<Player> {
+    pub fn from_db(conn: &Connection, user_id: u64) -> Option<Player> {
         let mut rows: Option<Rows> = None;
         rows = match conn.query("SELECT * FROM public.player_profiles WHERE id = $1", &[&(user_id as i64)]) {
             Ok(v) => Some(v),
@@ -112,8 +117,33 @@ impl Player {
             is_private: row.get("is_private")
         })
     }
+
     pub fn id(&self) -> &i64 {&self.id}
     pub fn fc(&self) -> &String {&self.friend_code}
+    pub fn set_fc(&self, fc_string: &str) -> Result<(), ()> {
+        
+        let regexed = FCRE.replace_all(fc_string, "");
+
+        if regexed.len() == 12 {
+            let f1 = regexed.substring(0, 4);
+            let f2 = regexed.substring(4, 4);
+            let f3 = regexed.substring(8, 4);
+            self.friend_code = format!("SW-{}-{}-{}", f1, f2, f3);
+        } else {
+            return Err(());
+        }
+
+        Ok(())
+    }
+    pub fn name(&self) -> &String {&self.ign}
+    pub fn set_name(&mut self, name: String) -> Result<(), ()> {
+        if name.len() > 10 || name.len() < 1 {
+            return Err(());
+        } else {
+            self.ign = name;
+        }
+        Ok(())
+    }
     pub fn ranks(&self) -> HashMap<&'static str, &String> {
         let mut hm = HashMap::new();
         hm.insert("Splat Zones", &self.sz);
@@ -339,5 +369,36 @@ mod tests {
         // 'set': 8,
         // 'shoes': {'gear_id': 110, 'main': 4, 'subs': [5, 7, 5]}}
         println!("{}", serde_json::to_string_pretty(&out).unwrap().as_str());
+    }
+
+    #[test]
+    fn re_fc() {
+        let mut player = Player::from_db(&get_conn(), 1).unwrap();
+        // Test Cases:
+        //a
+        //k
+        //0000-0000-0000
+        //123412341234
+        //1234t1234t1234t
+        //aoeuaoeuaoeu12348888aaaa888a8
+        //1234-1234-122-3
+        //12341234123
+        //412341299999
+        //0 0 0 0 0 0 0 0 0 0 0 9
+        //' or 1=1 #
+        //1234 1234 4311
+        player.set_fc("a").unwrap_err();
+        player.set_fc("k").unwrap_err();
+        player.set_fc("0000-0000-0000").unwrap();
+        player.set_fc("123412341234").unwrap();
+        player.set_fc("1234t1234t1234t").unwrap();
+        player.set_fc("aoeuaoeuaoeu12348888aaaa888a8").unwrap();
+        player.set_fc("1234-1234-122-3").unwrap();
+        player.set_fc("12341234123").unwrap_err();
+        player.set_fc("412341299999").unwrap();
+        player.set_fc("0 0 0 0 0 0 0 0 0 0 0 9").unwrap();
+        player.set_fc("' or 1=1 #").unwrap_err();
+        player.set_fc("1234 1234 4311").unwrap();
+
     }
 }

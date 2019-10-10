@@ -11,6 +11,9 @@ extern crate pretty_env_logger; // nicer logging
 extern crate postgres;
 #[macro_use]
 extern crate postgres_derive;
+extern crate regex;
+#[macro_use]
+extern crate lazy_static;
 
 use discord_bots_org::ReqwestSyncClient as APIClient; // Used to update discordbots.org
 use dotenv::dotenv; // used to load .env files from directory.
@@ -64,12 +67,22 @@ group!({
     },
     commands: [info, logout, latency, user, update_stats]
 });
+
+group!({
+    name: "update",
+    options: {
+        prefixes: [ "u", "update" ],
+    },
+    commands: [name]
+});
+
 group!({
     name: "player",
     options: {
         prefixes: ["p", "player"]
     },
-    commands: [new]
+    commands: [new],
+    sub_groups: [update]
 });
 
 fn main() {

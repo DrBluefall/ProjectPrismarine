@@ -11,8 +11,10 @@ use serde_json;
 use regex::Regex;
 
 lazy_static! {
-        static ref FCRE: Regex = Regex::new(r"\D").unwrap();
+    static ref FCRE: Regex = Regex::new(r"\D").unwrap();
+    static ref RANKRE: Regex = Regex::new(r"(([ABC][-+ ]?)|(S\+[0-9]?)|S|(X [0-9]{0,4}))").unwrap();
 }
+
 
 // Thank god for answers on the internet...
 use std::ops::{Bound, RangeBounds};
@@ -78,6 +80,9 @@ pub struct Player {
     is_private: Option<bool>,
 }
 
+#[derive(Debug)]
+pub struct RankSetErr(String);
+
 impl Player {
     pub fn add_to_db(conn: &Connection, user_id: u64) -> Result<u64, Error> {
       conn.execute("
@@ -86,8 +91,8 @@ impl Player {
         ", &[&(user_id as i64)])
     }
     pub fn from_db(conn: &Connection, user_id: u64) -> Option<Player> {
-        let mut rows: Option<Rows> = None;
-        rows = match conn.query("SELECT * FROM public.player_profiles WHERE id = $1", &[&(user_id as i64)]) {
+        
+        let rows = match conn.query("SELECT * FROM public.player_profiles WHERE id = $1", &[&(user_id as i64)]) {
             Ok(v) => Some(v),
             Err(e) => {
                 error!("Error in player data retrieval: {:#?}", e);
@@ -120,7 +125,7 @@ impl Player {
 
     pub fn id(&self) -> &i64 {&self.id}
     pub fn fc(&self) -> &String {&self.friend_code}
-    pub fn set_fc(&self, fc_string: &str) -> Result<(), ()> {
+    pub fn set_fc(&mut self, fc_string: &str) -> Result<(), ()> {
         
         let regexed = FCRE.replace_all(fc_string, "");
 
@@ -153,9 +158,41 @@ impl Player {
         hm.insert("Salmon Run", &self.sr);
         hm
     }
-    pub fn pos(&self, pos_int: i8) -> &'static str {
-        misc::pos_map().get(&pos_int).unwrap_or(&"Invalid")
+
+    pub fn set_rank(&mut self, mode: String, rank: String) -> Result<(), RankSetErr> {
+
+        if !RANKRE.is_match(rank.as_str()) {
+            return Err(RankSetErr(format!("Invalid Rank: {}", rank.as_str())))
+        }
+
+        match mode.as_str() {
+            "sz" | "splat_zones" | "sz_rank" => self.sz = "sz".to_string(),
+            "tc" | "tower_control" | "tc_rank" => self.tc = "tc".to_string(),
+            "rm" | "rainmaker" | "rm_rank" => self.rm = "rm".to_string(),
+            "cb" | "clam_blitz" | "cb_rank" => self.cb = "cb".to_string(),
+            "sr" | "salmon_run" | "sr_rank" => self.sr = "sr".to_string(),
+            _ => return Err(RankSetErr(format!("Invalid Mode: {}", mode.as_str()))),
+        }
+        Ok(())
     }
+
+    pub fn pos(&self) -> &'static str {
+        misc::pos_map().get(&self.position).unwrap_or(&"Invalid")
+    }
+
+    pub fn set_pos(&mut self, pos_int: i16) -> Result<(), ()> {
+        let pos_map = misc::pos_map();
+        let mut in_map = false;
+        for key in pos_map.keys() {
+            if key == &pos_int {
+                self.position = pos_int;
+                return Ok(());
+            }
+        }
+        Err(())
+    }
+
+
     pub fn loadout(&self) -> &Option<Loadout> {&self.loadout}
     pub fn team_id(&self) -> &Option<i64> {&self.team_id}
     pub fn is_free_agent(&self) -> &Option<bool> {&self.free_agent}
@@ -261,11 +298,6 @@ impl RawGearItem {
         let gear_id = u32::from_str_radix(dat.slice(0..2), 16).unwrap();
         let bin_str = hex_to_bin(dat.slice(2..7).to_string()).unwrap();
         let mut subs: Vec<u32> = Vec::new();
-        println!("{}, {}, {}, {}",
-                 bin_str.slice(0..5),
-                 bin_str.slice(5..10),
-                 bin_str.slice(10..15),
-                 bin_str.slice(15..20));
         let main = u32::from_str_radix(bin_str.slice(0..5), 2).unwrap();
         subs.push(
             u32::from_str_radix(bin_str.slice(5..10), 2).unwrap()
@@ -399,6 +431,37 @@ mod tests {
         player.set_fc("0 0 0 0 0 0 0 0 0 0 0 9").unwrap();
         player.set_fc("' or 1=1 #").unwrap_err();
         player.set_fc("1234 1234 4311").unwrap();
+    }
 
+    #[test]
+    fn pos_setting() {
+        let mut player = Player::from_db(&get_conn(), 1).unwrap();
+        player.set_pos(0i16).unwrap();
+        player.set_pos(1i16).unwrap();
+        player.set_pos(2i16).unwrap();
+        player.set_pos(3i16).unwrap();
+        player.set_pos(4i16).unwrap();
+        player.set_pos(5i16).unwrap_err();
+    }
+
+    #[test]
+    fn rank_setting() {
+        let mut player = Player::from_db(&get_conn(), 1).unwrap();
+        let test_cases = vec![ // A set of 'possible' rank test cases.
+            "C-", "C", "C+",
+            "b-", "b", "b+",
+            "A-", "A", "A+",
+            "S", "S+", "S+3", "S+7",
+            "X", "X 2500", "X 30000", "X2000"
+        ];
+        let mut failed_cases: Vec<(&&str, RankSetErr)> = Vec::new();
+
+        for case in test_cases.iter() {
+            match player.set_rank("sz".to_string(), case.to_string()) {
+                Ok(_) => (),
+                Err(e) => failed_cases.push((case, e)),
+            }
+        }
+        println!("{:#?}", failed_cases);
     }
 }

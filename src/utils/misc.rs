@@ -8,13 +8,13 @@ pub fn get_ranks() -> Vec<&'static str> {
     ]
 }
 
-pub fn pos_map() -> HashMap<i8, &'static str> {
-    let mut hm: HashMap<i8, &'static str> = HashMap::new();
-    hm.insert(0, "Not Set");
-    hm.insert(1, "Frontline");
-    hm.insert(2, "Midline");
-    hm.insert(3, "Backline");
-    hm.insert(4, "Flex");
+pub fn pos_map() -> HashMap<i16, &'static str> {
+    let mut hm: HashMap<i16, &'static str> = HashMap::new();
+    hm.insert(0i16, "Not Set");
+    hm.insert(1i16, "Frontline");
+    hm.insert(2i16, "Midline");
+    hm.insert(3i16, "Backline");
+    hm.insert(4i16, "Flex");
     hm
 }
 

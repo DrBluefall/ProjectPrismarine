@@ -1,3 +1,4 @@
+#![feature(backtrace)]
 #[macro_use]
 extern crate serde; // Serialization and deserialization of JSON from DB into structs
 extern crate serde_json; // JSON support of serde

@@ -9,6 +9,7 @@ use log;
 use crate::utils::misc;
 use serde_json;
 use regex::Regex;
+use std::backtrace::Backtrace;
 
 lazy_static! {
     static ref FCRE: Regex = Regex::new(r"\D").unwrap();
@@ -82,6 +83,8 @@ pub struct Player {
 
 #[derive(Debug)]
 pub struct RankSetErr(String);
+#[derive(Debug)]
+pub struct ModelError(String, Backtrace);
 
 impl Player {
     pub fn add_to_db(conn: &Connection, user_id: u64) -> Result<u64, Error> {
@@ -242,8 +245,114 @@ pub struct Loadout {
     special_wep: SpecialWeapon,
 }
 
+impl Loadout {
+    pub fn from_raw(conn: &Connection, raw: RawLoadout) -> Result<Loadout, ModelError>{
+
+        let head = match GearItem::from_raw(conn, raw.clone().head, "head") {
+            Ok(v) => v,
+            Err(e) => return Err(e)
+        };
+        let clothes = match GearItem::from_raw(conn, raw.clone().clothes, "clothes") {
+            Ok(v) => v,
+            Err(e) => return Err(e)
+        };
+        let shoes = match GearItem::from_raw(conn, raw.clone().shoes, "shoes") {
+            Ok(v) => v,
+            Err(e) => return Err(e)
+        };
+
+        let kit = match MainWeapon::from_raw(conn, &raw) {
+            Ok(v) => v,
+            Err(e) => return Err(e)
+        };
+        let sub = kit.clone().sub;
+        let special = kit.clone().special;
+
+        Ok(Loadout {
+            raw,
+            head,
+            clothes,
+            shoes,
+            main_wep: kit,
+            sub_wep: sub,
+            special_wep: special
+        })
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
-struct RawLoadout {
+pub struct GearItem {
+    id: i32,
+    image: String,
+    localized_name: HashMap<String, Option<String>>,
+    main: Option<Ability>,
+    name: String,
+    splatnet: i32,
+    stars: i32,
+    subs: Vec<Option<Ability>>,
+}
+
+impl GearItem {
+    pub fn from_raw(conn: &Connection, raw: RawGearItem, gear_type: &'static str) -> Result<GearItem, ModelError> {
+
+        let res = match gear_type {
+            "head" => {
+                match conn.query("SELECT * FROM public.headgear WHERE id = $1 LIMIT 1;", &[&(raw.gear_id as i32)]) {
+                    Ok(v) => v,
+                    Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture()))
+                }
+            },
+            "clothes" => {
+                match conn.query("SELECT * FROM public.headgear WHERE id = $1 LIMIT 1;", &[&(raw.gear_id as i32)]) {
+                    Ok(v) => v,
+                    Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture()))
+                }
+            },
+            "shoes" => {
+                match conn.query("SELECT * FROM public.headgear WHERE id = $1 LIMIT 1;", &[&(raw.gear_id as i32)]) {
+                    Ok(v) => v,
+                    Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture()))
+                }
+            },
+            _ => unreachable!()
+        };
+
+        if res.is_empty() {
+            return Err(ModelError(format!("Gear ID `{}` not in database", raw.gear_id), Backtrace::capture()));
+        }
+        let row = res.get(0);
+
+        let mut subs: Vec<Option<Ability>> = Vec::new();
+        for sub_id in raw.subs.iter() {
+            let sub = match Ability::from_db(conn, *sub_id as i32) {
+                Ok(v) => subs.push(v),
+                Err(e) => return Err(e),
+            };
+        }
+        let local: String = row.get("localized_name");
+        let local: HashMap<String, Option<String>> = match serde_json::from_str(local.as_str()) {
+            Ok(v) => v,
+            Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture()))
+        };
+
+        Ok(GearItem {
+            id: raw.gear_id as i32,
+            image: row.get("image"),
+            localized_name: local,
+            main: match Ability::from_db(&conn, raw.main as i32) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            },
+            name: row.get("name"),
+            splatnet: row.get("splatnet"),
+            stars: row.get("stars"),
+            subs
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RawLoadout {
     id: u32,
     set: u32,
     head: RawGearItem,
@@ -286,8 +395,8 @@ impl RawLoadout {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct RawGearItem {
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RawGearItem {
     gear_id: u32,
     main: u32,
     subs: Vec<u32>,
@@ -314,47 +423,149 @@ impl RawGearItem {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Ability {
-    id: u32,
+pub struct Ability {
+    id: i32,
     image: String,
-    localized_name: HashMap<String, String>,
+    localized_name: HashMap<String, Option<String>>,
     name: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct GearItem {
-    id: u32,
-    image: String,
-    localized_name: HashMap<String, String>,
-    main: Option<Ability>,
-    name: String,
-    splatnet: u32,
-    stars: u8,
-    subs: Vec<Option<Ability>>,
+impl Ability {
+    pub fn from_db(conn: &Connection, id: i32) -> Result<Option<Ability>, ModelError> {
+        let r = {
+            let res = match conn.query("SELECT * FROM public.abilities WHERE id = $1 LIMIT 1;", &[&id]) {
+                Ok(v) => v,
+                Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture()))
+            };
+            if res.is_empty() {
+                return Ok(None);
+            }
+            res
+        };
+        let row = r.get(0);
+
+        let local: String = row.get("localized_name");
+        let local: HashMap<String, Option<String>> = match serde_json::from_str(local.as_str()) {
+            Ok(v) => v,
+            Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture()))
+        };
+
+        Ok(Some(Ability {
+            id,
+            image: row.get("image"),
+            localized_name: local,
+            name: row.get("name")
+        }))
+    }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct MainWeapon {
-    class: u8,
-    id: u32,
-    site_id: u32,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct MainWeapon {
+    class: i8,
+    id: i32,
+    site_id: i32,
     name: String,
     image: String,
-    special: SubWeapon,
-    sub: SpecialWeapon,
+    special: SpecialWeapon,
+    sub: SubWeapon,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct SubWeapon {
+impl MainWeapon {
+    pub fn from_raw(conn: &Connection, raw: &RawLoadout) -> Result<MainWeapon, ModelError> {
+        match conn.query(
+            "SELECT * FROM public.main_weapons WHERE site_id = $1 AND class = $2;",
+            &[&(raw.id as i32), &(raw.set as i32)]) {
+            Ok(v) => {
+                if v.is_empty() {
+                    return Err(ModelError("No matching weapon in database".to_string(), Backtrace::capture()));
+                }
+                let row = v.get(0);
+                return Ok(MainWeapon {
+                    class: raw.set as i8,
+                    id: row.get("id"),
+                    site_id: raw.id as i32,
+                    name: row.get("name"),
+                    image: row.get("image"),
+                    special: match SpecialWeapon::from_db(conn, row.get("special")) {
+                        Ok(v) => v,
+                        Err(e) => return Err(e)
+                    },
+                    sub: match SubWeapon::from_db(conn, row.get("sub")) {
+                        Ok(v) => v,
+                        Err(e) => return Err(e)
+                    }
+                })
+            },
+            Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture())),
+        }
+        unimplemented!()
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SubWeapon {
     image: String,
-    localized_name: HashMap<String, String>,
+    localized_name: HashMap<String, Option<String>>,
     name: String,
 }
-#[derive(Serialize, Deserialize, Debug)]
-struct SpecialWeapon {
+
+impl SubWeapon {
+    pub fn from_db(conn: &Connection, name: String) -> Result<SubWeapon, ModelError> {
+        match conn.query("SELECT * FROM public.sub_weapons WHERE name = $1;", &[&name]) {
+            Ok(v) => {
+                if v.is_empty() {
+                    return Err(ModelError(format!("Could not find sub weapon `{}` in database", name), Backtrace::capture()));
+                }
+                let row = v.get(0);
+
+                let local: String = row.get("localized_name");
+                let local: HashMap<String, Option<String>> = match serde_json::from_str(local.as_str()) {
+                    Ok(v) => v,
+                    Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture()))
+                };
+
+                return Ok(SubWeapon {
+                    image: row.get("image"),
+                    localized_name: local,
+                    name
+                })
+            },
+            Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture()))
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SpecialWeapon {
     image: String,
-    localized_name: HashMap<String, String>,
-    name: String,
+    localized_name: HashMap<String, Option<String>>,
+    name: String
+}
+
+impl SpecialWeapon {
+    pub fn from_db(conn: &Connection, name: String) -> Result<SpecialWeapon, ModelError> {
+        match conn.query("SELECT * FROM public.special_weapons WHERE name = $1;", &[&name]) {
+            Ok(v) => {
+                if v.is_empty() {
+                    return Err(ModelError(format!("Could not find sub weapon `{}` in database", name), Backtrace::capture()));
+                }
+                let row = v.get(0);
+
+                let local: String = row.get("localized_name");
+                let local: HashMap<String, Option<String>> = match serde_json::from_str(local.as_str()) {
+                    Ok(v) => v,
+                    Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture()))
+                };
+
+                return Ok(SpecialWeapon {
+                    image: row.get("image"),
+                    localized_name: local,
+                    name
+                })
+            },
+            Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture()))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -463,5 +674,12 @@ mod tests {
             }
         }
         println!("{:#?}", failed_cases);
+    }
+
+    #[test]
+    fn full_deserial() {
+        let test_ld = "060314598cc73210846e214e5";
+        let raw = RawLoadout::parse(test_ld).unwrap();
+        println!("{:#?}", Loadout::from_raw(&get_conn(), raw).unwrap());
     }
 }

@@ -17,6 +17,7 @@ postgres = "0.15"
 postgres-derive = "0.3"
 regex = "1"
 lazy_static = "1.4"
+image = "0.22"
 
 [dependencies.serenity]
 version = "0.7"

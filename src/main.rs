@@ -1,5 +1,4 @@
 #![feature(backtrace)]
-#[macro_use]
 extern crate serde; // Serialization and deserialization of JSON from DB into structs
 extern crate serde_json; // JSON support of serde
 extern crate dotenv; // Get environment variables from .env files.
@@ -8,13 +7,14 @@ extern crate reqwest; // Used with discord_bots_org for dispatching to DBL
 #[macro_use]
 extern crate log; // logging crate
 extern crate pretty_env_logger; // nicer logging
-#[macro_use]
+
 extern crate postgres;
 #[macro_use]
 extern crate postgres_derive;
 extern crate regex;
 #[macro_use]
 extern crate lazy_static;
+extern crate image; // Image editing library
 
 use discord_bots_org::ReqwestSyncClient as APIClient; // Used to update discordbots.org
 use dotenv::dotenv; // used to load .env files from directory.

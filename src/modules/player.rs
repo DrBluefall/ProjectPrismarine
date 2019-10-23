@@ -41,8 +41,8 @@ fn name(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     };
 
     let mut player = match Player::from_db(&*conn, *msg.author.id.as_u64()) {
-        Some(v) => v,
-        None => {
+        Ok(v) => v,
+        Err(e) => {
             let _ = msg.reply(&ctx, "Command failed - You aren't in the database! Add yourself with `player new`.");
             return Ok(());
         }

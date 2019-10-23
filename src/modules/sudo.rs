@@ -73,7 +73,16 @@ fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
 fn user(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let user: Option<User>;
 
-    if !args.is_empty() {
+    if args.is_empty() {
+        user = match ctx.http.get_user(*msg.author.id.as_u64()) {
+            Ok(v) => Some(v),
+            Err(e) => {
+                error!("Could not retrieve user data: {:#?}", e);
+                let _ = msg.reply(&ctx, "Command Failed - Could not retrieve user data.");
+                return Ok(());
+            }
+        };
+    } else {
         user = match args.parse::<u64>() {
             Ok(id) => match ctx.http.get_user(id) {
                 Ok(v) => {
@@ -100,15 +109,6 @@ fn user(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                         }
                     })
                 }
-            }
-        };
-    } else {
-        user = match ctx.http.get_user(*msg.author.id.as_u64()) {
-            Ok(v) => Some(v),
-            Err(e) => {
-                error!("Could not retrieve user data: {:#?}", e);
-                let _ = msg.reply(&ctx, "Command Failed - Could not retrieve user data.");
-                return Ok(());
             }
         };
     }

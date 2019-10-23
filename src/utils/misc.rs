@@ -3,18 +3,18 @@ use std::result::Result;
 
 pub fn get_ranks() -> Vec<&'static str> {
     vec![
-    "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+", "S", "S+0", "S+1", "S+2", "S+3", "S+4",
-    "S+5", "S+6", "S+7", "S+8", "S+9", "X"
+        "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+", "S", "S+0", "S+1", "S+2", "S+3", "S+4",
+        "S+5", "S+6", "S+7", "S+8", "S+9", "X",
     ]
 }
 
 pub fn pos_map() -> HashMap<i16, &'static str> {
     let mut hm: HashMap<i16, &'static str> = HashMap::new();
-    hm.insert(0i16, "Not Set");
-    hm.insert(1i16, "Frontline");
-    hm.insert(2i16, "Midline");
-    hm.insert(3i16, "Backline");
-    hm.insert(4i16, "Flex");
+    hm.insert(0_i16, "Not Set");
+    hm.insert(1_i16, "Frontline");
+    hm.insert(2_i16, "Midline");
+    hm.insert(3_i16, "Backline");
+    hm.insert(4_i16, "Flex");
     hm
 }
 
@@ -54,4 +54,56 @@ pub fn hex_to_bin(input: String) -> Result<String, HexError> {
         }
     }
     Ok(result)
+}
+
+pub struct GearCoords {
+    pub gear: (u32, u32),
+    pub main: (u32, u32),
+    pub subs: [(u32, u32); 3],
+}
+pub struct WepCoords {
+    pub main: (u32, u32),
+    pub sub: (u32, u32),
+    pub special: (u32, u32),
+}
+
+impl GearCoords {
+    pub fn get() -> HashMap<&'static str, Self> {
+        let mut hm: HashMap<&'static str, Self> = HashMap::new();
+        hm.insert(
+            "head",
+            Self {
+                gear: (163, 26),
+                main: (153, 118),
+                subs: [(189, 127), (217, 127), (246, 127)],
+            },
+        );
+        hm.insert(
+            "clothes",
+            Self {
+                gear: (310, 26),
+                main: (298, 118),
+                subs: [(334, 127), (363, 127), (391, 127)],
+            },
+        );
+        hm.insert(
+            "shoes",
+            Self {
+                gear: (457, 26),
+                main: (443, 118),
+                subs: [(479, 127), (508, 127), (536, 127)],
+            },
+        );
+        hm
+    }
+}
+
+impl WepCoords {
+    pub const fn get() -> Self {
+        WepCoords {
+            main: (24, 24),
+            sub: (27, 116),
+            special: (78, 116),
+        }
+    }
 }

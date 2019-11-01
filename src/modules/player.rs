@@ -1,4 +1,5 @@
 use crate::utils::db::models::Player;
+use crate::utils::db::models::{ModelError, NFKind};
 use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
     model::prelude::*,
@@ -42,9 +43,39 @@ fn name(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 
     let mut player = match Player::from_db(&*conn, *msg.author.id.as_u64()) {
         Ok(v) => v,
-        Err(e) => {
-            let _ = msg.reply(&ctx, "Command failed - You aren't in the database! Add yourself with `player new`.");
-            return Ok(());
+        Err(e) => match e.as_ref() {
+            ModelError::Database(message, bt) => {
+                let _ = msg.reply(&ctx,
+                                  format!(
+                                      "Command Failed - Database Error encountered! Alert the developers immediately!\n\n Message: `{}`",
+                                      message
+                                  )
+                );
+                error!("Issue in database interaction - source: `player update name` - Message: {} \n\n Traceback: {:#?}", message, bt);
+                return Ok(());
+            },
+            ModelError::NotFound(kind, trace) => {
+                match kind {
+                    NFKind::Player(_) => {
+                        let _ = msg.reply(&ctx, "Command Failed - You're not in the database! Add yourself with `player new`.");
+                        return Ok(());
+                    },
+                    _ => {
+                        let _ = msg.reply(&ctx, "Command Failed - Error in database retrieval Contact the developers immediately.");
+                        error!("{:#?}", e);
+                        return Ok(());
+                    }
+                }
+            },
+            ModelError::InvalidParameter(p) => {
+                let _ = msg.reply(&ctx, format!("Command Failed - Invalid argument passed: `{}`", p));
+                return Ok(());
+            },
+            ModelError::Unknown(s, trace) => {
+                let _ = msg.reply(&ctx, "Command Failed - An unknown error has occured! Contact the developers immediately!");
+                error!("An unknown error has occurred! \n Message: {}\n\n Backtrace: \n{:#?}", s, trace);
+                return Ok(());
+            },
         }
     };
 

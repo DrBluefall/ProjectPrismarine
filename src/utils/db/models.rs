@@ -1,6 +1,7 @@
 use postgres::Connection;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::convert::AsRef;
 
 use crate::utils::misc;
 use image::imageops::overlay as paste;
@@ -20,6 +21,7 @@ static LOADOUT_BASE_PATH: &str = "assets/img/loadout_base.png";
 // Thank god for answers on the internet...
 use crate::utils::misc::hex_to_bin;
 use std::ops::{Bound, RangeBounds};
+use regex::internal::Input;
 
 trait StringUtils {
     fn substring(&self, start: usize, len: usize) -> &str;
@@ -88,7 +90,32 @@ pub struct Player {
 }
 
 #[derive(Debug)]
-pub struct ModelError(String, Backtrace);
+pub enum ModelError {
+    Database(String, Backtrace),
+    NotFound(NFKind, Backtrace),
+    InvalidParameter(String),
+    Unknown(String, Backtrace)
+}
+
+impl AsRef<Self> for ModelError {
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
+
+#[derive(Debug)]
+pub enum NFKind {
+    Player(u64),
+    Loadout,
+    GearItem(String),
+    Ability,
+    MainWeapon  {
+        id: u32,
+        set: u32
+    },
+    SubWeapon(String),
+    SpecialWeapon(String)
+}
 
 impl Player {
     pub fn add_to_db(conn: &Connection, user_id: u64) -> Result<u64, Error> {
@@ -96,8 +123,7 @@ impl Player {
             "
         INSERT INTO public.player_profiles(id) VALUES ($1)
         ON CONFLICT DO NOTHING;
-        ",
-            &[&(user_id as i64)],
+        ", &[&(user_id as i64)],
         )
     }
     pub fn from_db(conn: &Connection, user_id: u64) -> Result<Player, ModelError> {
@@ -107,17 +133,14 @@ impl Player {
         ) {
             Ok(v) => Some(v),
             Err(e) => {
-                return Err(ModelError(
+                return Err(ModelError::Database(
                     format!("Error in player data retrieval: {:#?}", e),
                     Backtrace::capture(),
                 ))
             }
         };
         if rows.is_none() {
-            return Err(ModelError(
-                "Player not found".to_string(),
-                Backtrace::capture(),
-            ));
+            return Err(ModelError::NotFound(NFKind::Player(user_id), Backtrace::capture()));
         }
 
         let rows = rows.unwrap();
@@ -135,6 +158,16 @@ impl Player {
         }
 
         let lv: i32 = row.get("level");
+        let dt: String = row.get("loadout");
+        let loadout = Option::from(
+            Loadout::from_raw(
+                &conn,
+                match RawLoadout::parse(dt.as_str()) {
+                    Ok(v) => v,
+                    Err(e) => return Err(e)
+                }
+            ).unwrap()
+        );
 
         Ok(Player {
             id: row.get("id"),
@@ -147,7 +180,7 @@ impl Player {
             cb: row.get("cb"),
             sr: row.get("sr"),
             position: row.get("position"),
-            loadout: None,
+            loadout,
             team_id: row.get("team_id"),
             free_agent: row.get("free_agent"),
             is_private: row.get("is_private"),
@@ -197,9 +230,8 @@ impl Player {
 
     pub fn set_rank(&mut self, mode: String, rank: String) -> Result<(), ModelError> {
         if !RANKRE.is_match(rank.as_str()) {
-            return Err(ModelError(
+            return Err(ModelError::InvalidParameter(
                 format!("Invalid Rank: {}", rank.as_str()),
-                Backtrace::capture(),
             ));
         }
 
@@ -209,12 +241,10 @@ impl Player {
             "rm" | "rainmaker" | "rm_rank" => self.rm = "rm".to_string(),
             "cb" | "clam_blitz" | "cb_rank" => self.cb = "cb".to_string(),
             "sr" | "salmon_run" | "sr_rank" => self.sr = "sr".to_string(),
-            _ => {
-                return Err(ModelError(
-                    format!("Invalid Mode: {}", mode.as_str()),
-                    Backtrace::capture(),
-                ))
-            }
+            _ => return Err(ModelError::InvalidParameter(
+                format!("Invalid Mode: {}", mode.as_str())
+            ))
+
         }
         Ok(())
     }
@@ -522,7 +552,7 @@ impl GearItem {
                     &[&(raw.gear_id as i32)],
                 ) {
                     Ok(v) => v,
-                    Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture())),
+                    Err(e) => return Err(ModelError::Database(e.to_string(), Backtrace::capture())),
                 }
             }
             "clothes" => {
@@ -531,7 +561,7 @@ impl GearItem {
                     &[&(raw.gear_id as i32)],
                 ) {
                     Ok(v) => v,
-                    Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture())),
+                    Err(e) => return Err(ModelError::Database(e.to_string(), Backtrace::capture())),
                 }
             }
             "shoes" => {
@@ -540,17 +570,21 @@ impl GearItem {
                     &[&(raw.gear_id as i32)],
                 ) {
                     Ok(v) => v,
-                    Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture())),
+                    Err(e) => return Err(ModelError::Database(e.to_string(), Backtrace::capture())),
                 }
             }
             _ => unreachable!(),
         };
 
         if res.is_empty() {
-            return Err(ModelError(
-                format!("Gear ID `{}` not in database", raw.gear_id),
-                Backtrace::capture(),
-            ));
+            return Err(ModelError::NotFound(
+                NFKind::GearItem(
+                    format!("Item: {:?} / Type: {}", raw, gear_type
+                    )
+                ),
+                Backtrace::capture()
+            )
+            );
         }
         let retrow = res.get(0);
 
@@ -564,7 +598,7 @@ impl GearItem {
         let local: String = retrow.get("localized_name");
         let local: HashMap<String, Option<String>> = match serde_json::from_str(local.as_str()) {
             Ok(v) => v,
-            Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture())),
+            Err(e) => return Err(ModelError::Unknown(e.to_string(), Backtrace::capture())),
         };
 
         Ok(GearItem {
@@ -599,7 +633,7 @@ impl RawLoadout {
     /// * `dat`: The base-16 encoded string you want to deserialize. The function will verify if
     /// the string is valid before conversion.
     /// ## Return Value:
-    /// * `Result<RawLoadout, serde_json::Error>`: A result wrapping either a RawLoadout instance
+    /// * `Result<RawLoadout, ModelError>`: A result wrapping either a RawLoadout instance
     /// or the error that resulted.
     pub fn parse(dat: &str) -> Result<RawLoadout, ModelError> {
         if u32::from_str_radix(
@@ -611,9 +645,8 @@ impl RawLoadout {
         .unwrap()
             != 0
         {
-            return Err(ModelError(
-                "Invalid hex string".to_string(),
-                Backtrace::capture(),
+            return Err(ModelError::InvalidParameter(
+                "Invalid hex string".to_string()
             ));
         }
         let set = u32::from_str_radix(
@@ -685,7 +718,9 @@ impl Ability {
                 &[&id],
             ) {
                 Ok(v) => v,
-                Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture())),
+                Err(e) => return Err(ModelError::Database(
+                    e.to_string(), Backtrace::capture()
+                )),
             };
             if res.is_empty() {
                 return Ok(None);
@@ -697,7 +732,9 @@ impl Ability {
         let local: String = row.get("localized_name");
         let local: HashMap<String, Option<String>> = match serde_json::from_str(local.as_str()) {
             Ok(v) => v,
-            Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture())),
+            Err(e) => return Err(ModelError::Unknown(
+                e.to_string(), Backtrace::capture()
+            )),
         };
 
         Ok(Some(Ability {
@@ -728,10 +765,13 @@ impl MainWeapon {
         ) {
             Ok(v) => {
                 if v.is_empty() {
-                    return Err(ModelError(
-                        "No matching weapon in database".to_string(),
-                        Backtrace::capture(),
-                    ));
+                    return Err(
+                        ModelError::NotFound(
+                            NFKind::MainWeapon{
+                                id: raw.id,
+                                set: raw.set
+                            },
+                            Backtrace::capture()));
                 }
                 let retrow = v.get(0);
                 Ok(MainWeapon {
@@ -750,7 +790,7 @@ impl MainWeapon {
                     },
                 })
             }
-            Err(e) => Err(ModelError(e.to_string(), Backtrace::capture())),
+            Err(e) => Err(ModelError::Database(e.to_string(), Backtrace::capture())),
         }
     }
 }
@@ -770,10 +810,9 @@ impl SubWeapon {
         ) {
             Ok(v) => {
                 if v.is_empty() {
-                    return Err(ModelError(
-                        format!("Could not find sub weapon `{}` in database", name),
-                        Backtrace::capture(),
-                    ));
+                    return Err(ModelError::NotFound(
+                        NFKind::SubWeapon(format!("Sub Weapon: {}", name))
+                    , Backtrace::capture()));
                 }
                 let row = v.get(0);
 
@@ -781,7 +820,9 @@ impl SubWeapon {
                 let local: HashMap<String, Option<String>> =
                     match serde_json::from_str(local.as_str()) {
                         Ok(v) => v,
-                        Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture())),
+                        Err(e) => return Err(ModelError::Unknown(
+                            e.to_string(), Backtrace::capture()
+                        )),
                     };
 
                 Ok(SubWeapon {
@@ -790,7 +831,9 @@ impl SubWeapon {
                     name,
                 })
             }
-            Err(e) => Err(ModelError(e.to_string(), Backtrace::capture())),
+            Err(e) => Err(ModelError::Database(
+                e.to_string(), Backtrace::capture()
+            )),
         }
     }
 }
@@ -810,9 +853,9 @@ impl SpecialWeapon {
         ) {
             Ok(v) => {
                 if v.is_empty() {
-                    return Err(ModelError(
-                        format!("Could not find sub weapon `{}` in database", name),
-                        Backtrace::capture(),
+                    return Err(ModelError::NotFound(
+                        NFKind::SpecialWeapon(format!("Special Weapon: {}", name)),
+                        Backtrace::capture()
                     ));
                 }
                 let row = v.get(0);
@@ -821,7 +864,7 @@ impl SpecialWeapon {
                 let local: HashMap<String, Option<String>> =
                     match serde_json::from_str(local.as_str()) {
                         Ok(v) => v,
-                        Err(e) => return Err(ModelError(e.to_string(), Backtrace::capture())),
+                        Err(e) => return Err(ModelError::Unknown(e.to_string(), Backtrace::capture())),
                     };
 
                 Ok(SpecialWeapon {
@@ -830,7 +873,7 @@ impl SpecialWeapon {
                     name,
                 })
             }
-            Err(e) => Err(ModelError(e.to_string(), Backtrace::capture())),
+            Err(e) => Err(ModelError::Database(e.to_string(), Backtrace::capture())),
         }
     }
 }

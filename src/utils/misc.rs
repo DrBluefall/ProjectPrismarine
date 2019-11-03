@@ -1,5 +1,11 @@
 use std::collections::HashMap;
 use std::result::Result;
+use postgres::Connection;
+use postgres::TlsMode;
+
+lazy_static! {
+    static ref DATABASE_URL: String = std::env::var("PRISBOT_DATABASE").unwrap();
+}
 
 pub fn get_ranks() -> Vec<&'static str> {
     vec![
@@ -106,4 +112,8 @@ impl WepCoords {
             special: (78, 116),
         }
     }
+}
+
+pub fn get_db_connection() -> Connection {
+    Connection::connect(DATABASE_URL.as_str(), TlsMode::None).unwrap()
 }

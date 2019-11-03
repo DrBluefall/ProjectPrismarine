@@ -7,13 +7,11 @@ extern crate serde_json; // JSON support of serde // Used with discord_bots_org 
 #[macro_use]
 extern crate log; // logging crate
 extern crate pretty_env_logger; // nicer logging
-
-extern crate postgres;
-#[macro_use]
+extern crate postgres; // PostgreSQL API bindings.
 extern crate postgres_derive;
 extern crate regex;
 #[macro_use]
-extern crate lazy_static;
+extern crate lazy_static; // Set static variables at runtime.
 extern crate image; // Image editing library
 
 use discord_bots_org::ReqwestSyncClient as APIClient; // Used to update discordbots.org
@@ -44,7 +42,6 @@ use modules::sudo::*;
 struct ShardManagerContainer;
 struct APIClientContainer;
 struct TokenHolder;
-struct ConnectionHolder;
 impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
 }
@@ -53,9 +50,6 @@ impl TypeMapKey for APIClientContainer {
 }
 impl TypeMapKey for TokenHolder {
     type Value = String;
-}
-impl TypeMapKey for ConnectionHolder {
-    type Value = Arc<STDMutex<Connection>>;
 }
 
 struct Handler;
@@ -115,28 +109,18 @@ fn main() {
             e
         ),
     };
-    let db_link = match env::var("PRISBOT_DATABASE") {
-        Ok(v) => v,
-        Err(e) => panic!(
-            "Could not retrieve environment variable `PRISBOT_DATABASE`: {:#?}",
-            e
-        ),
-    };
     info!("Tokens acquired!");
 
     let mut client = Client::new(&token, Handler).expect("Failed to create client");
 
     let req_client = Arc::new(ReqwestClient::new());
     let api_client = APIClient::new(Arc::clone(&req_client));
-    let conn = Connection::connect(db_link.as_str(), TlsMode::None)
-        .unwrap_or_else(|err| panic!("Failed to connect to database: {:#?}", err));
 
     {
         let mut data = client.data.write();
         data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
         data.insert::<APIClientContainer>(api_client);
         data.insert::<TokenHolder>(dbl_token.to_string());
-        data.insert::<ConnectionHolder>(Arc::new(STDMutex::new(conn)));
     }
 
     let (owners, bot_id) = match client.cache_and_http.http.get_current_application_info() {

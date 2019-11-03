@@ -2,7 +2,6 @@ use postgres::Connection;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::AsRef;
-
 use crate::utils::misc;
 use image::imageops::overlay as paste;
 use image::{DynamicImage, ImageResult};
@@ -10,6 +9,7 @@ use postgres::Error;
 use regex::Regex;
 use serde_json;
 use std::backtrace::Backtrace;
+use crate::utils::misc::hex_to_bin;
 
 lazy_static! {
     static ref FCRE: Regex = Regex::new(r"\D").unwrap();
@@ -19,8 +19,6 @@ lazy_static! {
 static LOADOUT_BASE_PATH: &str = "assets/img/loadout_base.png";
 
 // Thank god for answers on the internet...
-use crate::utils::misc::hex_to_bin;
-use regex::internal::Input;
 use std::ops::{Bound, RangeBounds};
 
 trait StringUtils {
@@ -83,7 +81,7 @@ pub struct Player {
     cb: String,
     sr: String,
     position: i16,
-    loadout: Option<Loadout>,
+    loadout: Loadout,
     team_id: Option<i64>,
     free_agent: Option<bool>,
     is_private: Option<bool>,
@@ -115,8 +113,8 @@ pub enum NFKind {
 }
 
 impl Player {
-    pub fn add_to_db(conn: &Connection, user_id: u64) -> Result<u64, Error> {
-        conn.execute(
+    pub fn add_to_db(user_id: u64) -> Result<u64, Error> {
+        misc::get_db_connection().execute(
             "
         INSERT INTO public.player_profiles(id) VALUES ($1)
         ON CONFLICT DO NOTHING;
@@ -124,8 +122,8 @@ impl Player {
             &[&(user_id as i64)],
         )
     }
-    pub fn from_db(conn: &Connection, user_id: u64) -> Result<Player, ModelError> {
-        let rows = match conn.query(
+    pub fn from_db(user_id: u64) -> Result<Player, ModelError> {
+        let rows = match misc::get_db_connection().query(
             "SELECT * FROM public.player_profiles WHERE id = $1",
             &[&(user_id as i64)],
         ) {
@@ -150,7 +148,7 @@ impl Player {
         let ld = RawLoadout::parse(ldink_hex.as_str());
         let mut ld_fin: Option<Loadout> = None;
         if ld.is_ok() {
-            ld_fin = match Loadout::from_raw(conn, ld.unwrap()) {
+            ld_fin = match Loadout::from_raw(ld.unwrap()) {
                 Ok(v) => Some(v),
                 Err(e) => return Err(e),
             }
@@ -160,16 +158,15 @@ impl Player {
 
         let lv: i32 = row.get("level");
         let dt: String = row.get("loadout");
-        let loadout = Option::from(
-            Loadout::from_raw(
-                &conn,
+        let loadout = match Loadout::from_raw(
                 match RawLoadout::parse(dt.as_str()) {
                     Ok(v) => v,
                     Err(e) => return Err(e),
                 },
-            )
-            .unwrap(),
-        );
+            ) {
+            Ok(v) => v,
+            Err(e) => return Err(e)
+        };
 
         Ok(Player {
             id: row.get("id"),
@@ -270,7 +267,7 @@ impl Player {
         Err(())
     }
 
-    pub fn loadout(&self) -> &Option<Loadout> {
+    pub fn loadout(&self) -> &Loadout {
         &self.loadout
     }
     pub fn team_id(&self) -> &Option<i64> {
@@ -282,8 +279,8 @@ impl Player {
     pub fn is_private(&self) -> &Option<bool> {
         &self.is_private
     }
-    pub fn update(&self, conn: &Connection) -> Result<u64, Error> {
-        conn.execute(
+    pub fn update(&self) -> Result<u64, Error> {
+        misc::get_db_connection().execute(
             "
 UPDATE public.player_profiles
 SET
@@ -307,10 +304,7 @@ WHERE id = $13;
                 &self.cb,
                 &self.sr,
                 &self.position,
-                &(match &self.loadout {
-                    Some(v) => Some(v.raw.hex.clone()),
-                    None => None,
-                }),
+                &self.loadout.raw.hex,
                 &self.team_id,
                 &self.is_private,
                 &self.id,
@@ -331,21 +325,21 @@ pub struct Loadout {
 }
 
 impl Loadout {
-    pub fn from_raw(conn: &Connection, raw: RawLoadout) -> Result<Loadout, ModelError> {
-        let head = match GearItem::from_raw(conn, raw.clone().head, "head") {
+    pub fn from_raw(raw: RawLoadout) -> Result<Loadout, ModelError> {
+        let head = match GearItem::from_raw(raw.clone().head, "head") {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
-        let clothes = match GearItem::from_raw(conn, raw.clone().clothes, "clothes") {
+        let clothes = match GearItem::from_raw(raw.clone().clothes, "clothes") {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
-        let shoes = match GearItem::from_raw(conn, raw.clone().shoes, "shoes") {
+        let shoes = match GearItem::from_raw(raw.clone().shoes, "shoes") {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
 
-        let kit = match MainWeapon::from_raw(conn, &raw) {
+        let kit = match MainWeapon::from_raw(&raw) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -362,7 +356,7 @@ impl Loadout {
             special_wep: special,
         })
     }
-    pub fn to_img<'a>(&'a self) -> ImageResult<DynamicImage> {
+    pub fn to_img(&self) -> ImageResult<DynamicImage> {
         let mut base = match image::open(LOADOUT_BASE_PATH) {
             Ok(v) => v,
             Err(e) => return Err(e),
@@ -546,13 +540,12 @@ pub struct GearItem {
 
 impl GearItem {
     pub fn from_raw(
-        conn: &Connection,
         raw: RawGearItem,
         gear_type: &'static str,
     ) -> Result<GearItem, ModelError> {
         let res = match gear_type {
             "head" => {
-                match conn.query(
+                match misc::get_db_connection().query(
                     "SELECT * FROM public.headgear WHERE id = $1 LIMIT 1;",
                     &[&(raw.gear_id as i32)],
                 ) {
@@ -563,7 +556,7 @@ impl GearItem {
                 }
             }
             "clothes" => {
-                match conn.query(
+                match misc::get_db_connection().query(
                     "SELECT * FROM public.clothing WHERE id = $1 LIMIT 1;",
                     &[&(raw.gear_id as i32)],
                 ) {
@@ -574,7 +567,7 @@ impl GearItem {
                 }
             }
             "shoes" => {
-                match conn.query(
+                match misc::get_db_connection().query(
                     "SELECT * FROM public.shoes WHERE id = $1 LIMIT 1;",
                     &[&(raw.gear_id as i32)],
                 ) {
@@ -597,7 +590,7 @@ impl GearItem {
 
         let mut subs: Vec<Option<Ability>> = Vec::new();
         for sub_id in raw.subs.iter() {
-            let sub = match Ability::from_db(conn, *sub_id as i32) {
+            let sub = match Ability::from_db(*sub_id as i32) {
                 Ok(v) => subs.push(v),
                 Err(e) => return Err(e),
             };
@@ -612,7 +605,7 @@ impl GearItem {
             id: raw.gear_id as i32,
             image: retrow.get("image"),
             localized_name: local,
-            main: match Ability::from_db(&conn, raw.main as i32) {
+            main: match Ability::from_db(raw.main as i32) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             },
@@ -718,9 +711,9 @@ pub struct Ability {
 }
 
 impl Ability {
-    pub fn from_db(conn: &Connection, id: i32) -> Result<Option<Ability>, ModelError> {
+    pub fn from_db(id: i32) -> Result<Option<Ability>, ModelError> {
         let r = {
-            let res = match conn.query(
+            let res = match misc::get_db_connection().query(
                 "SELECT * FROM public.abilities WHERE id = $1 LIMIT 1;",
                 &[&id],
             ) {
@@ -761,8 +754,8 @@ pub struct MainWeapon {
 }
 
 impl MainWeapon {
-    pub fn from_raw(conn: &Connection, raw: &RawLoadout) -> Result<MainWeapon, ModelError> {
-        match conn.query(
+    pub fn from_raw(raw: &RawLoadout) -> Result<MainWeapon, ModelError> {
+        match misc::get_db_connection().query(
             "SELECT * FROM public.main_weapons WHERE site_id = $1 AND class = $2;",
             &[&(raw.id as i32), &(raw.set as i32)],
         ) {
@@ -783,11 +776,11 @@ impl MainWeapon {
                     site_id: raw.id as i32,
                     name: retrow.get("name"),
                     image: retrow.get("image"),
-                    special: match SpecialWeapon::from_db(conn, retrow.get("special")) {
+                    special: match SpecialWeapon::from_db(retrow.get("special")) {
                         Ok(v) => v,
                         Err(e) => return Err(e),
                     },
-                    sub: match SubWeapon::from_db(conn, retrow.get("sub")) {
+                    sub: match SubWeapon::from_db(retrow.get("sub")) {
                         Ok(v) => v,
                         Err(e) => return Err(e),
                     },
@@ -806,8 +799,8 @@ pub struct SubWeapon {
 }
 
 impl SubWeapon {
-    pub fn from_db(conn: &Connection, name: String) -> Result<SubWeapon, ModelError> {
-        match conn.query(
+    pub fn from_db(name: String) -> Result<SubWeapon, ModelError> {
+        match misc::get_db_connection().query(
             "SELECT * FROM public.sub_weapons WHERE name = $1;",
             &[&name],
         ) {
@@ -848,8 +841,8 @@ pub struct SpecialWeapon {
 }
 
 impl SpecialWeapon {
-    pub fn from_db(conn: &Connection, name: String) -> Result<SpecialWeapon, ModelError> {
-        match conn.query(
+    pub fn from_db(name: String) -> Result<SpecialWeapon, ModelError> {
+        match misc::get_db_connection().query(
             "SELECT * FROM public.special_weapons WHERE name = $1;",
             &[&name],
         ) {
@@ -902,19 +895,19 @@ mod tests {
 
     #[test]
     fn add() {
-        Player::add_to_db(&get_conn(), 1).unwrap();
+        Player::add_to_db(1).unwrap();
     }
 
     #[test]
     fn from() {
-        Player::from_db(&get_conn(), 1).unwrap();
+        Player::from_db(1).unwrap();
     }
 
     #[test]
     fn up() {
-        let mut player = Player::from_db(&get_conn(), 1).unwrap();
+        let mut player = Player::from_db(1).unwrap();
         player.level = 42;
-        player.update(&get_conn()).unwrap();
+        player.update().unwrap();
     }
 
     #[test]
@@ -943,7 +936,7 @@ mod tests {
 
     #[test]
     fn re_fc() {
-        let mut player = Player::from_db(&get_conn(), 1).unwrap();
+        let mut player = Player::from_db(1).unwrap();
         // Test Cases:
         //a
         //k
@@ -973,7 +966,7 @@ mod tests {
 
     #[test]
     fn pos_setting() {
-        let mut player = Player::from_db(&get_conn(), 1).unwrap();
+        let mut player = Player::from_db(1).unwrap();
         player.set_pos(0i16).unwrap();
         player.set_pos(1i16).unwrap();
         player.set_pos(2i16).unwrap();
@@ -984,7 +977,7 @@ mod tests {
 
     #[test]
     fn rank_setting() {
-        let mut player = Player::from_db(&get_conn(), 1).unwrap();
+        let mut player = Player::from_db(1).unwrap();
         let test_cases = vec![
             // A set of 'possible' rank test cases.
             "C-", "C", "C+", "b-", "b", "b+", "A-", "A", "A+", "S", "S+", "S+3", "S+7", "X",
@@ -1003,16 +996,16 @@ mod tests {
 
     #[test]
     fn full_deserial() {
-        let test_ld = "060314598cc73210846e214e5";
+        let test_ld = "0000000000000000000000000";
         let raw = RawLoadout::parse(test_ld).unwrap();
-        println!("{:#?}", Loadout::from_raw(&get_conn(), raw).unwrap());
+        println!("{:#?}", Loadout::from_raw(raw).unwrap());
     }
 
     #[test]
     fn image_gen() {
         let test_ld = "060314598cc73210846e214e5";
         let raw = RawLoadout::parse(test_ld).unwrap();
-        let ld = Loadout::from_raw(&get_conn(), raw).unwrap();
+        let ld = Loadout::from_raw(raw).unwrap();
         ld.to_img().unwrap().save("ld_test.png").unwrap();
     }
 }

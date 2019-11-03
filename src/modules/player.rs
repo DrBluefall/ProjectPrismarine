@@ -1,6 +1,5 @@
 use crate::utils::db::models::Player;
 use crate::utils::db::models::{ModelError, NFKind};
-use crate::ConnectionHolder;
 use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
     model::prelude::*,
@@ -9,24 +8,12 @@ use serenity::{
 
 #[command]
 fn new(ctx: &mut Context, msg: &Message) -> CommandResult {
-    let dat = ctx.data.read();
-    let conn = match dat.get::<ConnectionHolder>() {
-        Some(v) => v.lock().unwrap(),
-        None => {
-            let _ = msg.reply(
-                &ctx,
-                "Command Failed - Could not get connection to database.",
-            );
-            error!("Could not connection to database for adding new player");
-            return Ok(());
-        }
-    };
-    let _ = match Player::add_to_db(&*conn, *msg.author.id.as_u64()) {
+    let _ = match Player::add_to_db(*msg.author.id.as_u64()) {
         Ok(_) => {
             let _ = msg.reply(&ctx, "Added you to the database! ^^)");
         }
         Err(e) => {
-            error!("Failed to add player to database");
+            error!("Failed to add player to database\n\nError: {:?}", e);
             let _ = msg.reply(&ctx, "There was an issue with adding you to the database. Please contact the development team immediately.");
         }
     };
@@ -35,21 +22,8 @@ fn new(ctx: &mut Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-fn name(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    let dat = ctx.data.read();
-    let conn = match dat.get::<ConnectionHolder>() {
-        Some(v) => v.lock().unwrap(),
-        None => {
-            let _ = msg.reply(
-                &ctx,
-                "Command Failed - Could not get connection to database.",
-            );
-            error!("Could not get connection to database for editing player data");
-            return Ok(());
-        }
-    };
-
-    let mut player = match Player::from_db(&*conn, *msg.author.id.as_u64()) {
+fn name(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
+    let mut player = match Player::from_db(*msg.author.id.as_u64()) {
         Ok(v) => v,
         Err(e) => match e.as_ref() {
             ModelError::Database(message, bt) => {
@@ -68,15 +42,15 @@ fn name(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                     return Ok(());
                 }
                 _ => {
-                    let _ = msg.reply(&ctx, "Command Failed - Error in database retrieval Contact the developers immediately.");
-                    error!("{:#?}", e);
+                    let _ = msg.reply(&ctx, "Command Failed - Error in database retrieval! Contact the developers immediately!");
+                    error!("Database item not found! \n\nError: {:#?}\n\nBacktrace: {:#?}", e, trace);
                     return Ok(());
                 }
             },
             ModelError::InvalidParameter(p) => {
                 let _ = msg.reply(
                     &ctx,
-                    format!("Command Failed - Invalid argument passed: `{}`", p),
+                    format!("Command Failed - Invalid parameter detected: `{}`", p),
                 );
                 return Ok(());
             }
@@ -98,7 +72,7 @@ fn name(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     }
 
-    match player.update(&conn) {
+    match player.update() {
         Ok(_) => {
             let _ = msg
                 .channel_id
@@ -112,4 +86,34 @@ fn name(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     }
 
     Ok(())
+}
+
+#[command]
+fn level(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    unimplemented!()
+}
+
+#[command]
+fn rank(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    unimplemented!()
+}
+
+#[command]
+fn position(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    unimplemented!()
+}
+
+#[command]
+fn loadout(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    unimplemented!()
+}
+
+#[command]
+fn free_agent(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    unimplemented!()
+}
+
+#[command]
+fn set_private(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    unimplemented!()
 }

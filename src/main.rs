@@ -6,9 +6,9 @@ extern crate serde; // Serialization and deserialization of JSON from DB into st
 extern crate serde_json; // JSON support of serde // Used with discord_bots_org for dispatching to DBL
 #[macro_use]
 extern crate log; // logging crate
-extern crate pretty_env_logger; // nicer logging
 extern crate postgres; // PostgreSQL API bindings.
 extern crate postgres_derive;
+extern crate pretty_env_logger; // nicer logging
 extern crate regex;
 #[macro_use]
 extern crate lazy_static; // Set static variables at runtime.
@@ -26,10 +26,7 @@ use serenity::{
     prelude::*,
 };
 use std::env;
-use std::{
-    collections::HashSet,
-    sync::{Arc, Mutex as STDMutex},
-};
+use std::{collections::HashSet, sync::Arc};
 
 // Declare modules for use
 mod modules;
@@ -79,7 +76,7 @@ group!({
     options: {
         prefixes: [ "u", "update" ],
     },
-    commands: [name]
+    commands: [name, level, rank, position]
 });
 
 group!({

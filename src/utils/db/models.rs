@@ -1,20 +1,30 @@
-use postgres::Connection;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::convert::AsRef;
 use crate::utils::misc;
+use crate::utils::misc::hex_to_bin;
 use image::imageops::overlay as paste;
 use image::{DynamicImage, ImageResult};
+use postgres::Connection;
 use postgres::Error;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use serde_json;
 use std::backtrace::Backtrace;
-use crate::utils::misc::hex_to_bin;
+use std::collections::HashMap;
+use std::convert::AsRef;
+use unicode_segmentation::UnicodeSegmentation;
 
 lazy_static! {
     static ref FCRE: Regex = Regex::new(r"\D").unwrap();
     static ref RANKRE: Regex = Regex::new(r"(([ABC][-+ ]?)|(S\+[0-9]?)|S|(X [0-9]{0,4}))").unwrap();
 }
+
+static SR_RANK_ARRAY: [&str; 6] = [
+    "intern",
+    "apprentice",
+    "part-timer",
+    "go-getter",
+    "overachiever",
+    "profreshional",
+];
 
 static LOADOUT_BASE_PATH: &str = "assets/img/loadout_base.png";
 
@@ -158,14 +168,12 @@ impl Player {
 
         let lv: i32 = row.get("level");
         let dt: String = row.get("loadout");
-        let loadout = match Loadout::from_raw(
-                match RawLoadout::parse(dt.as_str()) {
-                    Ok(v) => v,
-                    Err(e) => return Err(e),
-                },
-            ) {
+        let loadout = match Loadout::from_raw(match RawLoadout::parse(dt.as_str()) {
             Ok(v) => v,
-            Err(e) => return Err(e)
+            Err(e) => return Err(e),
+        }) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
         };
 
         Ok(Player {
@@ -210,7 +218,9 @@ impl Player {
         &self.ign
     }
     pub fn set_name(&mut self, name: String) -> Result<(), ()> {
-        if name.len() > 10 || name.len() < 1 {
+        let __name__ = UnicodeSegmentation::graphemes(name.as_str(), true).collect::<Vec<&str>>();
+
+        if __name__.len() > 10 || __name__.len() < 1 {
             return Err(());
         } else {
             self.ign = name;
@@ -228,19 +238,55 @@ impl Player {
     }
 
     pub fn set_rank(&mut self, mode: String, rank: String) -> Result<(), ModelError> {
-        if !RANKRE.is_match(rank.as_str()) {
-            return Err(ModelError::InvalidParameter(format!(
-                "Invalid Rank: {}",
-                rank.as_str()
-            )));
-        }
-
         match mode.as_str() {
-            "sz" | "splat_zones" | "sz_rank" => self.sz = "sz".to_string(),
-            "tc" | "tower_control" | "tc_rank" => self.tc = "tc".to_string(),
-            "rm" | "rainmaker" | "rm_rank" => self.rm = "rm".to_string(),
-            "cb" | "clam_blitz" | "cb_rank" => self.cb = "cb".to_string(),
-            "sr" | "salmon_run" | "sr_rank" => self.sr = "sr".to_string(),
+            "sz" | "splat_zones" | "sz_rank" => {
+                if !RANKRE.is_match(rank.as_str()) {
+                    return Err(ModelError::InvalidParameter(format!(
+                        "Invalid Rank: {}",
+                        rank.as_str()
+                    )));
+                }
+                self.sz = rank
+            }
+            "tc" | "tower_control" | "tc_rank" => {
+                if !RANKRE.is_match(rank.as_str()) {
+                    return Err(ModelError::InvalidParameter(format!(
+                        "Invalid Rank: {}",
+                        rank.as_str()
+                    )));
+                }
+                self.tc = rank
+            }
+            "rm" | "rainmaker" | "rm_rank" => {
+                if !RANKRE.is_match(rank.as_str()) {
+                    return Err(ModelError::InvalidParameter(format!(
+                        "Invalid Rank: {}",
+                        rank.as_str()
+                    )));
+                }
+                self.rm = rank
+            }
+            "cb" | "clam_blitz" | "cb_rank" => {
+                if !RANKRE.is_match(rank.as_str()) {
+                    return Err(ModelError::InvalidParameter(format!(
+                        "Invalid Rank: {}",
+                        rank.as_str()
+                    )));
+                }
+                self.cb = rank
+            }
+            "sr" | "salmon_run" | "sr_rank" => {
+                for static_rank in SR_RANK_ARRAY.iter() {
+                    if &(rank.as_str().to_ascii_lowercase()) == static_rank {
+                        self.sr = rank;
+                        return Ok(());
+                    }
+                }
+                return Err(ModelError::InvalidParameter(format!(
+                    "Invalid Salmon Run Rank: {}",
+                    rank.as_str()
+                )));
+            }
             _ => {
                 return Err(ModelError::InvalidParameter(format!(
                     "Invalid Mode: {}",
@@ -257,7 +303,6 @@ impl Player {
 
     pub fn set_pos(&mut self, pos_int: i16) -> Result<(), ()> {
         let pos_map = misc::pos_map();
-        let mut in_map = false;
         for key in pos_map.keys() {
             if key == &pos_int {
                 self.position = pos_int;
@@ -539,10 +584,7 @@ pub struct GearItem {
 }
 
 impl GearItem {
-    pub fn from_raw(
-        raw: RawGearItem,
-        gear_type: &'static str,
-    ) -> Result<GearItem, ModelError> {
+    pub fn from_raw(raw: RawGearItem, gear_type: &'static str) -> Result<GearItem, ModelError> {
         let res = match gear_type {
             "head" => {
                 match misc::get_db_connection().query(

@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use std::result::Result;
 use postgres::Connection;
 use postgres::TlsMode;
+use std::collections::HashMap;
+use std::result::Result;
 
 lazy_static! {
     static ref DATABASE_URL: String = std::env::var("PRISBOT_DATABASE").unwrap();

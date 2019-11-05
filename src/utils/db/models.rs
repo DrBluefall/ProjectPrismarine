@@ -80,6 +80,7 @@ impl StringUtils for str {
     }
 }
 
+#[derive(Debug)]
 pub struct Player {
     id: i64,
     friend_code: String,
@@ -93,8 +94,8 @@ pub struct Player {
     position: i16,
     loadout: Loadout,
     team_id: Option<i64>,
-    free_agent: Option<bool>,
-    is_private: Option<bool>,
+    free_agent: bool,
+    is_private: bool,
 }
 
 #[derive(Debug)]
@@ -193,7 +194,6 @@ impl Player {
             is_private: row.get("is_private"),
         })
     }
-
     pub fn id(&self) -> &i64 {
         &self.id
     }
@@ -236,7 +236,6 @@ impl Player {
         hm.insert("Salmon Run", &self.sr);
         hm
     }
-
     pub fn set_rank(&mut self, mode: String, rank: String) -> Result<(), ModelError> {
         match mode.as_str() {
             "sz" | "splat_zones" | "sz_rank" => {
@@ -246,7 +245,7 @@ impl Player {
                         rank.as_str()
                     )));
                 }
-                self.sz = rank
+                self.sz = rank.as_str().to_ascii_uppercase().to_string()
             }
             "tc" | "tower_control" | "tc_rank" => {
                 if !RANKRE.is_match(rank.as_str()) {
@@ -255,7 +254,7 @@ impl Player {
                         rank.as_str()
                     )));
                 }
-                self.tc = rank
+                self.tc = rank.as_str().to_ascii_uppercase().to_string()
             }
             "rm" | "rainmaker" | "rm_rank" => {
                 if !RANKRE.is_match(rank.as_str()) {
@@ -264,7 +263,7 @@ impl Player {
                         rank.as_str()
                     )));
                 }
-                self.rm = rank
+                self.rm = rank.as_str().to_ascii_uppercase().to_string()
             }
             "cb" | "clam_blitz" | "cb_rank" => {
                 if !RANKRE.is_match(rank.as_str()) {
@@ -273,12 +272,14 @@ impl Player {
                         rank.as_str()
                     )));
                 }
-                self.cb = rank
+                self.cb = rank.as_str().to_ascii_uppercase().to_string()
             }
             "sr" | "salmon_run" | "sr_rank" => {
                 for static_rank in SR_RANK_ARRAY.iter() {
                     if &(rank.as_str().to_ascii_lowercase()) == static_rank {
-                        self.sr = rank;
+                        use heck::TitleCase;
+
+                        self.sr = rank.as_str().to_title_case().replace(' ', "-").to_string();
                         return Ok(());
                     }
                 }
@@ -298,9 +299,8 @@ impl Player {
     }
 
     pub fn pos(&self) -> &'static str {
-        misc::pos_map().get(&self.position).unwrap_or(&"Invalid")
+        misc::pos_map().get(&self.position).unwrap()
     }
-
     pub fn set_pos(&mut self, pos_int: i16) -> Result<(), ()> {
         let pos_map = misc::pos_map();
         for key in pos_map.keys() {
@@ -315,14 +315,61 @@ impl Player {
     pub fn loadout(&self) -> &Loadout {
         &self.loadout
     }
+    pub fn set_loadout(&mut self, hex: &str) -> Result<(), ModelError> {
+        let raw = match RawLoadout::parse(hex) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
+        match Loadout::from_raw(raw) {
+            Ok(v) => self.loadout = v,
+            Err(e) => return Err(e),
+        }
+        Ok(())
+    }
+
     pub fn team_id(&self) -> &Option<i64> {
         &self.team_id
     }
-    pub fn is_free_agent(&self) -> &Option<bool> {
+    pub fn is_free_agent(&self) -> &bool {
         &self.free_agent
     }
-    pub fn is_private(&self) -> &Option<bool> {
+    pub fn set_free_agent(&mut self, response: String) -> Result<&bool, ModelError> {
+        let tmp = response.as_str().to_ascii_lowercase();
+        let r = tmp.as_str();
+
+        match r {
+            "ok" | "yes" | "true" | "1" => self.free_agent = true,
+            "no" | "false" | "0" => self.free_agent = false,
+            _ => {
+                return Err(ModelError::InvalidParameter(format!(
+                    "Invalid response: `{}`",
+                    response
+                )))
+            }
+        }
+
+        Ok(&self.free_agent)
+    }
+
+    pub fn is_private(&self) -> &bool {
         &self.is_private
+    }
+    pub fn set_private(&mut self, response: String) -> Result<&bool, ModelError> {
+        let tmp = response.as_str().to_ascii_lowercase();
+        let r = tmp.as_str();
+
+        match r {
+            "ok" | "yes" | "true" | "1" => self.is_private = true,
+            "no" | "false" | "0" => self.is_private = false,
+            _ => {
+                return Err(ModelError::InvalidParameter(format!(
+                    "Invalid response: `{}`",
+                    response
+                )))
+            }
+        }
+
+        Ok(&self.is_private)
     }
     pub fn update(&self) -> Result<u64, Error> {
         misc::get_db_connection().execute(
@@ -336,8 +383,9 @@ SET
     position = $9,
     loadout = $10,
     team_id = $11,
-    is_private = $12
-WHERE id = $13;
+    is_private = $12,
+	free_agent = $13
+WHERE id = $14;
                     ",
             &[
                 &self.friend_code,
@@ -352,6 +400,7 @@ WHERE id = $13;
                 &self.loadout.raw.hex,
                 &self.team_id,
                 &self.is_private,
+                &self.free_agent,
                 &self.id,
             ],
         )
@@ -632,7 +681,7 @@ impl GearItem {
 
         let mut subs: Vec<Option<Ability>> = Vec::new();
         for sub_id in raw.subs.iter() {
-            let sub = match Ability::from_db(*sub_id as i32) {
+            match Ability::from_db(*sub_id as i32) {
                 Ok(v) => subs.push(v),
                 Err(e) => return Err(e),
             };
@@ -693,14 +742,14 @@ impl RawLoadout {
         }
         let set = u32::from_str_radix(
             misc::hex_to_bin(String::from(dat.slice(1..2)))
-                .unwrap_or(String::new())
+                .unwrap_or_default()
                 .as_str(),
             2,
         )
         .unwrap();
         let id = u32::from_str_radix(
             misc::hex_to_bin(String::from(dat.slice(2..4)))
-                .unwrap_or(String::new())
+                .unwrap_or_default()
                 .as_str(),
             2,
         )
@@ -923,18 +972,6 @@ mod tests {
     use dotenv::dotenv;
     use postgres::{Connection, TlsMode};
 
-    fn get_conn() -> Connection {
-        dotenv().ok();
-        Connection::connect(
-            match std::env::var("PRISBOT_DATABASE") {
-                Ok(v) => v,
-                Err(e) => panic!("{:#?}", e),
-            },
-            TlsMode::None,
-        )
-        .unwrap()
-    }
-
     #[test]
     fn add() {
         Player::add_to_db(1).unwrap();
@@ -1045,7 +1082,7 @@ mod tests {
 
     #[test]
     fn image_gen() {
-        let test_ld = "060314598cc73210846e214e5";
+        let test_ld = "080311694ac62098ce6e214e5";
         let raw = RawLoadout::parse(test_ld).unwrap();
         let ld = Loadout::from_raw(raw).unwrap();
         ld.to_img().unwrap().save("ld_test.png").unwrap();

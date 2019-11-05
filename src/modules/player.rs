@@ -282,16 +282,63 @@ fn loadout(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
+    let ldink_link = args.single::<String>().unwrap();
+    if !ldink_link.starts_with("https://selicia.github.io/en_US/#") {
+        let _ = msg.reply(
+            &ctx,
+            "Command Failed - Invalid link passed. Please use `https://selicia.github.io/en_US`.",
+        );
+        return Ok(());
+    }
+
+    let ldink_hex = ldink_link
+        .as_str()
+        .trim_start_matches("https://selicia.github.io/en_US/#");
+    if ldink_hex.len() != 25 {
+        let _ = msg.reply(
+            &ctx,
+            "Command Failed - Invalid link passed. Please use `https://selicia.github.io/en_US`.",
+        );
+        return Ok(());
+    }
+
+    if let Err(e) = player.set_loadout(ldink_hex) {
+        match e.as_ref() {
+            ModelError::NotFound(item, bt) => {
+                let _ = msg.reply(
+                    &ctx,
+                    format!("Command Failed - Item not found: `{:?}`", item),
+                );
+                return Ok(());
+            }
+            ModelError::InvalidParameter(s) => {
+                let _ = msg.reply(
+                    &ctx,
+                    format!("Command Failed - Invalid parameter provided: `{}`", s),
+                );
+                return Ok(());
+            }
+            ModelError::Database(err, bt) | ModelError::Unknown(err, bt) => {
+                let _ = msg.reply(&ctx, "Command Failed - An unexpected error occured! Contact the developers immediately!");
+                error!(
+                    "Something went sideways!\n\nError: {:?}\n\nBacktrace: {:#?}",
+                    err, bt
+                );
+                return Ok(());
+            }
+        }
+    } else {
+        let _ = msg.reply(&ctx, "Loadout set! :smiley:");
+    }
+
     if let Err(e) = player.update() {
         let _ = msg.reply(
             &ctx,
             "Command Failed - An unexpected error occurred! Contact the developers immediately!",
         );
         error!("Something went sideways!\n\nError: {:#?}", e);
-    } else {
-        let _ = msg.reply(&ctx, "Level set! :smiley:");
     }
-    unimplemented!()
+    Ok(())
 }
 
 #[command]
@@ -326,16 +373,27 @@ fn free_agent(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult
         }
     };
 
+    let resp = args.single::<String>().unwrap();
+
+    match player.set_free_agent(resp) {
+        Err(e) => {
+            if let ModelError::InvalidParameter(s) = e {
+                let _ = msg.reply(&ctx, format!("Command Failed - {}", s));
+            }
+        }
+        Ok(v) => {
+            let _ = msg.reply(&ctx, format!("FA status set to `{}`!", v));
+        }
+    }
+
     if let Err(e) = player.update() {
         let _ = msg.reply(
             &ctx,
             "Command Failed - An unexpected error occurred! Contact the developers immediately!",
         );
         error!("Something went sideways!\n\nError: {:#?}", e);
-    } else {
-        let _ = msg.reply(&ctx, "Level set! :smiley:");
     }
-    unimplemented!()
+    Ok(())
 }
 
 #[command]
@@ -370,14 +428,25 @@ fn set_private(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
         }
     };
 
+    let resp = args.single::<String>().unwrap();
+
+    match player.set_private(resp) {
+        Err(e) => {
+            if let ModelError::InvalidParameter(s) = e {
+                let _ = msg.reply(&ctx, format!("Command Failed - {}", s));
+            }
+        }
+        Ok(v) => {
+            let _ = msg.reply(&ctx, format!("Privacy set to `{}`!", v));
+        }
+    }
+
     if let Err(e) = player.update() {
         let _ = msg.reply(
             &ctx,
             "Command Failed - An unexpected error occurred! Contact the developers immediately!",
         );
         error!("Something went sideways!\n\nError: {:#?}", e);
-    } else {
-        let _ = msg.reply(&ctx, "Level set! :smiley:");
     }
-    unimplemented!()
+    Ok(())
 }

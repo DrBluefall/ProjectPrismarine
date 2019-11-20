@@ -35,6 +35,7 @@ mod utils;
 // Import the commands to put them into their groups
 use modules::player::*;
 use modules::sudo::*;
+use modules::meta::*;
 
 // Various holders to be carried across modules.
 struct ShardManagerContainer;
@@ -135,7 +136,8 @@ fn main() {
         StandardFramework::new()
             .configure(|c| c.owners(owners).on_mention(Some(bot_id)).prefix("pc."))
             .group(&SUDO_GROUP)
-            .group(&PLAYER_GROUP),
+            .group(&PLAYER_GROUP)
+            .help(&ASSIST)
     );
     info!("Framework prepared!");
 

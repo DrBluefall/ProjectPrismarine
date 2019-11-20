@@ -2,7 +2,6 @@ use crate::utils::misc;
 use crate::utils::misc::hex_to_bin;
 use image::imageops::overlay as paste;
 use image::{DynamicImage, ImageResult};
-use postgres::Connection;
 use postgres::Error;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -154,6 +153,14 @@ impl Player {
         }
 
         let rows = rows.unwrap();
+        
+        if rows.len() == 0 {
+            return Err(ModelError::NotFound(
+                NFKind::Player(user_id),
+                Backtrace::capture(),
+            ));
+        }
+
         let row = rows.get(0);
         let ldink_hex: String = row.get("loadout");
         let ld = RawLoadout::parse(ldink_hex.as_str());
@@ -969,8 +976,6 @@ impl SpecialWeapon {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use dotenv::dotenv;
-    use postgres::{Connection, TlsMode};
 
     #[test]
     fn add() {

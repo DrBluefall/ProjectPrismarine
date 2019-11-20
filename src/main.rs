@@ -14,10 +14,10 @@ extern crate regex;
 extern crate lazy_static; // Set static variables at runtime.
 extern crate heck;
 extern crate image; // Image editing library // Case conversion crate.
+extern crate better_panic;
 
 use discord_bots_org::ReqwestSyncClient as APIClient; // Used to update discordbots.org
 use dotenv::dotenv; // used to load .env files from directory.
-use postgres::{Connection, TlsMode};
 use reqwest::Client as ReqwestClient;
 use serenity::{
     // Library for Discord. The central library for this bot.
@@ -77,7 +77,7 @@ group!({
     options: {
         prefixes: [ "u", "update" ],
     },
-    commands: [name, level, rank, position, loadout, free_agent, set_private]
+    commands: [name, level, rank, position, loadout, free_agent, set_private, fc]
 });
 
 group!({
@@ -85,14 +85,14 @@ group!({
     options: {
         prefixes: ["p", "player"]
     },
-    commands: [new],
+    commands: [new, show],
     sub_groups: [update]
 });
 
 fn main() {
     dotenv().ok();
     pretty_env_logger::init_timed();
-
+    better_panic::install();
     let token = match env::var("PRISBOT_TOKEN") {
         Ok(v) => v,
         Err(e) => panic!(

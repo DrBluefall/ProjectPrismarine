@@ -1,6 +1,6 @@
 [package]
 name = "project_prismarine"
-version = "0.0.1-R"
+version = "0.0.2-R"
 authors = ["Prismarine Bluefall <sbisonol@gmail.com>"]
 edition = "2018"
 

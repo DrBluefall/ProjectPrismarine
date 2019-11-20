@@ -1230,7 +1230,7 @@ dependencies = [
 
 [[package]]
 name = "project_prismarine"
-version = "0.0.1-R"
+version = "0.0.2-R"
 dependencies = [
  "better-panic 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",

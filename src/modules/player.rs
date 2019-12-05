@@ -1,15 +1,15 @@
 use crate::utils::db::Player;
-use crate::utils::misc::{ModelError, NFKind};
 use crate::utils::misc::pos_map;
-use serenity::{
-    framework::standard::{macros::command, Args, CommandResult},
-    model::prelude::*,
-    prelude::*,
-    http::AttachmentType,
-    utils::Colour as Color
-};
+use crate::utils::misc::{ModelError, NFKind};
 use image::png::PNGEncoder;
 use image::ColorType;
+use serenity::{
+    framework::standard::{macros::command, Args, CommandResult},
+    http::AttachmentType,
+    model::prelude::*,
+    prelude::*,
+    utils::Colour as Color,
+};
 
 #[command]
 fn new(ctx: &mut Context, msg: &Message) -> CommandResult {
@@ -457,7 +457,6 @@ fn set_private(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
 
 #[command]
 fn fc(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
-    
     let mut player = match Player::from_db(*msg.author.id.as_u64()) {
         Ok(v) => v,
         Err(e) => {
@@ -490,7 +489,8 @@ fn fc(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
 
     let fcin = args.rest();
     if let Err(_) = player.set_fc(fcin) {
-        msg.reply(&ctx, "Command Failed - Invaild friend code passed in.").unwrap();
+        msg.reply(&ctx, "Command Failed - Invaild friend code passed in.")
+            .unwrap();
     } else {
         msg.reply(&ctx, "Friend code updated! :smiley:").unwrap();
     }
@@ -531,11 +531,13 @@ fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
             match e.as_ref() {
                 ModelError::NotFound(kind, trace) => match kind {
                     NFKind::Player(_) => {
-
                         let notif = if self_retrieve {
-                           "Command Failed - You're not in the database! Add yourself with `player new`.".to_string()
+                            "Command Failed - You're not in the database! Add yourself with `player new`.".to_string()
                         } else {
-                            format!("Command Failed - Player ID {} is not in the database!", player_id)
+                            format!(
+                                "Command Failed - Player ID {} is not in the database!",
+                                player_id
+                            )
                         };
 
                         let _ = msg.reply(&ctx, notif);
@@ -562,21 +564,28 @@ fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     };
 
-    let i = player.loadout()
-            .to_img().unwrap().to_rgba();
+    let i = player.loadout().to_img().unwrap().to_rgba();
     let w = i.width();
     let h = i.height();
-    
+
     let mut buf: Vec<u8> = Vec::new();
 
     let encoder = PNGEncoder::new(&mut buf);
-    encoder.encode(&i.into_raw(), w, h, ColorType::RGBA(8)).unwrap();
+    encoder
+        .encode(&i.into_raw(), w, h, ColorType::RGBA(8))
+        .unwrap();
 
-    let usr = if let Ok(v) = ctx.http.get_user(player_id) {v} else {
-        msg.reply(&ctx, format!("Command Failed - Discord User `{}` not found.", player_id)).unwrap();
+    let usr = if let Ok(v) = ctx.http.get_user(player_id) {
+        v
+    } else {
+        msg.reply(
+            &ctx,
+            format!("Command Failed - Discord User `{}` not found.", player_id),
+        )
+        .unwrap();
         return Ok(());
     };
-    
+
     msg.channel_id.send_message(&ctx, |m| {
         m.embed(|e| {
             e.title(format!("Player Profile - {}", usr.name));
@@ -610,7 +619,7 @@ fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                         "https://cdn.discordapp.com/attachments/637014853386764338/646812631130177546/JPEG_20190504_150808.png"
                         .to_string()
                     ))
-                }); 
+                });
             } else {
                 e.color(Color::from_rgb(0xFF, 0x00, 0x00));
             }

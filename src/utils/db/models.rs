@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::utils::db::Player;
-    use crate::utils::db::{Loadout, loadout::RawLoadout};
+    use crate::utils::db::{loadout::RawLoadout, Loadout};
     use crate::utils::misc::ModelError;
     #[test]
     fn add() {

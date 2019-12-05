@@ -13,9 +13,9 @@ extern crate pretty_env_logger; // nicer logging
 extern crate regex;
 #[macro_use]
 extern crate lazy_static; // Set static variables at runtime.
+extern crate better_panic;
 extern crate heck;
 extern crate image; // Image editing library // Case conversion crate.
-extern crate better_panic;
 
 use discord_bots_org::ReqwestSyncClient as APIClient; // Used to update discordbots.org
 use dotenv::dotenv; // used to load .env files from directory.
@@ -34,9 +34,9 @@ use std::{collections::HashSet, sync::Arc};
 mod modules;
 mod utils;
 // Import the commands to put them into their groups
+use modules::meta::*;
 use modules::player::*;
 use modules::sudo::*;
-use modules::meta::*;
 
 // Various holders to be carried across modules.
 struct ShardManagerContainer;
@@ -64,7 +64,6 @@ impl EventHandler for Handler {
         info!("Reconnected to discord!");
     }
 }
-
 
 group!({
     name: "sudo",
@@ -139,7 +138,7 @@ fn main() {
             .configure(|c| c.owners(owners).on_mention(Some(bot_id)).prefix("pc."))
             .group(&SUDO_GROUP)
             .group(&PLAYER_GROUP)
-            .help(&ASSIST)
+            .help(&ASSIST),
     );
     info!("Framework prepared!");
 

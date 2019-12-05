@@ -1,14 +1,9 @@
 use serenity::{
     framework::standard::{
-        CommandResult,
-        CommandGroup,
-        HelpOptions,
-        Args,
-        help_commands,
-        macros::help
+        help_commands, macros::help, Args, CommandGroup, CommandResult, HelpOptions,
     },
     model::prelude::*,
-    prelude::Context
+    prelude::Context,
 };
 use std::collections::HashSet;
 
@@ -19,7 +14,7 @@ fn assist(
     args: Args,
     help_options: &'static HelpOptions,
     groups: &[&'static CommandGroup],
-    owners: HashSet<UserId>
+    owners: HashSet<UserId>,
 ) -> CommandResult {
     help_commands::with_embeds(ctx, msg, args, help_options, groups, owners)
 }

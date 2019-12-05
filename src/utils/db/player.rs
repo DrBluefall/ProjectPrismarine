@@ -1,12 +1,12 @@
-use std::backtrace::Backtrace;
-use postgres::Error;
-use regex::Regex;
-use unicode_segmentation::UnicodeSegmentation;
-use std::collections::HashMap;
-use crate::utils::db::{Loadout, loadout::RawLoadout};
+use crate::impl_string_utils;
+use crate::utils::db::{loadout::RawLoadout, Loadout};
 use crate::utils::misc;
 use crate::utils::misc::{ModelError, NFKind};
-use crate::impl_string_utils;
+use postgres::Error;
+use regex::Regex;
+use std::backtrace::Backtrace;
+use std::collections::HashMap;
+use unicode_segmentation::UnicodeSegmentation;
 
 impl_string_utils!();
 

@@ -1,10 +1,10 @@
-use serde::{Serialize, Deserialize};
+use crate::impl_string_utils;
+use crate::utils::misc;
+use crate::utils::misc::{ModelError, NFKind};
+use image::{imageops::overlay as paste, DynamicImage, ImageResult};
+use serde::{Deserialize, Serialize};
 use std::backtrace::Backtrace;
 use std::collections::HashMap;
-use crate::utils::misc::{ModelError, NFKind};
-use crate::utils::misc;
-use crate::impl_string_utils;
-use image::{ImageResult, DynamicImage, imageops::overlay as paste};
 
 impl_string_utils!();
 
@@ -221,7 +221,9 @@ impl Loadout {
 
         Ok(base)
     }
-    pub fn raw(&self) -> &RawLoadout {&self.raw}
+    pub fn raw(&self) -> &RawLoadout {
+        &self.raw
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -370,7 +372,9 @@ impl RawLoadout {
             shoes,
         })
     }
-    pub fn hex(&self) -> &String {&self.hex}
+    pub fn hex(&self) -> &String {
+        &self.hex
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

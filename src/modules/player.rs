@@ -1,5 +1,5 @@
-use crate::utils::db::models::Player;
-use crate::utils::db::models::{ModelError, NFKind};
+use crate::utils::db::Player;
+use crate::utils::misc::{ModelError, NFKind};
 use crate::utils::misc::pos_map;
 use serenity::{
     framework::standard::{macros::command, Args, CommandResult},
@@ -308,7 +308,7 @@ fn loadout(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 
     if let Err(e) = player.set_loadout(ldink_hex) {
         match e.as_ref() {
-            ModelError::NotFound(item, bt) => {
+            ModelError::NotFound(item, _) => {
                 let _ = msg.reply(
                     &ctx,
                     format!("Command Failed - Item not found: `{:?}`", item),
@@ -456,7 +456,7 @@ fn set_private(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
 }
 
 #[command]
-fn fc(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+fn fc(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
     
     let mut player = match Player::from_db(*msg.author.id.as_u64()) {
         Ok(v) => v,

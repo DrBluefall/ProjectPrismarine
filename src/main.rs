@@ -1,3 +1,4 @@
+//! The core of Project Prismarine. This is the entry point of the bot and where the boilerplate of Serenity goes.
 #![feature(backtrace)]
 extern crate discord_bots_org; // DBL API Wrapper. Used with Reqwest.
 extern crate dotenv; // Get environment variables from .env files.
@@ -63,7 +64,8 @@ impl EventHandler for Handler {
         info!("Reconnected to discord!");
     }
 }
-// declare groups and their subcommands
+
+
 group!({
     name: "sudo",
     options: {

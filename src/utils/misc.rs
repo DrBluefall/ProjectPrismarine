@@ -1,17 +1,10 @@
 use postgres::Connection;
 use postgres::TlsMode;
 use std::collections::HashMap;
-use std::result::Result;
+use std::backtrace::Backtrace;
 
 lazy_static! {
     static ref DATABASE_URL: String = std::env::var("PRISBOT_DATABASE").unwrap();
-}
-
-pub fn get_ranks() -> Vec<&'static str> {
-    vec![
-        "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+", "S", "S+0", "S+1", "S+2", "S+3", "S+4",
-        "S+5", "S+6", "S+7", "S+8", "S+9", "X",
-    ]
 }
 
 pub fn pos_map() -> HashMap<i16, &'static str> {
@@ -26,6 +19,31 @@ pub fn pos_map() -> HashMap<i16, &'static str> {
 
 #[derive(Debug)]
 pub struct HexError;
+
+#[derive(Debug)]
+pub enum ModelError {
+    Database(String, Backtrace),
+    NotFound(NFKind, Backtrace),
+    InvalidParameter(String),
+    Unknown(String, Backtrace),
+}
+
+impl AsRef<Self> for ModelError {
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
+
+#[derive(Debug)]
+pub enum NFKind {
+    Player(u64),
+    // Loadout, -- Never constructed, will keep though for later use
+    GearItem(String),
+    // Ability, -- same case as loadout
+    MainWeapon { id: u32, set: u32 },
+    SubWeapon(String),
+    SpecialWeapon(String),
+}
 
 pub fn hex_to_bin(input: String) -> Result<String, HexError> {
     let mut result = String::new();
@@ -116,4 +134,60 @@ impl WepCoords {
 
 pub fn get_db_connection() -> Connection {
     Connection::connect(DATABASE_URL.as_str(), TlsMode::None).unwrap()
+}
+
+#[macro_export]
+macro_rules! impl_string_utils {
+    () => {
+use std::ops::{Bound, RangeBounds};
+
+trait StringUtils {
+    fn substring(&self, start: usize, len: usize) -> &str;
+    fn slice(&self, range: impl RangeBounds<usize>) -> &str;
+}
+impl StringUtils for str {
+    fn substring(&self, start: usize, len: usize) -> &str {
+        let mut char_pos = 0;
+        let mut byte_start = 0;
+        let mut it = self.chars();
+        loop {
+            if char_pos == start {
+                break;
+            }
+            if let Some(c) = it.next() {
+                char_pos += 1;
+                byte_start += c.len_utf8();
+            } else {
+                break;
+            }
+        }
+        char_pos = 0;
+        let mut byte_end = byte_start;
+        loop {
+            if char_pos == len {
+                break;
+            }
+            if let Some(c) = it.next() {
+                char_pos += 1;
+                byte_end += c.len_utf8();
+            } else {
+                break;
+            }
+        }
+        &self[byte_start..byte_end]
+    }
+    fn slice(&self, range: impl RangeBounds<usize>) -> &str {
+        let start = match range.start_bound() {
+            Bound::Included(bound) | Bound::Excluded(bound) => *bound,
+            Bound::Unbounded => 0,
+        };
+        let len = match range.end_bound() {
+            Bound::Included(bound) => *bound + 1,
+            Bound::Excluded(bound) => *bound,
+            Bound::Unbounded => self.len(),
+        } - start;
+        self.substring(start, len)
+    }
+}
+    };
 }

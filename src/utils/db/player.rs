@@ -242,6 +242,9 @@ impl Player {
     pub fn team_id(&self) -> &Option<i64> {
         &self.team_id
     }
+    pub fn set_team_id(&mut self, team_id: Option<i64>) {
+        self.team_id = team_id;
+    }
     pub fn is_free_agent(&self) -> &bool {
         &self.free_agent
     }
@@ -296,8 +299,9 @@ SET
     loadout = $10,
     team_id = $11,
     is_private = $12,
-	free_agent = $13
-WHERE id = $14;
+    free_agent = $13,
+    team_id = $14
+WHERE id = $15;
                     ",
             &[
                 &self.friend_code,
@@ -313,6 +317,7 @@ WHERE id = $14;
                 &self.team_id,
                 &self.is_private,
                 &self.free_agent,
+                &self.team_id,
                 &self.id,
             ],
         )

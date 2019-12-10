@@ -21,6 +21,7 @@ image = "0.22"
 unicode-segmentation = "1.5"
 heck = "0.3.1"
 better-panic = "0.2.0"
+time = "0.1.42"
 
 [dependencies.serenity]
 version = "0.7"

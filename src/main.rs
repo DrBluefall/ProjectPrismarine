@@ -1,12 +1,12 @@
 //! The core of Project Prismarine. This is the entry point of the bot and where the boilerplate of Serenity goes.
 #![feature(backtrace)]
 #![forbid(clippy::pedantic)]
+extern crate chrono;
 extern crate discord_bots_org; // DBL API Wrapper. Used with Reqwest.
 extern crate dotenv; // Get environment variables from .env files.
 extern crate reqwest; // Used with discord_bots_org for dispatching to DBL
 extern crate serde; // Serialization and deserialization of JSON from DB into structs
-extern crate serde_json; // JSON support of serde 
-extern crate chrono; // Time keeping library.
+extern crate serde_json; // JSON support of serde // Time keeping library.
 #[macro_use]
 extern crate log; // logging crate
 extern crate postgres; // PostgreSQL API bindings.
@@ -18,6 +18,7 @@ extern crate lazy_static; // Set static variables at runtime.
 extern crate better_panic;
 extern crate heck; // Case conversion crate.
 extern crate image; // Image editing library.
+extern crate time; // used with chrono.
 
 use discord_bots_org::ReqwestSyncClient as APIClient; // Used to update discordbots.org
 use dotenv::dotenv; // used to load .env files from directory.
@@ -97,11 +98,14 @@ fn main() {
     dotenv().ok();
     pretty_env_logger::init_timed();
     better_panic::install();
-    let token = env::var("PRISBOT_TOKEN").expect("Expected bot token in environment variable PRISBOT_TOKEN");
+    let token = env::var("PRISBOT_TOKEN")
+        .expect("Expected bot token in environment variable PRISBOT_TOKEN");
 
-    let dbl_token = env::var("PRISBOT_API_TOKEN").expect("Expected top.gg API token in environment variable PRISBOT_API_TOKEN");
+    let dbl_token = env::var("PRISBOT_API_TOKEN")
+        .expect("Expected top.gg API token in environment variable PRISBOT_API_TOKEN");
     // Just check for the DB variable here, don't need runtime panics :P
-    let _ = env::var("PRISBOT_DATABASE").expect("Expected database URL in environment variable PRISBOT_DATABASE");
+    let _ = env::var("PRISBOT_DATABASE")
+        .expect("Expected database URL in environment variable PRISBOT_DATABASE");
 
     info!("Tokens acquired!");
 

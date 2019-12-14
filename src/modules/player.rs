@@ -11,27 +11,16 @@ use serenity::{
     utils::Colour as Color,
 };
 
-#[command]
-fn new(ctx: &mut Context, msg: &Message) -> CommandResult {
-    let _ = match Player::add_to_db(*msg.author.id.as_u64()) {
-        Ok(_) => {
-            let _ = msg.reply(&ctx, "Added you to the database! ^^)");
-        }
-        Err(e) => {
-            error!("Failed to add player to database\n\nError: {:?}", e);
-            let _ = msg.reply(&ctx, "There was an issue with adding you to the database. Please contact the development team immediately.");
-        }
-    };
-
-    Ok(())
-}
-
-#[command]
-fn name(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
-    let mut player = match Player::from_db(*msg.author.id.as_u64()) {
-        Ok(v) => v,
-        Err(e) => {
-            match e.as_ref() {
+/// Macro to assist in retrieving players.
+macro_rules! get_player {
+    ($ctx:expr, $msg:expr, $id:expr) => {{
+        let ctx: &mut Context = $ctx;
+        let msg: &Message = $msg;
+        let id: u64 = $id;
+        #[allow(unused_mut)]
+        let mut plr = match Player::from_db(id) {
+            Ok(v) => v,
+            Err(e) => match e.as_ref() {
                 ModelError::NotFound(kind, trace) => match kind {
                     NFKind::Player(_) => {
                         let _ = msg.reply(&ctx, "Command Failed - You're not in the database! Add yourself with `player new`.");
@@ -55,8 +44,29 @@ fn name(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
                     return Ok(());
                 }
             }
+        };
+        plr
+    }}
+}
+
+#[command]
+fn new(ctx: &mut Context, msg: &Message) -> CommandResult {
+    let _ = match Player::add_to_db(*msg.author.id.as_u64()) {
+        Ok(_) => {
+            let _ = msg.reply(&ctx, "Added you to the database! ^^)");
+        }
+        Err(e) => {
+            error!("Failed to add player to database\n\nError: {:?}", e);
+            let _ = msg.reply(&ctx, "There was an issue with adding you to the database. Please contact the development team immediately.");
         }
     };
+
+    Ok(())
+}
+
+#[command]
+fn name(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
+    let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
     match player.set_name(args.rest().to_string()) {
         Ok(_) => (),
@@ -83,35 +93,7 @@ fn name(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
 
 #[command]
 fn level(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    let mut player = match Player::from_db(*msg.author.id.as_u64()) {
-        Ok(v) => v,
-        Err(e) => {
-            match e.as_ref() {
-                ModelError::NotFound(kind, trace) => match kind {
-                    NFKind::Player(_) => {
-                        let _ = msg.reply(&ctx, "Command Failed - You're not in the database! Add yourself with `player new`.");
-                        return Ok(());
-                    }
-                    _ => {
-                        let _ = msg.reply(&ctx, "Command Failed - An error occured! Contact the developers immediately!");
-                        error!(
-                            "Something went sideways!\n\nError: {:?}\n\nBacktrace: {:#?}",
-                            e, trace
-                        );
-                        return Ok(());
-                    }
-                },
-                _ => {
-                    let _ = msg.reply(
-                        &ctx,
-                        "Command Failed - An error occured! Contact the developers immediately!",
-                    );
-                    error!("Something went sideways!\n\nError: {:#?}", e);
-                    return Ok(());
-                }
-            }
-        }
-    };
+    let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
     let level = match args.single::<i32>() {
         Ok(v) => v,
@@ -137,35 +119,7 @@ fn level(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 
 #[command]
 fn rank(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    let mut player = match Player::from_db(*msg.author.id.as_u64()) {
-        Ok(v) => v,
-        Err(e) => {
-            match e.as_ref() {
-                ModelError::NotFound(kind, trace) => match kind {
-                    NFKind::Player(_) => {
-                        let _ = msg.reply(&ctx, "Command Failed - You're not in the database! Add yourself with `player new`.");
-                        return Ok(());
-                    }
-                    _ => {
-                        let _ = msg.reply(&ctx, "Command Failed - An error occured! Contact the developers immediately!");
-                        error!(
-                            "Something went sideways!\n\nError: {:?}\n\nBacktrace: {:#?}",
-                            e, trace
-                        );
-                        return Ok(());
-                    }
-                },
-                _ => {
-                    let _ = msg.reply(
-                        &ctx,
-                        "Command Failed - An error occured! Contact the developers immediately!",
-                    );
-                    error!("Something went sideways!\n\nError: {:#?}", e);
-                    return Ok(());
-                }
-            }
-        }
-    };
+    let mut player =  get_player!(ctx, msg, *msg.author.id.as_u64());
 
     let mode = if let Ok(v) = args.single::<String>() {
         v
@@ -195,35 +149,7 @@ fn rank(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 
 #[command]
 fn position(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    let mut player = match Player::from_db(*msg.author.id.as_u64()) {
-        Ok(v) => v,
-        Err(e) => {
-            match e.as_ref() {
-                ModelError::NotFound(kind, trace) => match kind {
-                    NFKind::Player(_) => {
-                        let _ = msg.reply(&ctx, "Command Failed - You're not in the database! Add yourself with `player new`.");
-                        return Ok(());
-                    }
-                    _ => {
-                        let _ = msg.reply(&ctx, "Command Failed - An error occured! Contact the developers immediately!");
-                        error!(
-                            "Something went sideways!\n\nError: {:?}\n\nBacktrace: {:#?}",
-                            e, trace
-                        );
-                        return Ok(());
-                    }
-                },
-                _ => {
-                    let _ = msg.reply(
-                        &ctx,
-                        "Command Failed - An error occured! Contact the developers immediately!",
-                    );
-                    error!("Something went sideways!\n\nError: {:#?}", e);
-                    return Ok(());
-                }
-            }
-        }
-    };
+    let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
     let pos_int = match args.single::<i16>() {
         Ok(v) => v,
@@ -256,36 +182,7 @@ fn position(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 
 #[command]
 fn loadout(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    let mut player = match Player::from_db(*msg.author.id.as_u64()) {
-        Ok(v) => v,
-        Err(e) => {
-            match e.as_ref() {
-                ModelError::NotFound(kind, trace) => match kind {
-                    NFKind::Player(_) => {
-                        let _ = msg.reply(&ctx, "Command Failed - You're not in the database! Add yourself with `player new`.");
-                        return Ok(());
-                    }
-                    _ => {
-                        let _ = msg.reply(&ctx, "Command Failed - An error occured! Contact the developers immediately!");
-                        error!(
-                            "Something went sideways!\n\nError: {:?}\n\nBacktrace: {:#?}",
-                            e, trace
-                        );
-                        return Ok(());
-                    }
-                },
-                _ => {
-                    let _ = msg.reply(
-                        &ctx,
-                        "Command Failed - An error occured! Contact the developers immediately!",
-                    );
-                    error!("Something went sideways!\n\nError: {:#?}", e);
-                    return Ok(());
-                }
-            }
-        }
-    };
-
+    let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
     let ldink_link = args.single::<String>().unwrap();
     if !ldink_link.starts_with("https://selicia.github.io/en_US/#") {
         let _ = msg.reply(
@@ -347,36 +244,7 @@ fn loadout(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 
 #[command]
 fn free_agent(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    let mut player = match Player::from_db(*msg.author.id.as_u64()) {
-        Ok(v) => v,
-        Err(e) => {
-            match e.as_ref() {
-                ModelError::NotFound(kind, trace) => match kind {
-                    NFKind::Player(_) => {
-                        let _ = msg.reply(&ctx, "Command Failed - You're not in the database! Add yourself with `player new`.");
-                        return Ok(());
-                    }
-                    _ => {
-                        let _ = msg.reply(&ctx, "Command Failed - An error occured! Contact the developers immediately!");
-                        error!(
-                            "Something went sideways!\n\nError: {:?}\n\nBacktrace: {:#?}",
-                            e, trace
-                        );
-                        return Ok(());
-                    }
-                },
-                _ => {
-                    let _ = msg.reply(
-                        &ctx,
-                        "Command Failed - An error occured! Contact the developers immediately!",
-                    );
-                    error!("Something went sideways!\n\nError: {:#?}", e);
-                    return Ok(());
-                }
-            }
-        }
-    };
-
+    let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
     let resp = args.single::<String>().unwrap();
 
     match player.set_free_agent(resp) {
@@ -402,35 +270,7 @@ fn free_agent(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult
 
 #[command]
 fn set_private(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    let mut player = match Player::from_db(*msg.author.id.as_u64()) {
-        Ok(v) => v,
-        Err(e) => {
-            match e.as_ref() {
-                ModelError::NotFound(kind, trace) => match kind {
-                    NFKind::Player(_) => {
-                        let _ = msg.reply(&ctx, "Command Failed - You're not in the database! Add yourself with `player new`.");
-                        return Ok(());
-                    }
-                    _ => {
-                        let _ = msg.reply(&ctx, "Command Failed - An error occured! Contact the developers immediately!");
-                        error!(
-                            "Something went sideways!\n\nError: {:?}\n\nBacktrace: {:#?}",
-                            e, trace
-                        );
-                        return Ok(());
-                    }
-                },
-                _ => {
-                    let _ = msg.reply(
-                        &ctx,
-                        "Command Failed - An error occured! Contact the developers immediately!",
-                    );
-                    error!("Something went sideways!\n\nError: {:#?}", e);
-                    return Ok(());
-                }
-            }
-        }
-    };
+    let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
     let resp = args.single::<String>().unwrap();
 
@@ -457,35 +297,7 @@ fn set_private(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
 
 #[command]
 fn fc(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
-    let mut player = match Player::from_db(*msg.author.id.as_u64()) {
-        Ok(v) => v,
-        Err(e) => {
-            match e.as_ref() {
-                ModelError::NotFound(kind, trace) => match kind {
-                    NFKind::Player(_) => {
-                        let _ = msg.reply(&ctx, "Command Failed - You're not in the database! Add yourself with `player new`.");
-                        return Ok(());
-                    }
-                    _ => {
-                        let _ = msg.reply(&ctx, "Command Failed - An error occured! Contact the developers immediately!");
-                        error!(
-                            "Something went sideways!\n\nError: {:?}\n\nBacktrace: {:#?}",
-                            e, trace
-                        );
-                        return Ok(());
-                    }
-                },
-                _ => {
-                    let _ = msg.reply(
-                        &ctx,
-                        "Command Failed - An error occured! Contact the developers immediately!",
-                    );
-                    error!("Something went sideways!\n\nError: {:#?}", e);
-                    return Ok(());
-                }
-            }
-        }
-    };
+    let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
     let fcin = args.rest();
     if let Err(_) = player.set_fc(fcin) {

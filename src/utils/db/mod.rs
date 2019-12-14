@@ -1,5 +1,4 @@
 pub mod loadout;
-pub mod models;
 pub mod player;
 pub mod team;
 

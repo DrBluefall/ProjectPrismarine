@@ -299,9 +299,8 @@ SET
     loadout = $10,
     team_id = $11,
     is_private = $12,
-    free_agent = $13,
-    team_id = $14
-WHERE id = $15;
+    free_agent = $13
+WHERE id = $14;
                     ",
             &[
                 &self.friend_code,
@@ -317,7 +316,6 @@ WHERE id = $15;
                 &self.team_id,
                 &self.is_private,
                 &self.free_agent,
-                &self.team_id,
                 &self.id,
             ],
         )

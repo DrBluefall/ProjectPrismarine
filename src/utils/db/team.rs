@@ -64,12 +64,18 @@ pub struct Tournament {
     time: DateTime<Utc>,
 }
 
+impl Tournament {
+    pub fn new(name: String, place: i16, time: DateTime<Utc>) -> Self {
+    Tournament {name, place, time}
+    }
+}
+
 impl Team {
     /// Insert a new team into the database table.
     pub fn add_to_db(new_cap: Player, name: String) -> Result<u64, postgres::Error> {
         misc::get_db_connection().execute(
             "
-            INSERT INTO public.team_profiles(captain, creation_time, name) VALUES (?,?,?);
+            INSERT INTO public.team_profiles(captain, creation_time, name) VALUES ($1,$2,$3);
             ",
             &[new_cap.id(), &Utc::now().timestamp(), &name],
         )
@@ -289,6 +295,7 @@ impl Team {
                 &self.description,
                 &self.thumbnail,
                 &self.recruiting,
+                &self.captain.id()
             ],
         ) {
             return Err(misc::ModelError::Database(
@@ -314,7 +321,7 @@ impl Team {
         let stmt = c
             .prepare_cached(
                 "
-        INSERT INTO public.touraments(name, place, time, team)
+        INSERT INTO public.tournaments(name, place, time, team)
             VALUES ($1, $2, $3, $4);
             ",
             )

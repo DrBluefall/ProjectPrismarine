@@ -1,27 +1,29 @@
 #[cfg(test)]
 mod tests {
+    use chrono::Utc;
     use crate::utils::db::Player;
+    use crate::utils::db::{Team, team::Tournament};
     use crate::utils::db::{loadout::RawLoadout, Loadout};
     use crate::utils::misc::ModelError;
     #[test]
-    fn add() {
+    fn player_add() {
         Player::add_to_db(1).unwrap();
     }
 
     #[test]
-    fn from() {
+    fn player_from() {
         Player::from_db(1).unwrap();
     }
 
     #[test]
-    fn up() {
+    fn player_update() {
         let mut player = Player::from_db(1).unwrap();
         player.level = 42;
         player.update().unwrap();
     }
 
     #[test]
-    fn raw_deserialize() {
+    fn player_raw_deserialize() {
         // NOTE: Run this test w/ `--nocapture` to see the output
         let test_str = "080311694ac62098ce6e214e5";
         let out = RawLoadout::parse(test_str);
@@ -45,7 +47,7 @@ mod tests {
     }
 
     #[test]
-    fn re_fc() {
+    fn player_re_fc() {
         let mut player = Player::from_db(1).unwrap();
         // Test Cases:
         //a
@@ -75,7 +77,7 @@ mod tests {
     }
 
     #[test]
-    fn pos_setting() {
+    fn player_pos_setting() {
         let mut player = Player::from_db(1).unwrap();
         player.set_pos(0i16).unwrap();
         player.set_pos(1i16).unwrap();
@@ -86,7 +88,7 @@ mod tests {
     }
 
     #[test]
-    fn rank_setting() {
+    fn player_rank_setting() {
         let mut player = Player::from_db(1).unwrap();
         let test_cases = vec![
             // A set of 'possible' rank test cases.
@@ -105,17 +107,40 @@ mod tests {
     }
 
     #[test]
-    fn full_deserial() {
+    fn loadout_full_deserial() {
         let test_ld = "0000000000000000000000000";
         let raw = RawLoadout::parse(test_ld).unwrap();
         println!("{:#?}", Loadout::from_raw(raw).unwrap());
     }
 
     #[test]
-    fn image_gen() {
+    fn loadout_image_gen() {
         let test_ld = "080311694ac62098ce6e214e5";
         let raw = RawLoadout::parse(test_ld).unwrap();
         let ld = Loadout::from_raw(raw).unwrap();
         ld.to_img().unwrap().save("ld_test.png").unwrap();
     }
+
+    #[test]
+    #[ignore]
+    fn team_add() {
+        Team::add_to_db(Player::from_db(1).unwrap(), "foobar".to_string()).unwrap();
+    }
+
+    #[test]
+    fn team_from() {
+        Team::from_db(1).unwrap();
+    }
+
+    #[test]
+    fn team_update() {
+        let mut team = Team::from_db(1).unwrap();
+        team.mod_desc("baz bah bur".to_string()).unwrap();
+        team.add_tournament(
+            Tournament::new("footourney".to_string(), 5_i16, Utc::now())
+        );
+
+        team.update().unwrap();
+    }
+
 }

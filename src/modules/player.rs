@@ -119,7 +119,7 @@ fn level(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 
 #[command]
 fn rank(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    let mut player =  get_player!(ctx, msg, *msg.author.id.as_u64());
+    let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
     let mode = if let Ok(v) = args.single::<String>() {
         v

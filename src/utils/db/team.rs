@@ -66,7 +66,7 @@ pub struct Tournament {
 
 impl Tournament {
     pub fn new(name: String, place: i16, time: DateTime<Utc>) -> Self {
-    Tournament {name, place, time}
+        Tournament { name, place, time }
     }
 }
 
@@ -107,7 +107,7 @@ impl Team {
         // is the same as their team's ID, so we can just use this.
         let captain = match Player::from_db(team_id) {
             Ok(v) => v,
-            Err(e) => return Err(e)
+            Err(e) => return Err(e),
         };
         // Next part is slightly harder. We need to get all the
         // players in a team. Since the team ID is an FK to the
@@ -143,25 +143,28 @@ impl Team {
 
         let mut tournaments: Vec<Tournament> = Vec::new();
 
-        for row in { match c.query(
-            "
+        for row in {
+            match c.query(
+                "
             SELECT name, place, time FROM public.tournaments WHERE team = $1;
             ",
-            &[&(team_id as i64)]
+                &[&(team_id as i64)],
             ) {
                 Ok(v) => v,
-                Err(e) => return Err(
-                    misc::ModelError::Database(
+                Err(e) => {
+                    return Err(misc::ModelError::Database(
                         format!("{:?}", e),
                         Backtrace::capture(),
-                     )
-                )
+                    ))
+                }
             }
-        }.iter() {
+        }
+        .iter()
+        {
             tournaments.push(Tournament {
                 name: row.get(0),
                 place: row.get(1),
-                time: Utc.timestamp(row.get(2), 0)
+                time: Utc.timestamp(row.get(2), 0),
             })
         }
 
@@ -172,22 +175,22 @@ impl Team {
             "
             SELECT name, description, thumbnail, creation_time, recruiting,
             deletion_time FROM public.team_profiles WHERE captain = $1;
-            ", &[&(team_id as i64)]) {
+            ",
+            &[&(team_id as i64)],
+        ) {
             Ok(v) => v,
-            Err(e) => return Err(
-                misc::ModelError::Database(
+            Err(e) => {
+                return Err(misc::ModelError::Database(
                     format!("{:?}", e),
                     Backtrace::capture(),
-                )
-            )
+                ))
+            }
         };
         if res.is_empty() {
-            return Err(
-                misc::ModelError::NotFound(
-                    misc::NFKind::Team(team_id),
-                    Backtrace::capture()
-                )
-            );
+            return Err(misc::ModelError::NotFound(
+                misc::NFKind::Team(team_id),
+                Backtrace::capture(),
+            ));
         }
         let dat = res.get(0);
 
@@ -201,8 +204,10 @@ impl Team {
             recruiting: dat.get(4),
             deletion_time: if let Some(v) = dat.get(5) {
                 Some(Utc.timestamp(v, 0))
-            } else {None},
-            tournaments
+            } else {
+                None
+            },
+            tournaments,
         })
     }
     /// Get a team's name.
@@ -295,7 +300,7 @@ impl Team {
                 &self.description,
                 &self.thumbnail,
                 &self.recruiting,
-                &self.captain.id()
+                &self.captain.id(),
             ],
         ) {
             return Err(misc::ModelError::Database(
@@ -344,4 +349,3 @@ impl Team {
         Ok(())
     }
 }
-

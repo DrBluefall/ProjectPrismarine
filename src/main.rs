@@ -136,7 +136,11 @@ fn main() {
 
     client.with_framework(
         StandardFramework::new()
-            .configure(|c| c.owners(owners).on_mention(Some(bot_id)).prefix(prefix.as_str()))
+            .configure(|c| {
+                c.owners(owners)
+                    .on_mention(Some(bot_id))
+                    .prefix(prefix.as_str())
+            })
             .group(&SUDO_GROUP)
             .group(&PLAYER_GROUP)
             .help(&ASSIST),

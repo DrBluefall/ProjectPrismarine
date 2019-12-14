@@ -40,10 +40,7 @@ pub enum NFKind {
     // Loadout, -- Never constructed, will keep though for later use
     GearItem(String),
     // Ability, -- same case as loadout
-    MainWeapon {
-        id: u32,
-        set: u32,
-    },
+    MainWeapon { id: u32, set: u32 },
     SubWeapon(String),
     SpecialWeapon(String),
     Team(u64),

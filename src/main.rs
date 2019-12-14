@@ -104,10 +104,13 @@ fn main() {
     let dbl_token = env::var("PRISBOT_API_TOKEN")
         .expect("Expected top.gg API token in environment variable PRISBOT_API_TOKEN");
     // Just check for the DB variable here, don't need runtime panics :P
-    let _ = env::var("PRISBOT_DATABASE")
+    env::var("PRISBOT_DATABASE")
         .expect("Expected database URL in environment variable PRISBOT_DATABASE");
 
-    info!("Tokens acquired!");
+    let prefix = env::var("PRISBOT_PREFIX")
+        .expect("Expected prefix declaration in environment variable PRISBOT_PREFIX");
+
+    info!("Config acquired!");
 
     let mut client = Client::new(&token, Handler).expect("Failed to create client");
 
@@ -133,7 +136,7 @@ fn main() {
 
     client.with_framework(
         StandardFramework::new()
-            .configure(|c| c.owners(owners).on_mention(Some(bot_id)).prefix("pc."))
+            .configure(|c| c.owners(owners).on_mention(Some(bot_id)).prefix(prefix.as_str()))
             .group(&SUDO_GROUP)
             .group(&PLAYER_GROUP)
             .help(&ASSIST),

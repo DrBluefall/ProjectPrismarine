@@ -12,7 +12,7 @@ static LOADOUT_BASE_PATH: &str = "assets/img/loadout_base.png";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Loadout {
-    raw: RawLoadout,
+    raw: RawLoadoutData,
     head: GearItem,
     clothes: GearItem,
     shoes: GearItem,
@@ -22,7 +22,7 @@ pub struct Loadout {
 }
 
 impl Loadout {
-    pub fn from_raw(raw: RawLoadout) -> Result<Loadout, ModelError> {
+    pub fn from_raw(raw: RawLoadoutData) -> Result<Loadout, ModelError> {
         let head = match GearItem::from_raw(raw.clone().head, "head") {
             Ok(v) => v,
             Err(e) => return Err(e),
@@ -221,7 +221,7 @@ impl Loadout {
 
         Ok(base)
     }
-    pub fn raw(&self) -> &RawLoadout {
+    pub fn raw(&self) -> &RawLoadoutData {
         &self.raw
     }
 }
@@ -315,7 +315,7 @@ impl GearItem {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct RawLoadout {
+pub struct RawLoadoutData {
     hex: String,
     id: u32,
     set: u32,
@@ -324,7 +324,7 @@ pub struct RawLoadout {
     shoes: RawGearItem,
 }
 
-impl RawLoadout {
+impl RawLoadoutData {
     /// Deserialize a raw base-16 encoded string into a RawLoadout struct
     /// ## Arguments
     /// * `dat`: The base-16 encoded string you want to deserialize. The function will verify if
@@ -332,7 +332,7 @@ impl RawLoadout {
     /// ## Return Value:
     /// * `Result<RawLoadout, ModelError>`: A result wrapping either a RawLoadout instance
     /// or the error that resulted.
-    pub fn parse(dat: &str) -> Result<RawLoadout, ModelError> {
+    pub fn parse(dat: &str) -> Result<Self, ModelError> {
         if u32::from_str_radix(
             misc::hex_to_bin(String::from(dat.slice(0..1)))
                 .unwrap_or(String::from("1"))
@@ -363,7 +363,7 @@ impl RawLoadout {
         let head = RawGearItem::parse(String::from(dat.slice(4..11)).as_str()).unwrap();
         let clothes = RawGearItem::parse(String::from(dat.slice(11..18)).as_str()).unwrap();
         let shoes = RawGearItem::parse(String::from(dat.slice(18..25)).as_str()).unwrap();
-        Ok(RawLoadout {
+        Ok(Self {
             hex: dat.to_string(),
             id,
             set,
@@ -454,7 +454,7 @@ pub struct MainWeapon {
 }
 
 impl MainWeapon {
-    pub fn from_raw(raw: &RawLoadout) -> Result<MainWeapon, ModelError> {
+    pub fn from_raw(raw: &RawLoadoutData) -> Result<MainWeapon, ModelError> {
         match misc::get_db_connection().query(
             "SELECT * FROM public.main_weapons WHERE site_id = $1 AND class = $2;",
             &[&(raw.id as i32), &(raw.set as i32)],

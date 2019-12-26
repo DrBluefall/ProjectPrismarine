@@ -1,6 +1,5 @@
 //! The core of Project Prismarine. This is the entry point of the bot and where the boilerplate of Serenity goes.
 #![feature(backtrace)]
-#![forbid(clippy::pedantic)]
 extern crate chrono;
 extern crate discord_bots_org; // DBL API Wrapper. Used with Reqwest.
 extern crate dotenv; // Get environment variables from .env files.
@@ -121,7 +120,7 @@ fn main() {
         let mut data = client.data.write();
         data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
         data.insert::<APIClientContainer>(api_client);
-        data.insert::<TokenHolder>(dbl_token.to_string());
+        data.insert::<TokenHolder>(dbl_token);
     }
 
     let (owners, bot_id) = match client.cache_and_http.http.get_current_application_info() {

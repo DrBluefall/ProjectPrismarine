@@ -5,6 +5,7 @@ use crate::utils::misc;
 use chrono::{DateTime, TimeZone, Utc};
 use regex::Regex;
 use std::backtrace::Backtrace;
+use std::convert::TryInto;
 use unicode_segmentation::UnicodeSegmentation;
 
 type URL = String;
@@ -64,9 +65,90 @@ pub struct Tournament {
     time: DateTime<Utc>,
 }
 
+#[derive(Debug)]
+pub struct Invite {
+    /// The player that the invite was sent to
+    recipient: Player,
+    /// The team that sent it
+    sender: Team,
+    /// whatever message the team included
+    message: Option<String>,
+    /// time this invite expires. Set to 3 days after sending
+    deletion_time: DateTime<Utc>,
+}
+
 impl Tournament {
     pub fn new(name: String, place: i16, time: DateTime<Utc>) -> Self {
         Tournament { name, place, time }
+    }
+}
+
+impl Invite {
+    pub fn add_to_db(
+        recipient: Player,
+        sender: Team,
+        message: Option<String>,
+        deletion_time: DateTime<Utc>,
+    ) -> Result<u64, postgres::Error> {
+        misc::get_db_connection().execute(
+            "
+            INSERT INTO public.invites(recipient, sender, invite_text, deletion_time) 
+            VALUES ($1, $2, $3, $4);
+            ",
+            &[
+                &recipient.id(),
+                &sender.captain.id(),
+                &message,
+                &deletion_time.timestamp(),
+            ],
+        )
+    }
+
+    pub fn from_db(recipient_id: i64) -> Result<Vec<Self>, misc::ModelError> {
+        let c = misc::get_db_connection();
+
+        let res = match c.query(
+            "
+            SELECT recipient, sender, invite_text, deletion_time FROM public.invites WHERE recipient = $1;
+            ",
+            &[&recipient_id],
+        ) {
+            Ok(v) => v,
+            Err(e) => {
+                return Err(misc::ModelError::Database(
+                    format!("{:?}", e),
+                    Backtrace::capture(),
+                ))
+            }
+        };
+
+        if res.is_empty() {
+            return Err(misc::ModelError::Database(
+                format!("No invite found with recipient ID {}.", recipient_id),
+                Backtrace::capture(),
+            ));
+        }
+
+        let mut invites: Vec<Self> = Vec::new();
+        for row in &res {
+            let player_id: i64 = row.get(0);
+            let recipient = Player::from_db(player_id.try_into().unwrap())?;
+            let team_id: i64 = row.get(1);
+            let sender = Team::from_db(team_id.try_into().unwrap())?;
+            let message: Option<String> = row.get(2);
+            let deletion_time = {
+                let stamp: i64 = row.get(3);
+                Utc.timestamp(stamp, 0)
+            };
+
+            invites.push(Self {
+                recipient,
+                sender,
+                message,
+                deletion_time,
+            });
+        }
+        Ok(invites)
     }
 }
 
@@ -131,7 +213,7 @@ impl Team {
 
         let mut players: Vec<Player> = Vec::new();
 
-        for id in player_ids.iter() {
+        for id in &player_ids {
             players.push(match Player::from_db(*id as u64) {
                 Ok(v) => v,
                 Err(e) => return Err(e),

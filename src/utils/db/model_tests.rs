@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-    use chrono::Utc;
     use crate::utils::db::Player;
-    use crate::utils::db::{Team, team::Tournament};
-    use crate::utils::db::{loadout::RawLoadout, Loadout};
+    use crate::utils::db::{loadout::RawLoadoutData, Loadout};
+    use crate::utils::db::{Invite, Team, Tournament};
     use crate::utils::misc::ModelError;
+    use chrono::Utc;
     #[test]
     fn player_add() {
         Player::add_to_db(1).unwrap();
@@ -26,7 +26,7 @@ mod tests {
     fn player_raw_deserialize() {
         // NOTE: Run this test w/ `--nocapture` to see the output
         let test_str = "080311694ac62098ce6e214e5";
-        let out = RawLoadout::parse(test_str);
+        let out = RawLoadoutData::parse(test_str);
         println!("{:#?}", out);
         // Output should look something like this (the JSON from the Python implementation,
         // pretty printed):
@@ -109,14 +109,14 @@ mod tests {
     #[test]
     fn loadout_full_deserial() {
         let test_ld = "0000000000000000000000000";
-        let raw = RawLoadout::parse(test_ld).unwrap();
+        let raw = RawLoadoutData::parse(test_ld).unwrap();
         println!("{:#?}", Loadout::from_raw(raw).unwrap());
     }
 
     #[test]
     fn loadout_image_gen() {
         let test_ld = "080311694ac62098ce6e214e5";
-        let raw = RawLoadout::parse(test_ld).unwrap();
+        let raw = RawLoadoutData::parse(test_ld).unwrap();
         let ld = Loadout::from_raw(raw).unwrap();
         ld.to_img().unwrap().save("ld_test.png").unwrap();
     }
@@ -136,11 +136,20 @@ mod tests {
     fn team_update() {
         let mut team = Team::from_db(1).unwrap();
         team.mod_desc("baz bah bur".to_string()).unwrap();
-        team.add_tournament(
-            Tournament::new("footourney".to_string(), 5_i16, Utc::now())
-        );
+        team.add_tournament(Tournament::new("footourney".to_string(), 5_i16, Utc::now()));
 
         team.update().unwrap();
     }
 
+    #[test]
+    fn invite_add() {
+        let team = Team::from_db(1).unwrap();
+        let player = Player::from_db(1).unwrap();
+        Invite::add_to_db(player, team, None, Utc::now() + time::Duration::days(3)).unwrap();
+    }
+
+    #[test]
+    fn invite_from() {
+        println!("{:#?}", Invite::from_db(1).unwrap());
+    }
 }

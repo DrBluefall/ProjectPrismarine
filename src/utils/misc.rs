@@ -44,6 +44,7 @@ pub enum NFKind {
     SubWeapon(String),
     SpecialWeapon(String),
     Team(u64),
+    Invite(i64),
 }
 
 pub fn hex_to_bin(input: String) -> Result<String, HexError> {

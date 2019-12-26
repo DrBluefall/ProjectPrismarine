@@ -20,29 +20,24 @@ macro_rules! get_player {
         #[allow(unused_mut)]
         let mut plr = match Player::from_db(id) {
             Ok(v) => v,
-            Err(e) => match e.as_ref() {
-                ModelError::NotFound(kind, trace) => match kind {
-                    NFKind::Player(_) => {
-                        let _ = msg.reply(&ctx, "Command Failed - You're not in the database! Add yourself with `player new`.");
-                        return Ok(());
-                    }
-                    _ => {
-                        let _ = msg.reply(&ctx, "Command Failed - An error occured! Contact the developers immediately!");
-                        error!(
-                            "Something went sideways!\n\nError: {:?}\n\nBacktrace: {:#?}",
-                            e, trace
-                        );
-                        return Ok(());
-                    }
-                },
-                _ => {
-                    let _ = msg.reply(
-                        &ctx,
-                        "Command Failed - An error occured! Contact the developers immediately!",
+            Err(e) => if let ModelError::NotFound(kind, trace) = e.as_ref() {
+                if let NFKind::Player(unfound_id) = kind {
+                    let _ = msg.reply(&ctx, &format!("Command Failed - Player ID `{}` not found in the database. Register a profile with `player new`.", unfound_id));
+                } else {
+                    let _ = msg.reply(&ctx, "Command Failed - An error occured! Contact the developers immediately!");
+                    error!(
+                        "Something went sideways!\n\nError: {:?}\n\nBacktrace: {:#?}",
+                        e, trace
                     );
-                    error!("Something went sideways!\n\nError: {:#?}", e);
-                    return Ok(());
                 }
+                return Ok(());
+            } else {
+                let _ = msg.reply(
+                    &ctx,
+                    "Command Failed - An error occured! Contact the developers immediately!",
+                );
+                error!("Something went sideways!\n\nError: {:#?}", e);
+                return Ok(());
             }
         };
         plr
@@ -68,11 +63,8 @@ fn new(ctx: &mut Context, msg: &Message) -> CommandResult {
 fn name(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
     let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
-    match player.set_name(args.rest().to_string()) {
-        Ok(_) => (),
-        Err(_) => {
-            let _ = msg.reply(&ctx, "Command Failed - Invalid name passed.");
-        }
+    if player.set_name(args.rest().to_string()).is_err() {
+        let _ = msg.reply(&ctx, "Command Failed - Invalid name passed.");
     }
 
     match player.update() {
@@ -325,7 +317,9 @@ fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         self_retrieve = true;
         *msg.author.id.as_u64()
     } else {
-        if msg.mentions.len() != 1 {
+        if msg.mentions.len() == 1 {
+            *msg.mentions[0].id.as_u64()
+        } else {
             match args.single::<u64>() {
                 Ok(v) => v,
                 Err(_) => {
@@ -333,8 +327,6 @@ fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                     return Ok(());
                 }
             }
-        } else {
-            *msg.mentions[0].id.as_u64()
         }
     };
     let player = match Player::from_db(player_id) {

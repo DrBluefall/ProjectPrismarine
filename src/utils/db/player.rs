@@ -1,5 +1,5 @@
 use crate::impl_string_utils;
-use crate::utils::db::{loadout::RawLoadout, Loadout};
+use crate::utils::db::{loadout::RawLoadoutData, Loadout};
 use crate::utils::misc;
 use crate::utils::misc::{ModelError, NFKind};
 use postgres::Error;
@@ -81,7 +81,7 @@ impl Player {
         let row = rows.get(0);
         let lv: i32 = row.get("level");
         let dt: String = row.get("loadout");
-        let loadout = match Loadout::from_raw(match RawLoadout::parse(dt.as_str()) {
+        let loadout = match Loadout::from_raw(match RawLoadoutData::parse(dt.as_str()) {
             Ok(v) => v,
             Err(e) => return Err(e),
         }) {
@@ -228,7 +228,7 @@ impl Player {
         &self.loadout
     }
     pub fn set_loadout(&mut self, hex: &str) -> Result<(), ModelError> {
-        let raw = match RawLoadout::parse(hex) {
+        let raw = match RawLoadoutData::parse(hex) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };

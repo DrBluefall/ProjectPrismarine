@@ -39,6 +39,7 @@ mod utils;
 use modules::meta::*;
 use modules::player::*;
 use modules::sudo::*;
+use modules::team::*;
 
 // Various holders to be carried across modules.
 struct ShardManagerContainer;
@@ -93,6 +94,14 @@ group!({
     sub_groups: [update]
 });
 
+group!({
+    name: "team",
+    options: {
+        prefixes: ["t", "team"]
+    },
+    commands: [team_new]
+});
+
 fn main() {
     dotenv().ok();
     pretty_env_logger::init_timed();
@@ -142,6 +151,7 @@ fn main() {
             })
             .group(&SUDO_GROUP)
             .group(&PLAYER_GROUP)
+            .group(&TEAM_GROUP)
             .help(&ASSIST),
     );
     info!("Framework prepared!");

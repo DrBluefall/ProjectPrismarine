@@ -12,6 +12,7 @@ use serenity::{
 };
 
 /// Macro to assist in retrieving players.
+#[macro_export]
 macro_rules! get_player {
     ($ctx:expr, $msg:expr, $id:expr) => {{
         let ctx: &mut Context = $ctx;
@@ -34,7 +35,7 @@ macro_rules! get_player {
             } else {
                 let _ = msg.reply(
                     &ctx,
-                    "Command Failed - An error occured! Contact the developers immediately!",
+                    "Command Failed - An error occurred! Contact the developers immediately!",
                 );
                 error!("Something went sideways!\n\nError: {:#?}", e);
                 return Ok(());

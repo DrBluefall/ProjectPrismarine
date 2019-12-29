@@ -33,13 +33,12 @@ fn logout(ctx: &mut Context, msg: &Message) -> CommandResult {
 fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
     let dat = ctx.data.read();
 
-    let shard_manager = match dat.get::<ShardManagerContainer>() {
-        Some(v) => v,
-        None => {
-            let _ = msg.reply(&ctx, "Command Failed - Could not retrieve shard manager");
-            error!("Failed to retrieve shard manager at latency command invoke.");
-            return Ok(());
-        }
+    let shard_manager = if let Some(v) = dat.get::<ShardManagerContainer>() {
+        v
+    } else {
+        let _ = msg.reply(&ctx, "Command Failed - Could not retrieve shard manager");
+        error!("Failed to retrieve shard manager at latency command invoke.");
+        return Ok(());
     };
     let manager = shard_manager.lock();
     let runners = manager.runners.lock();
@@ -71,29 +70,26 @@ fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
 #[command]
 #[owners_only]
 fn user(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    let user: Option<User>;
-
-    if args.is_empty() {
-        user = match ctx.http.get_user(*msg.author.id.as_u64()) {
+    let user: Option<User> = if args.is_empty() {
+        match ctx.http.get_user(*msg.author.id.as_u64()) {
             Ok(v) => Some(v),
             Err(e) => {
                 error!("Could not retrieve user data: {:#?}", e);
                 let _ = msg.reply(&ctx, "Command Failed - Could not retrieve user data.");
                 return Ok(());
             }
-        };
+        }
     } else {
-        user = match args.parse::<u64>() {
-            Ok(id) => match ctx.http.get_user(id) {
-                Ok(v) => {
+        match args.parse::<u64>() {
+            Ok(id) => {
+                if let Ok(v) = ctx.http.get_user(id) {
                     args.advance();
                     Some(v)
-                }
-                Err(_) => {
+                } else {
                     let _ = msg.reply(&ctx, "Command Failed - Invalid User ID passed.");
                     return Ok(());
                 }
-            },
+            }
             Err(_) => {
                 if msg.mentions.is_empty() {
                     let _ = msg.reply(&ctx, "Command Failed - User not specified.");
@@ -110,8 +106,8 @@ fn user(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                     })
                 }
             }
-        };
-    }
+        }
+    };
 
     let user: User = user.unwrap();
 
@@ -145,35 +141,30 @@ fn user(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 fn update_stats(ctx: &mut Context, msg: &Message) -> CommandResult {
     let dat = ctx.data.read();
 
-    let api_client = match dat.get::<APIClientContainer>() {
-        Some(v) => v,
-        None => {
-            let _ = msg.reply(&ctx, "Command Failed - Could not retrieve API client.");
-            error!("Could not get API client for DBL updates.");
-            return Ok(());
-        }
+    let api_client = if let Some(v) = dat.get::<APIClientContainer>() {
+        v
+    } else {
+        let _ = msg.reply(&ctx, "Command Failed - Could not retrieve API client.");
+        error!("Could not get API client for DBL updates.");
+        return Ok(());
     };
 
-    let token = match dat.get::<TokenHolder>() {
-        Some(v) => v,
-        None => {
-            let _ = msg.reply(&ctx, "Command Failed - Could not retrieve DBL API token.");
-            error!("Could not get DBL API token for updates.");
-            return Ok(());
-        }
+    let token = if let Some(v) = dat.get::<TokenHolder>() {
+        v
+    } else {
+        let _ = msg.reply(&ctx, "Command Failed - Could not retrieve DBL API token.");
+        error!("Could not get DBL API token for updates.");
+        return Ok(());
     };
 
     loop {
         let dat = ctx.data.read();
 
-        let manager = match dat.get::<ShardManagerContainer>() {
-            Some(v) => v,
-            None => {
-                error!(
-                    "Could not post stats to discordbots.org - failed to retrieve shard manager."
-                );
-                return Ok(());
-            }
+        let manager = if let Some(v) = dat.get::<ShardManagerContainer>() {
+            v
+        } else {
+            error!("Could not post stats to discordbots.org - failed to retrieve shard manager.");
+            return Ok(());
         }
         .lock();
 

@@ -85,9 +85,9 @@ impl Tournament {
 
 impl Invite {
     pub fn add_to_db(
-        recipient: Player,
-        sender: Team,
-        message: Option<String>,
+        recipient: &Player,
+        sender: &Team,
+        message: &Option<String>,
         deletion_time: DateTime<Utc>,
     ) -> Result<u64, postgres::Error> {
         misc::get_db_connection().execute(
@@ -154,7 +154,7 @@ impl Invite {
 
 impl Team {
     /// Insert a new team into the database table.
-    pub fn add_to_db(new_cap: Player, name: String) -> Result<u64, postgres::Error> {
+    pub fn add_to_db(new_cap: &Player, name: &str) -> Result<u64, postgres::Error> {
         misc::get_db_connection().execute(
             "
             INSERT INTO public.team_profiles(captain, creation_time, name) VALUES ($1,$2,$3);
@@ -163,7 +163,7 @@ impl Team {
         )
     }
     /// Get a team's data from the database. If not found, it'll return
-    /// ModelError::Team with the id of the team that wasn't found. I *may*
+    /// `ModelError::Team` with the id of the team that wasn't found. I *may*
     /// add an ability to search for teams by name, but this is easier for now.
     pub fn from_db(team_id: u64) -> Result<Team, misc::ModelError> {
         // TODO: Implement this
@@ -391,7 +391,7 @@ impl Team {
             ));
         }
 
-        for player in self.players.iter_mut() {
+        for player in &mut self.players {
             player.set_team_id(Some(*self.captain.id()));
             if let Err(e) = player.update() {
                 error!(
@@ -414,7 +414,7 @@ impl Team {
             )
             .unwrap();
 
-        for tourney in self.tournaments.iter() {
+        for tourney in &self.tournaments {
             if let Err(e) = stmt.execute(&[
                 &tourney.name,
                 &tourney.place,

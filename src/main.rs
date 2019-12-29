@@ -1,5 +1,9 @@
 //! The core of Project Prismarine. This is the entry point of the bot and where the boilerplate of Serenity goes.
 #![feature(backtrace)]
+#![warn(clippy::pedantic)]
+#![allow(clippy::cast_possible_wrap)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_possible_truncation)]
 extern crate chrono;
 extern crate discord_bots_org; // DBL API Wrapper. Used with Reqwest.
 extern crate dotenv; // Get environment variables from .env files.

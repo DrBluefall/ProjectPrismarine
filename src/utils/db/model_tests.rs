@@ -79,12 +79,12 @@ mod tests {
     #[test]
     fn player_pos_setting() {
         let mut player = Player::from_db(1).unwrap();
-        player.set_pos(0i16).unwrap();
-        player.set_pos(1i16).unwrap();
-        player.set_pos(2i16).unwrap();
-        player.set_pos(3i16).unwrap();
-        player.set_pos(4i16).unwrap();
-        player.set_pos(5i16).unwrap_err();
+        player.set_pos(0_i16).unwrap();
+        player.set_pos(1_i16).unwrap();
+        player.set_pos(2_i16).unwrap();
+        player.set_pos(3_i16).unwrap();
+        player.set_pos(4_i16).unwrap();
+        player.set_pos(5_i16).unwrap_err();
     }
 
     #[test]
@@ -97,8 +97,8 @@ mod tests {
         ];
         let mut failed_cases: Vec<(&&str, ModelError)> = Vec::new();
 
-        for case in test_cases.iter() {
-            match player.set_rank("sz".to_string(), case.to_string()) {
+        for case in &test_cases {
+            match player.set_rank(&"sz".to_string(), &(*case).to_string()) {
                 Ok(_) => (),
                 Err(e) => failed_cases.push((case, e)),
             }
@@ -124,7 +124,7 @@ mod tests {
     #[test]
     #[ignore]
     fn team_add() {
-        Team::add_to_db(Player::from_db(1).unwrap(), "foobar".to_string()).unwrap();
+        Team::add_to_db(&Player::from_db(1).unwrap(), "foobar").unwrap();
     }
 
     #[test]
@@ -145,7 +145,7 @@ mod tests {
     fn invite_add() {
         let team = Team::from_db(1).unwrap();
         let player = Player::from_db(1).unwrap();
-        Invite::add_to_db(player, team, None, Utc::now() + time::Duration::days(3)).unwrap();
+        Invite::add_to_db(&player, &team, &None, Utc::now() + time::Duration::days(3)).unwrap();
     }
 
     #[test]

@@ -44,10 +44,10 @@ pub enum NFKind {
     SubWeapon(String),
     SpecialWeapon(String),
     Team(u64),
-    Invite(i64),
+    // Invite(i64), -- same case as others
 }
 
-pub fn hex_to_bin(input: String) -> Result<String, HexError> {
+pub fn hex_to_bin(input: &str) -> Result<String, HexError> {
     let mut result = String::new();
     let mut map: HashMap<char, &str> = HashMap::new();
     map.insert('0', "0000");

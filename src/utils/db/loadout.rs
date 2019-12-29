@@ -23,15 +23,15 @@ pub struct Loadout {
 
 impl Loadout {
     pub fn from_raw(raw: RawLoadoutData) -> Result<Loadout, ModelError> {
-        let head = match GearItem::from_raw(raw.clone().head, "head") {
+        let head = match GearItem::from_raw(&raw.head, "head") {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
-        let clothes = match GearItem::from_raw(raw.clone().clothes, "clothes") {
+        let clothes = match GearItem::from_raw(&raw.clothes, "clothes") {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
-        let shoes = match GearItem::from_raw(raw.clone().shoes, "shoes") {
+        let shoes = match GearItem::from_raw(&raw.shoes, "shoes") {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -53,6 +53,7 @@ impl Loadout {
             special_wep: special,
         })
     }
+    #[allow(clippy::too_many_lines)] // TODO: Deal with this later
     pub fn to_img(&self) -> ImageResult<DynamicImage> {
         let mut base = match image::open(LOADOUT_BASE_PATH) {
             Ok(v) => v,
@@ -71,7 +72,7 @@ impl Loadout {
                 .resize(96, 96, image::FilterType::Lanczos3);
             let sub_imgs = {
                 let mut vec: Vec<DynamicImage> = Vec::new();
-                for sub in self.head.subs.iter() {
+                for sub in &self.head.subs {
                     vec.push(match sub {
                         None => image::open("assets/img/skills/Unknown.png")
                             .unwrap()
@@ -114,7 +115,7 @@ impl Loadout {
                 .resize(96, 96, image::FilterType::Lanczos3);
             let sub_imgs = {
                 let mut vec: Vec<DynamicImage> = Vec::new();
-                for sub in self.clothes.subs.iter() {
+                for sub in &self.clothes.subs {
                     vec.push(match sub {
                         None => image::open("assets/img/skills/Unknown.png")
                             .unwrap()
@@ -157,7 +158,7 @@ impl Loadout {
                 .resize(96, 96, image::FilterType::Lanczos3);
             let sub_imgs = {
                 let mut vec: Vec<DynamicImage> = Vec::new();
-                for sub in self.shoes.subs.iter() {
+                for sub in &self.shoes.subs {
                     vec.push(match sub {
                         None => image::open("assets/img/skills/Unknown.png")
                             .unwrap()
@@ -239,7 +240,7 @@ pub struct GearItem {
 }
 
 impl GearItem {
-    pub fn from_raw(raw: RawGearItem, gear_type: &'static str) -> Result<GearItem, ModelError> {
+    pub fn from_raw(raw: &RawGearItem, gear_type: &'static str) -> Result<GearItem, ModelError> {
         let res = match gear_type {
             "head" => {
                 match misc::get_db_connection().query(
@@ -286,7 +287,7 @@ impl GearItem {
         let retrow = res.get(0);
 
         let mut subs: Vec<Option<Ability>> = Vec::new();
-        for sub_id in raw.subs.iter() {
+        for sub_id in &raw.subs {
             match Ability::from_db(*sub_id as i32) {
                 Ok(v) => subs.push(v),
                 Err(e) => return Err(e),
@@ -325,17 +326,17 @@ pub struct RawLoadoutData {
 }
 
 impl RawLoadoutData {
-    /// Deserialize a raw base-16 encoded string into a RawLoadout struct
+    /// Deserialize a raw base-16 encoded string into a `RawLoadout` struct
     /// ## Arguments
     /// * `dat`: The base-16 encoded string you want to deserialize. The function will verify if
     /// the string is valid before conversion.
     /// ## Return Value:
-    /// * `Result<RawLoadout, ModelError>`: A result wrapping either a RawLoadout instance
+    /// * `Result<RawLoadout, ModelError>`: A result wrapping either a `RawLoadout` instance
     /// or the error that resulted.
     pub fn parse(dat: &str) -> Result<Self, ModelError> {
         if u32::from_str_radix(
-            misc::hex_to_bin(String::from(dat.slice(0..1)))
-                .unwrap_or(String::from("1"))
+            misc::hex_to_bin(&String::from(dat.slice(0..1)))
+                .unwrap_or_else(|_| String::from("1"))
                 .as_str(),
             2,
         )
@@ -347,14 +348,14 @@ impl RawLoadoutData {
             ));
         }
         let set = u32::from_str_radix(
-            misc::hex_to_bin(String::from(dat.slice(1..2)))
+            misc::hex_to_bin(&String::from(dat.slice(1..2)))
                 .unwrap_or_default()
                 .as_str(),
             2,
         )
         .unwrap();
         let id = u32::from_str_radix(
-            misc::hex_to_bin(String::from(dat.slice(2..4)))
+            misc::hex_to_bin(&String::from(dat.slice(2..4)))
                 .unwrap_or_default()
                 .as_str(),
             2,
@@ -387,7 +388,7 @@ pub struct RawGearItem {
 impl RawGearItem {
     pub fn parse(dat: &str) -> Option<RawGearItem> {
         let gear_id = u32::from_str_radix(dat.slice(0..2), 16).unwrap();
-        let bin_str = misc::hex_to_bin(dat.slice(2..7).to_string()).unwrap();
+        let bin_str = misc::hex_to_bin(&dat.slice(2..7).to_string()).unwrap();
         let mut subs: Vec<u32> = Vec::new();
         let main = u32::from_str_radix(bin_str.slice(0..5), 2).unwrap();
         subs.push(u32::from_str_radix(bin_str.slice(5..10), 2).unwrap());

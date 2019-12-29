@@ -72,7 +72,7 @@ impl Player {
             ));
         }
         let rows = rows.unwrap();
-        if rows.len() == 0 {
+        if rows.is_empty() {
             return Err(ModelError::NotFound(
                 NFKind::Player(user_id),
                 Backtrace::capture(),
@@ -132,7 +132,7 @@ impl Player {
     pub fn set_name(&mut self, name: String) -> Result<(), ()> {
         let __name__ = UnicodeSegmentation::graphemes(name.as_str(), true).collect::<Vec<&str>>();
 
-        if __name__.len() > 10 || __name__.len() < 1 {
+        if __name__.len() > 10 || __name__.is_empty() {
             return Err(());
         } else {
             self.ign = name;
@@ -148,62 +148,62 @@ impl Player {
         hm.insert("Salmon Run", &self.sr);
         hm
     }
-    pub fn set_rank(&mut self, mode: String, rank: String) -> Result<(), ModelError> {
-        match mode.as_str() {
+    pub fn set_rank(&mut self, mode: &str, rank: &str) -> Result<(), ModelError> {
+        match mode {
             "sz" | "splat_zones" | "sz_rank" => {
-                if !RANKRE.is_match(rank.as_str()) {
+                if !RANKRE.is_match(rank) {
                     return Err(ModelError::InvalidParameter(format!(
                         "Invalid Rank: {}",
-                        rank.as_str()
+                        rank
                     )));
                 }
-                self.sz = rank.as_str().to_ascii_uppercase().to_string()
+                self.sz = rank.to_ascii_uppercase()
             }
             "tc" | "tower_control" | "tc_rank" => {
-                if !RANKRE.is_match(rank.as_str()) {
+                if !RANKRE.is_match(rank) {
                     return Err(ModelError::InvalidParameter(format!(
                         "Invalid Rank: {}",
-                        rank.as_str()
+                        rank
                     )));
                 }
-                self.tc = rank.as_str().to_ascii_uppercase().to_string()
+                self.tc = rank.to_ascii_uppercase()
             }
             "rm" | "rainmaker" | "rm_rank" => {
-                if !RANKRE.is_match(rank.as_str()) {
+                if !RANKRE.is_match(rank) {
                     return Err(ModelError::InvalidParameter(format!(
                         "Invalid Rank: {}",
-                        rank.as_str()
+                        rank
                     )));
                 }
-                self.rm = rank.as_str().to_ascii_uppercase().to_string()
+                self.rm = rank.to_ascii_uppercase()
             }
             "cb" | "clam_blitz" | "cb_rank" => {
-                if !RANKRE.is_match(rank.as_str()) {
+                if !RANKRE.is_match(rank) {
                     return Err(ModelError::InvalidParameter(format!(
                         "Invalid Rank: {}",
-                        rank.as_str()
+                        rank
                     )));
                 }
-                self.cb = rank.as_str().to_ascii_uppercase().to_string()
+                self.cb = rank.to_ascii_uppercase()
             }
             "sr" | "salmon_run" | "sr_rank" => {
-                for static_rank in SR_RANK_ARRAY.iter() {
-                    if &(rank.as_str().to_ascii_lowercase()) == static_rank {
+                for static_rank in &SR_RANK_ARRAY {
+                    if &(rank.to_ascii_lowercase()) == static_rank {
                         use heck::TitleCase;
 
-                        self.sr = rank.as_str().to_title_case().replace(' ', "-").to_string();
+                        self.sr = rank.to_title_case().replace(' ', "-");
                         return Ok(());
                     }
                 }
                 return Err(ModelError::InvalidParameter(format!(
                     "Invalid Salmon Run Rank: {}",
-                    rank.as_str()
+                    rank
                 )));
             }
             _ => {
                 return Err(ModelError::InvalidParameter(format!(
                     "Invalid Mode: {}",
-                    mode.as_str()
+                    mode
                 )))
             }
         }
@@ -248,8 +248,8 @@ impl Player {
     pub fn is_free_agent(&self) -> &bool {
         &self.free_agent
     }
-    pub fn set_free_agent(&mut self, response: String) -> Result<&bool, ModelError> {
-        let tmp = response.as_str().to_ascii_lowercase();
+    pub fn set_free_agent(&mut self, response: &str) -> Result<&bool, ModelError> {
+        let tmp = response.to_ascii_lowercase();
         let r = tmp.as_str();
 
         match r {
@@ -269,8 +269,8 @@ impl Player {
     pub fn is_private(&self) -> &bool {
         &self.is_private
     }
-    pub fn set_private(&mut self, response: String) -> Result<&bool, ModelError> {
-        let tmp = response.as_str().to_ascii_lowercase();
+    pub fn set_private(&mut self, response: &str) -> Result<&bool, ModelError> {
+        let tmp = response.to_ascii_lowercase();
         let r = tmp.as_str();
 
         match r {

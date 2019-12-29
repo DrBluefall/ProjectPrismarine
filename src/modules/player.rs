@@ -47,7 +47,7 @@ macro_rules! get_player {
 
 #[command]
 fn new(ctx: &mut Context, msg: &Message) -> CommandResult {
-    let _ = match Player::add_to_db(*msg.author.id.as_u64()) {
+    match Player::add_to_db(*msg.author.id.as_u64()) {
         Ok(_) => {
             let _ = msg.reply(&ctx, "Added you to the database! ^^)");
         }
@@ -88,12 +88,11 @@ fn name(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
 fn level(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
-    let level = match args.single::<i32>() {
-        Ok(v) => v,
-        Err(_) => {
-            let _ = msg.reply(&ctx, "Command Failed - Invalid argument passed.");
-            return Ok(());
-        }
+    let level = if let Ok(v) = args.single::<i32>() {
+        v
+    } else {
+        let _ = msg.reply(&ctx, "Command Failed - Invalid argument passed.");
+        return Ok(());
     };
 
     player.level = level;
@@ -121,7 +120,7 @@ fn rank(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(());
     };
     let rank = args.rest().to_string();
-    if let Err(e) = player.set_rank(mode, rank) {
+    if let Err(e) = player.set_rank(&mode, &rank) {
         if let ModelError::InvalidParameter(fault) = e {
             let _ = msg.reply(&ctx, format!("Command Failed - {}", fault));
             return Ok(());
@@ -144,15 +143,14 @@ fn rank(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 fn position(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
-    let pos_int = match args.single::<i16>() {
-        Ok(v) => v,
-        Err(_) => {
-            let _ = msg.reply(&ctx, "Command Failed - Invalid argument passed.");
-            return Ok(());
-        }
+    let pos_int = if let Ok(v) = args.single::<i16>() {
+        v
+    } else {
+        let _ = msg.reply(&ctx, "Command Failed - Invalid argument passed.");
+        return Ok(());
     };
 
-    if let Err(_) = player.set_pos(pos_int) {
+    if player.set_pos(pos_int).is_err() {
         let _ = msg.reply(&ctx, "Command Failed - Inavlid position passed.");
         return Ok(());
     } else {
@@ -240,7 +238,7 @@ fn free_agent(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult
     let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
     let resp = args.single::<String>().unwrap();
 
-    match player.set_free_agent(resp) {
+    match player.set_free_agent(&resp) {
         Err(e) => {
             if let ModelError::InvalidParameter(s) = e {
                 let _ = msg.reply(&ctx, format!("Command Failed - {}", s));
@@ -267,7 +265,7 @@ fn set_private(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
 
     let resp = args.single::<String>().unwrap();
 
-    match player.set_private(resp) {
+    match player.set_private(&resp) {
         Err(e) => {
             if let ModelError::InvalidParameter(s) = e {
                 let _ = msg.reply(&ctx, format!("Command Failed - {}", s));
@@ -293,7 +291,7 @@ fn fc(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
     let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
     let fcin = args.rest();
-    if let Err(_) = player.set_fc(fcin) {
+    if player.set_fc(fcin).is_err() {
         msg.reply(&ctx, "Command Failed - Invaild friend code passed in.")
             .unwrap();
     } else {
@@ -314,57 +312,51 @@ fn fc(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
 #[command]
 fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let mut self_retrieve: bool = false;
-    let player_id: u64 = if args.len() == 0 {
+    let player_id: u64 = if args.is_empty() {
         self_retrieve = true;
         *msg.author.id.as_u64()
+    } else if msg.mentions.len() == 1 {
+        *msg.mentions[0].id.as_u64()
+    } else if let Ok(v) = args.single::<u64>() {
+        v
     } else {
-        if msg.mentions.len() == 1 {
-            *msg.mentions[0].id.as_u64()
-        } else {
-            match args.single::<u64>() {
-                Ok(v) => v,
-                Err(_) => {
-                    let _ = msg.reply(&ctx, "Command Failed - Invalid argument passed.");
-                    return Ok(());
-                }
-            }
-        }
+        let _ = msg.reply(&ctx, "Command Failed - Invalid argument passed.");
+        return Ok(());
     };
     let player = match Player::from_db(player_id) {
         Ok(v) => v,
         Err(e) => {
-            match e.as_ref() {
-                ModelError::NotFound(kind, trace) => match kind {
-                    NFKind::Player(_) => {
-                        let notif = if self_retrieve {
-                            "Command Failed - You're not in the database! Add yourself with `player new`.".to_string()
-                        } else {
-                            format!(
-                                "Command Failed - Player ID {} is not in the database!",
-                                player_id
-                            )
-                        };
+            if let ModelError::NotFound(kind, trace) = e.as_ref() {
+                if let NFKind::Player(_) = kind {
+                    let notif = if self_retrieve {
+                        "Command Failed - You're not in the database! Add yourself with `player new`.".to_string()
+                    } else {
+                        format!(
+                            "Command Failed - Player ID {} is not in the database!",
+                            player_id
+                        )
+                    };
 
-                        let _ = msg.reply(&ctx, notif);
-                        return Ok(());
-                    }
-                    _ => {
-                        let _ = msg.reply(&ctx, "Command Failed - An error occured! Contact the developers immediately!");
-                        error!(
-                            "Something went sideways!\n\nError: {:?}\n\nBacktrace: {:#?}",
-                            e, trace
-                        );
-                        return Ok(());
-                    }
-                },
-                _ => {
+                    let _ = msg.reply(&ctx, notif);
+                    return Ok(());
+                } else {
                     let _ = msg.reply(
                         &ctx,
                         "Command Failed - An error occured! Contact the developers immediately!",
                     );
-                    error!("Something went sideways!\n\nError: {:#?}", e);
+                    error!(
+                        "Something went sideways!\n\nError: {:?}\n\nBacktrace: {:#?}",
+                        e, trace
+                    );
                     return Ok(());
                 }
+            } else {
+                let _ = msg.reply(
+                    &ctx,
+                    "Command Failed - An error occured! Contact the developers immediately!",
+                );
+                error!("Something went sideways!\n\nError: {:#?}", e);
+                return Ok(());
             }
         }
     };
@@ -407,7 +399,7 @@ fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
             e.field("Level", player.level, true);
             e.field("Position", player.pos(), true);
 
-            for (mode, rank) in player.ranks().iter() {
+            for (mode, rank) in &player.ranks() {
                 e.field(mode, rank, true);
             }
             e.image("attachment://ld.png");
@@ -420,7 +412,7 @@ fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                     f.text("This user is a free agent! Spread the word and help this person get a team!");
                     f.icon_url(ctx.http.as_ref()
                     .get_current_user().unwrap()
-                    .avatar_url().unwrap_or(
+                    .avatar_url().unwrap_or_else( ||
                         "https://cdn.discordapp.com/attachments/637014853386764338/646812631130177546/JPEG_20190504_150808.png"
                         .to_string()
                     ))

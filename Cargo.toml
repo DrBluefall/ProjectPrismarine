@@ -24,7 +24,8 @@ better-panic = "0.2.0"
 time = "0.1.42"
 
 [dependencies.serenity]
-version = "0.7"
+git = "https://github.com/serenity-rs/serenity"
+branch = "current"
 features = ["framework", "standard_framework"]
 
 [dependencies.discord-bots-org]

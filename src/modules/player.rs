@@ -422,7 +422,7 @@ fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
             }
             e
         });
-        m.add_file(AttachmentType::Bytes((&buf,"ld.png")));
+        m.add_file(AttachmentType::Bytes {data: std::borrow::Cow::from(&buf), filename: "ld.png".to_string()});
         m
     }).unwrap();
 

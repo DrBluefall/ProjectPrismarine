@@ -71,7 +71,7 @@ impl EventHandler for Handler {
         info!("Reconnected to discord!");
     }
 }
-
+/*
 group!({
     name: "sudo",
     options: {
@@ -80,7 +80,15 @@ group!({
     },
     commands: [info, logout, latency, user, update_stats]
 });
+*/
 
+#[group]
+#[commands(info, logout, latency, user, update_stats)]
+#[prefix("sudo")]
+#[owners_only]
+struct SudoMod;
+
+/*
 group!({
     name: "update",
     options: {
@@ -88,7 +96,14 @@ group!({
     },
     commands: [name, level, rank, position, loadout, free_agent, set_private, fc]
 });
+*/
 
+#[group]
+#[commands(name, level, rank, position, loadout, free_agent, set_private, fc)]
+#[prefixes("u", "update")]
+struct PlayerUpdateMod;
+
+/*
 group!({
     name: "player",
     options: {
@@ -97,7 +112,14 @@ group!({
     commands: [new, show],
     sub_groups: [update]
 });
+*/
 
+#[group]
+#[commands(new, show)]
+#[sub_groups(playerupdatemod)]
+struct PlayerMod;
+
+/*
 group!({
     name: "team",
     options: {
@@ -105,6 +127,12 @@ group!({
     },
     commands: [team_new]
 });
+*/
+
+#[group]
+#[commands(team_new)]
+#[prefixes("t", "team")]
+struct TeamMod;
 
 fn main() {
     dotenv().ok();
@@ -153,9 +181,9 @@ fn main() {
                     .on_mention(Some(bot_id))
                     .prefix(prefix.as_str())
             })
-            .group(&SUDO_GROUP)
-            .group(&PLAYER_GROUP)
-            .group(&TEAM_GROUP)
+            .group(&SUDOMOD_GROUP)
+            .group(&PLAYERMOD_GROUP)
+            .group(&TEAMMOD_GROUP)
             .help(&ASSIST),
     );
     info!("Framework prepared!");

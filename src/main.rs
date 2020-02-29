@@ -12,8 +12,7 @@ extern crate serde; // Serialization and deserialization of JSON from DB into st
 extern crate serde_json; // JSON support of serde // Time keeping library.
 #[macro_use]
 extern crate log; // logging crate
-extern crate postgres; // PostgreSQL API bindings.
-extern crate postgres_derive;
+extern crate mysql; // MySQL API bindings.
 extern crate pretty_env_logger; // nicer logging
 extern crate regex;
 #[macro_use]
@@ -71,69 +70,63 @@ impl EventHandler for Handler {
         info!("Reconnected to discord!");
     }
 }
-/*
-group!({
-    name: "sudo",
-    options: {
-        prefix: "sudo",
-        owners_only: true
-    },
-    commands: [info, logout, latency, user, update_stats]
-});
-*/
 
+///Commands & Command Groups
+
+//Commands for this group:
+//sudo info
+//     logout
+//     latency
+//     user
+//     update_stats
 #[group]
 #[commands(info, logout, latency, user, update_stats)]
 #[prefix("sudo")]
 #[owners_only]
 struct SudoMod;
 
-/*
-group!({
-    name: "update",
-    options: {
-        prefixes: [ "u", "update" ],
-    },
-    commands: [name, level, rank, position, loadout, free_agent, set_private, fc]
-});
-*/
-
+//Commands for this group:
+//player update name
+//              level
+//              rank
+//              position
+//              loadout
+//              free_agent
+//              set_private
+//              fc
 #[group]
 #[commands(name, level, rank, position, loadout, free_agent, set_private, fc)]
 #[prefixes("u", "update")]
 struct PlayerUpdateMod;
 
-/*
-group!({
-    name: "player",
-    options: {
-        prefixes: ["p", "player"]
-    },
-    commands: [new, show],
-    sub_groups: [update]
-});
-*/
-
+//Commands for this group:
+//player new
+//       show
 #[group]
 #[commands(new, show)]
 #[sub_groups(playerupdatemod)]
+#[prefixes("p", "player")]
 struct PlayerMod;
 
 /*
-group!({
-    name: "team",
-    options: {
-        prefixes: ["t", "team"]
-    },
-    commands: [team_new]
-});
+//Commands for this group:
+//team update description
+#[group]
+#[commands(description)]
+#[prefixes ("u", "update")]
+struct TeamUpdateMod;
 */
 
+//Commands for this group:
+//team new
 #[group]
 #[commands(team_new)]
+//#[sub_groups(teamupdatemod)]
 #[prefixes("t", "team")]
 struct TeamMod;
 
+
+/* End of commands */
 fn main() {
     dotenv().ok();
     pretty_env_logger::init_timed();

@@ -1,9 +1,9 @@
-# Migrate Bot -- PostgreSQL -> MySQL
+## Migrate Bot -- PostgreSQL -> MySQL
 * The old build used PostgreSQL, and the new server doesn't use it.
 * As such, motions will be made to transfer the bot's DBs and code to MySQL.
 * Tables and Databases have already been created and data moved over :)
 
-* note to self: REMEMBER TO REFERENCE THE GODDAMN DOCS.
+---
 
 ## Source code to be refactored
 
@@ -27,23 +27,21 @@
 * Check the user's ID against the DB when commands that modify the team's data are invoked to verify team status.
 
 * Tournaments will be stored in their own db table:
-        ```sql
-        CREATE TABLE tournaments 
-	(
-            id			INT	PRIMARY KEY	NOT NULL	UNIQUE, -- guard against dupes breaking the bot
-            tourney_name	VARCHAR(45), 					-- name of the tournament competed in
-            team_id 		BIGINT, 					-- team this result is tied to
-            place 		INT, 						-- team placement
-            register_date 	BIGINT 						-- stored as unix timestamp, time result was registered into the bot
+	```sql
+	CREATE TABLE tournaments (
+		id INT PRIMARY KEY NOT NULL UNIQUE, -- guard against dupes breaking the bot
+		tourney_name VARCHAR(45), -- name of the tournament competed in
+        	team_id BIGINT, -- team this result is tied to
+        	place INT, -- team placement
+        	register_date BIGINT -- stored as unix timestamp, time result was registered into the bot
         );
         ```
-        * Invites will also be stored in their own table:
+* Invites will also be stored in their own table:
         ```sql
-        CREATE TABLE invites 
-	(
-            recipient		BIGINT		PRIMARY KEY	NOT NULL	REFERENCES player_profiles, 	-- player recieving an invite
-            sender 		BIGINT		PRIMARY KEY	NOT NULL	REFERENCES team_profiles, 	-- team sending the invite
-            invite_text		VARCHAR(65), 									-- message sent with invite. Limit to about the length of a twitter tweet (like desc.)
+        CREATE TABLE invites (
+        	recipient BIGINT PRIMARY KEY NOT NULL REFERENCES player_profiles, -- player recieving an invite
+            	sender 	BIGINT PRIMARY KEY NOT NULL REFERENCES team_profiles, -- team sending the invite
+            	invite_text VARCHAR(150), -- message sent with invite. SHOULD be limited to about the length of a twitter tweet (like desc.)
         );
         ```
 * Team data:

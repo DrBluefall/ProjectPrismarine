@@ -2,7 +2,7 @@ use crate::impl_string_utils;
 use crate::utils::db::{loadout::RawLoadoutData, Loadout};
 use crate::utils::misc;
 use crate::utils::misc::{ModelError, NFKind};
-use postgres::Error;
+use mysql::Error;
 use regex::Regex;
 use std::backtrace::Backtrace;
 use std::collections::HashMap;
@@ -44,12 +44,12 @@ pub struct Player {
 
 impl Player {
     pub fn add_to_db(user_id: u64) -> Result<u64, Error> {
-        misc::get_db_connection().execute(
+        misc::get_db_connection().prep_exec(
             "
-        INSERT INTO public.player_profiles(id) VALUES ($1)
+        INSERT INTO public.player_profiles(id) VALUES (:1)
         ON CONFLICT DO NOTHING;
         ",
-            &[&(user_id as i64)],
+            (&(user_id as i64)),
         )
     }
     pub fn from_db(user_id: u64) -> Result<Player, ModelError> {

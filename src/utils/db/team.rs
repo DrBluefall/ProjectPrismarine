@@ -89,18 +89,17 @@ impl Invite {
         sender: &Team,
         message: &Option<String>,
         deletion_time: DateTime<Utc>,
-    ) -> Result<u64, postgres::Error> {
-        misc::get_db_connection().execute(
+    ) -> Result<u64, mysql::Error> {
+        misc::get_db_connection().prep_exec(
             "
             INSERT INTO public.invites(recipient, sender, invite_text, deletion_time) 
-            VALUES ($1, $2, $3, $4);
-            ",
-            &[
+            VALUES (:1, :2, :3, :4);
+            ",([
                 &recipient.id(),
                 &sender.captain.id(),
                 &message,
                 &deletion_time.timestamp(),
-            ],
+                ]),
         )
     }
 

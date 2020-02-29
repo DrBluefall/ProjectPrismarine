@@ -1,5 +1,4 @@
-use postgres::Connection;
-use postgres::TlsMode;
+use mysql::Conn;
 use std::backtrace::Backtrace;
 use std::collections::HashMap;
 
@@ -134,8 +133,8 @@ impl WepCoords {
     }
 }
 
-pub fn get_db_connection() -> Connection {
-    Connection::connect(DATABASE_URL.as_str(), TlsMode::None).unwrap()
+pub fn get_db_connection() -> Conn {
+   Conn::new(DATABASE_URL.as_str()).unwrap()
 }
 
 #[macro_export]

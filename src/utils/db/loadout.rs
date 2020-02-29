@@ -243,9 +243,9 @@ impl GearItem {
     pub fn from_raw(raw: &RawGearItem, gear_type: &'static str) -> Result<GearItem, ModelError> {
         let res = match gear_type {
             "head" => {
-                match misc::get_db_connection().query(
-                    "SELECT * FROM public.headgear WHERE id = $1 LIMIT 1;",
-                    &[&(raw.gear_id as i32)],
+                match misc::get_db_connection().first_exec(
+                    "SELECT * FROM public.headgear WHERE id = :1 LIMIT 1;",
+                    (raw.gear_id as i32,)
                 ) {
                     Ok(v) => v,
                     Err(e) => {
@@ -254,9 +254,9 @@ impl GearItem {
                 }
             }
             "clothes" => {
-                match misc::get_db_connection().query(
-                    "SELECT * FROM public.clothing WHERE id = $1 LIMIT 1;",
-                    &[&(raw.gear_id as i32)],
+                match misc::get_db_connection().first_exec(
+                    "SELECT * FROM public.clothing WHERE id = :1 LIMIT 1;",
+                    (raw.gear_id as i32,)
                 ) {
                     Ok(v) => v,
                     Err(e) => {
@@ -265,9 +265,9 @@ impl GearItem {
                 }
             }
             "shoes" => {
-                match misc::get_db_connection().query(
-                    "SELECT * FROM public.shoes WHERE id = $1 LIMIT 1;",
-                    &[&(raw.gear_id as i32)],
+                match misc::get_db_connection().first_exec(
+                    "SELECT * FROM public.shoes WHERE id = :1 LIMIT 1;",
+                    (raw.gear_id as i32,)
                 ) {
                     Ok(v) => v,
                     Err(e) => {
@@ -284,7 +284,7 @@ impl GearItem {
                 Backtrace::capture(),
             ));
         }
-        let retrow = res.get(0);
+        let retrow = res.get(0); //left off here
 
         let mut subs: Vec<Option<Ability>> = Vec::new();
         for sub_id in &raw.subs {

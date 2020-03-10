@@ -243,9 +243,9 @@ impl GearItem {
     pub fn from_raw(raw: &RawGearItem, gear_type: &'static str) -> Result<GearItem, ModelError> {
         let res = match gear_type {
             "head" => {
-                match misc::get_db_connection().first_exec(
+                match misc::get_db_connection().first_exec::<_, _, mysql::Row>(
                     "SELECT * FROM public.headgear WHERE id = :1 LIMIT 1;",
-                    (raw.gear_id as i32,)
+                    (raw.gear_id as i32,),
                 ) {
                     Ok(v) => v,
                     Err(e) => {
@@ -254,9 +254,9 @@ impl GearItem {
                 }
             }
             "clothes" => {
-                match misc::get_db_connection().first_exec(
+                match misc::get_db_connection().first_exec::<_, _, mysql::Row>(
                     "SELECT * FROM public.clothing WHERE id = :1 LIMIT 1;",
-                    (raw.gear_id as i32,)
+                    (raw.gear_id as i32,),
                 ) {
                     Ok(v) => v,
                     Err(e) => {
@@ -265,9 +265,9 @@ impl GearItem {
                 }
             }
             "shoes" => {
-                match misc::get_db_connection().first_exec(
+                match misc::get_db_connection().first_exec::<_, _, mysql::Row>(
                     "SELECT * FROM public.shoes WHERE id = :1 LIMIT 1;",
-                    (raw.gear_id as i32,)
+                    (raw.gear_id as i32,),
                 ) {
                     Ok(v) => v,
                     Err(e) => {
@@ -277,14 +277,15 @@ impl GearItem {
             }
             _ => unreachable!(),
         };
-
-        if res.is_empty() {
-            return Err(ModelError::NotFound(
-                NFKind::GearItem(format!("Item: {:?} / Type: {}", raw, gear_type)),
-                Backtrace::capture(),
-            ));
-        }
-        let retrow = res.get(0); //left off here
+        let retrow = match res {
+            None => {
+                return Err(ModelError::NotFound(
+                    NFKind::GearItem(format!("Item: {:?} / Type: {}", raw, gear_type)),
+                    Backtrace::capture(),
+                ));
+            }
+            Some(v) => v,
+        };
 
         let mut subs: Vec<Option<Ability>> = Vec::new();
         for sub_id in &raw.subs {
@@ -293,7 +294,7 @@ impl GearItem {
                 Err(e) => return Err(e),
             };
         }
-        let local: String = retrow.get("localized_name");
+        let local: String = retrow.get("localized_name").unwrap();
         let local: HashMap<String, Option<String>> = match serde_json::from_str(local.as_str()) {
             Ok(v) => v,
             Err(e) => return Err(ModelError::Unknown(e.to_string(), Backtrace::capture())),
@@ -301,15 +302,15 @@ impl GearItem {
 
         Ok(GearItem {
             id: raw.gear_id as i32,
-            image: retrow.get("image"),
+            image: retrow.get("image").unwrap(),
             localized_name: local,
             main: match Ability::from_db(raw.main as i32) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             },
-            name: retrow.get("name"),
-            splatnet: retrow.get("splatnet"),
-            stars: retrow.get("stars"),
+            name: retrow.get("name").unwrap(),
+            splatnet: retrow.get("splatnet").unwrap(),
+            stars: retrow.get("stars").unwrap(),
             subs,
         })
     }
@@ -413,22 +414,21 @@ pub struct Ability {
 
 impl Ability {
     pub fn from_db(id: i32) -> Result<Option<Ability>, ModelError> {
-        let r = {
-            let res = match misc::get_db_connection().query(
+        let row: mysql::Row = {
+            let res = match misc::get_db_connection().first_exec(
                 "SELECT * FROM public.abilities WHERE id = $1 LIMIT 1;",
-                &[&id],
+                (id,),
             ) {
                 Ok(v) => v,
                 Err(e) => return Err(ModelError::Database(e.to_string(), Backtrace::capture())),
             };
-            if res.is_empty() {
-                return Ok(None);
+            match res {
+                None => return Ok(None),
+                Some(v) => v,
             }
-            res
         };
-        let row = r.get(0);
 
-        let local: String = row.get("localized_name");
+        let local: String = row.get("localized_name").unwrap();
         let local: HashMap<String, Option<String>> = match serde_json::from_str(local.as_str()) {
             Ok(v) => v,
             Err(e) => return Err(ModelError::Unknown(e.to_string(), Backtrace::capture())),
@@ -436,9 +436,9 @@ impl Ability {
 
         Ok(Some(Ability {
             id,
-            image: row.get("image"),
+            image: row.get("image").unwrap(),
             localized_name: local,
-            name: row.get("name"),
+            name: row.get("name").unwrap(),
         }))
     }
 }
@@ -456,32 +456,34 @@ pub struct MainWeapon {
 
 impl MainWeapon {
     pub fn from_raw(raw: &RawLoadoutData) -> Result<MainWeapon, ModelError> {
-        match misc::get_db_connection().query(
-            "SELECT * FROM public.main_weapons WHERE site_id = $1 AND class = $2;",
-            &[&(raw.id as i32), &(raw.set as i32)],
+        match misc::get_db_connection().first_exec::<_, _, mysql::Row>(
+            "SELECT * FROM public.main_weapons WHERE site_id = :1 AND class = :2",
+            (raw.id, raw.set),
         ) {
             Ok(v) => {
-                if v.is_empty() {
-                    return Err(ModelError::NotFound(
-                        NFKind::MainWeapon {
-                            id: raw.id,
-                            set: raw.set,
-                        },
-                        Backtrace::capture(),
-                    ));
-                }
-                let retrow = v.get(0);
+                let retrow = match v {
+                    Some(v) => v,
+                    None => {
+                        return Err(ModelError::NotFound(
+                            NFKind::MainWeapon {
+                                id: raw.id,
+                                set: raw.set,
+                            },
+                            Backtrace::capture(),
+                        ));
+                    }
+                };
                 Ok(MainWeapon {
                     class: raw.set as i8,
-                    id: retrow.get("id"),
+                    id: retrow.get("id").unwrap(),
                     site_id: raw.id as i32,
-                    name: retrow.get("name"),
-                    image: retrow.get("image"),
-                    special: match SpecialWeapon::from_db(retrow.get("special")) {
+                    name: retrow.get("name").unwrap(),
+                    image: retrow.get("image").unwrap(),
+                    special: match SpecialWeapon::from_db(retrow.get("special").unwrap()) {
                         Ok(v) => v,
                         Err(e) => return Err(e),
                     },
-                    sub: match SubWeapon::from_db(retrow.get("sub")) {
+                    sub: match SubWeapon::from_db(retrow.get("sub").unwrap()) {
                         Ok(v) => v,
                         Err(e) => return Err(e),
                     },
@@ -501,20 +503,21 @@ pub struct SubWeapon {
 
 impl SubWeapon {
     pub fn from_db(name: String) -> Result<SubWeapon, ModelError> {
-        match misc::get_db_connection().query(
-            "SELECT * FROM public.sub_weapons WHERE name = $1;",
-            &[&name],
-        ) {
+        match misc::get_db_connection()
+            .first_exec("SELECT * FROM public.sub_weapons WHERE name = ?;", (&name,))
+        {
             Ok(v) => {
-                if v.is_empty() {
-                    return Err(ModelError::NotFound(
-                        NFKind::SubWeapon(format!("Sub Weapon: {}", name)),
-                        Backtrace::capture(),
-                    ));
-                }
-                let row = v.get(0);
+                let row: mysql::Row = match v {
+                    None => {
+                        return Err(ModelError::NotFound(
+                            NFKind::SubWeapon(format!("Sub Weapon: {}", name)),
+                            Backtrace::capture(),
+                        ));
+                    }
+                    Some(v) => v,
+                };
 
-                let local: String = row.get("localized_name");
+                let local: String = row.get("localized_name").unwrap();
                 let local: HashMap<String, Option<String>> =
                     match serde_json::from_str(local.as_str()) {
                         Ok(v) => v,
@@ -524,7 +527,7 @@ impl SubWeapon {
                     };
 
                 Ok(SubWeapon {
-                    image: row.get("image"),
+                    image: row.get("image").unwrap(),
                     localized_name: local,
                     name,
                 })
@@ -543,20 +546,22 @@ pub struct SpecialWeapon {
 
 impl SpecialWeapon {
     pub fn from_db(name: String) -> Result<SpecialWeapon, ModelError> {
-        match misc::get_db_connection().query(
+        match misc::get_db_connection().first_exec(
             "SELECT * FROM public.special_weapons WHERE name = $1;",
-            &[&name],
+            (&name,),
         ) {
             Ok(v) => {
-                if v.is_empty() {
-                    return Err(ModelError::NotFound(
-                        NFKind::SpecialWeapon(format!("Special Weapon: {}", name)),
-                        Backtrace::capture(),
-                    ));
-                }
-                let row = v.get(0);
+                let row: mysql::Row = match v {
+                    Some(v) => v,
+                    None => {
+                        return Err(ModelError::NotFound(
+                            NFKind::SpecialWeapon(format!("Special Weapon: {}", name)),
+                            Backtrace::capture(),
+                        ))
+                    }
+                };
 
-                let local: String = row.get("localized_name");
+                let local: String = row.get("localized_name").unwrap();
                 let local: HashMap<String, Option<String>> =
                     match serde_json::from_str(local.as_str()) {
                         Ok(v) => v,
@@ -566,7 +571,7 @@ impl SpecialWeapon {
                     };
 
                 Ok(SpecialWeapon {
-                    image: row.get("image"),
+                    image: row.get("image").unwrap(),
                     localized_name: local,
                     name,
                 })

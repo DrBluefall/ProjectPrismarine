@@ -134,7 +134,7 @@ impl WepCoords {
 }
 
 pub fn get_db_connection() -> Conn {
-   Conn::new(DATABASE_URL.as_str()).unwrap()
+    Conn::new(DATABASE_URL.as_str()).unwrap()
 }
 
 #[macro_export]

@@ -125,7 +125,6 @@ struct TeamUpdateMod;
 #[prefixes("t", "team")]
 struct TeamMod;
 
-
 /* End of commands */
 fn main() {
     dotenv().ok();

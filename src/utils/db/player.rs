@@ -44,20 +44,36 @@ pub struct Player {
 
 impl Player {
     pub fn add_to_db(user_id: u64) -> Result<u64, Error> {
-        misc::get_db_connection().prep_exec(
-            "
-        INSERT INTO public.player_profiles(id) VALUES (:1)
-        ON CONFLICT DO NOTHING;
+        misc::get_db_connection()
+            .prep_exec(
+                "
+        INSERT OR REPLACE INTO public.player_profiles(id) VALUES (?);
         ",
-            (&(user_id as i64)),
-        )
+                (user_id,),
+            )
+            .map(|x| x.last_insert_id())
     }
     pub fn from_db(user_id: u64) -> Result<Player, ModelError> {
-        let rows = match misc::get_db_connection().query(
-            "SELECT * FROM public.player_profiles WHERE id = $1",
-            &[&(user_id as i64)],
+        let result = match misc::get_db_connection().first_exec::<_, _, mysql::Row>(
+            "SELECT 
+                level,
+                loadout,
+                id,
+                friend_code,
+                ign,
+                sz,
+                tc,
+                rm,
+                cb,
+                sr,
+                position,
+                team_id,
+                free_agent,
+                is_private
+            FROM public.player_profiles WHERE id = ?",
+            (user_id,),
         ) {
-            Ok(v) => Some(v),
+            Ok(v) => v,
             Err(e) => {
                 return Err(ModelError::Database(
                     format!("Error in player data retrieval: {:#?}", e),
@@ -65,22 +81,18 @@ impl Player {
                 ))
             }
         };
-        if rows.is_none() {
-            return Err(ModelError::NotFound(
-                NFKind::Player(user_id),
-                Backtrace::capture(),
-            ));
-        }
-        let rows = rows.unwrap();
-        if rows.is_empty() {
-            return Err(ModelError::NotFound(
-                NFKind::Player(user_id),
-                Backtrace::capture(),
-            ));
-        }
-        let row = rows.get(0);
-        let lv: i32 = row.get("level");
-        let dt: String = row.get("loadout");
+        let row = match result {
+            None => {
+                return Err(ModelError::NotFound(
+                    NFKind::Player(user_id),
+                    Backtrace::capture(),
+                ))
+            }
+            Some(v) => v,
+        };
+
+        let lv: i32 = row.get(0).unwrap();
+        let dt: String = row.get(1).unwrap();
         let loadout = match Loadout::from_raw(match RawLoadoutData::parse(dt.as_str()) {
             Ok(v) => v,
             Err(e) => return Err(e),
@@ -90,20 +102,20 @@ impl Player {
         };
 
         Ok(Player {
-            id: row.get("id"),
-            friend_code: row.get("friend_code"),
-            ign: row.get("ign"),
+            id: row.get(3).unwrap(),
+            friend_code: row.get(4).unwrap(),
+            ign: row.get(5).unwrap(),
             level: lv,
-            sz: row.get("sz"),
-            tc: row.get("tc"),
-            rm: row.get("rm"),
-            cb: row.get("cb"),
-            sr: row.get("sr"),
-            position: row.get("position"),
+            sz: row.get(6).unwrap(),
+            tc: row.get(7).unwrap(),
+            rm: row.get(8).unwrap(),
+            cb: row.get(9).unwrap(),
+            sr: row.get(10).unwrap(),
+            position: row.get(11).unwrap(),
             loadout,
-            team_id: row.get("team_id"),
-            free_agent: row.get("free_agent"),
-            is_private: row.get("is_private"),
+            team_id: row.get(12),
+            free_agent: row.get(13).unwrap(),
+            is_private: row.get(14).unwrap(),
         })
     }
     pub fn id(&self) -> &i64 {
@@ -287,37 +299,40 @@ impl Player {
         Ok(&self.is_private)
     }
     pub fn update(&self) -> Result<u64, Error> {
-        misc::get_db_connection().execute(
-            "
+        use mysql::params;
+        misc::get_db_connection()
+            .prep_exec(
+                "
 UPDATE public.player_profiles
 SET
-    friend_code = $1,
-    ign = $2,
-    level = $3,
-    sz = $4, tc = $5, rm = $6, cb = $7, sr = $8,
-    position = $9,
-    loadout = $10,
-    team_id = $11,
-    is_private = $12,
-    free_agent = $13
-WHERE id = $14;
+    friend_code = :fc,
+    ign = :name,
+    level = :lv,
+    sz = :sz, tc = :tc, rm = :rm, cb = :cb, sr = :sr,
+    position = :pos,
+    loadout = :ld,
+    team_id = :tid,
+    is_private = :isp,
+    free_agent = :fa
+WHERE id = :id;
                     ",
-            &[
-                &self.friend_code,
-                &self.ign,
-                &self.level,
-                &self.sz,
-                &self.tc,
-                &self.rm,
-                &self.cb,
-                &self.sr,
-                &self.position,
-                &self.loadout.raw().hex(),
-                &self.team_id,
-                &self.is_private,
-                &self.free_agent,
-                &self.id,
-            ],
-        )
+                params! {
+                    "fc" => &self.friend_code,
+                    "name" => &self.ign,
+                    "lv" => self.level,
+                    "sz" => &self.sz,
+                    "tc" => &self.tc,
+                    "rm" => &self.rm,
+                    "cb" => &self.cb,
+                    "sr" => &self.sr,
+                    "pos" => self.position,
+                    "ld" => self.loadout.raw().hex(),
+                    "tid" => self.team_id,
+                    "isp" => self.is_private,
+                    "fa" => self.free_agent,
+                    "id" => self.id,
+                },
+            )
+            .map(|x| x.last_insert_id())
     }
 }

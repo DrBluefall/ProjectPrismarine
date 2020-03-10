@@ -2,6 +2,7 @@
 
 use crate::utils::db::Player;
 use crate::utils::misc;
+use mysql::params;
 use chrono::{DateTime, TimeZone, Utc};
 use regex::Regex;
 use std::backtrace::Backtrace;
@@ -12,7 +13,7 @@ type URL = String;
 
 lazy_static! {
     static ref HTTPRE: Regex = Regex::new(
-        "https://cdn.discordapp.com/attachments/605171465943253002/653361049776422922/image0.png"
+        r"_^(?:(?:https?|ftp)://)(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)(?:\.(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)*(?:\.(?:[a-z\x{00a1}-\x{ffff}]{2,})))(?::\d{2,5})?(?:/[^\s]*)?$_iuS"
     )
     .unwrap();
 }
@@ -90,29 +91,34 @@ impl Invite {
         message: &Option<String>,
         deletion_time: DateTime<Utc>,
     ) -> Result<u64, mysql::Error> {
-        misc::get_db_connection().prep_exec(
-            "
+        misc::get_db_connection()
+            .prep_exec(
+                "
             INSERT INTO public.invites(recipient, sender, invite_text, deletion_time) 
-            VALUES (:1, :2, :3, :4);
-            ",([
-                &recipient.id(),
-                &sender.captain.id(),
-                &message,
-                &deletion_time.timestamp(),
-                ]),
-        )
+            VALUES (:recip, :send, :msg, :del);
+            ",
+                params! {
+                    "recip" => recipient.id(),
+                    "send" => sender.captain.id(),
+                    "msg" => message,
+                    "del" => deletion_time.timestamp(),
+                },
+            )
+            .map(|x| x.last_insert_id())
     }
 
     pub fn from_db(recipient_id: i64) -> Result<Vec<Self>, misc::ModelError> {
-        let c = misc::get_db_connection();
+        let mut c = misc::get_db_connection();
 
-        let res = match c.query(
+        let res = match c.prep_exec(
             "
-            SELECT recipient, sender, invite_text, deletion_time FROM public.invites WHERE recipient = $1;
+            SELECT recipient, sender, invite_text, deletion_time FROM public.invites WHERE recipient = :recip;
             ",
-            &[&recipient_id],
+                params! {
+                    "recip" => recipient_id
+                },
         ) {
-            Ok(v) => v,
+            Ok(v) => v.into_iter().map(|x| x.unwrap()).collect::<Vec<mysql::Row>>(),
             Err(e) => {
                 return Err(misc::ModelError::Database(
                     format!("{:?}", e),
@@ -121,7 +127,7 @@ impl Invite {
             }
         };
 
-        if res.is_empty() {
+        if res.len() == 0 {
             return Err(misc::ModelError::Database(
                 format!("No invite found with recipient ID {}.", recipient_id),
                 Backtrace::capture(),
@@ -130,13 +136,13 @@ impl Invite {
 
         let mut invites: Vec<Self> = Vec::new();
         for row in &res {
-            let player_id: i64 = row.get(0);
+            let player_id: i64 = row.get(0).unwrap();
             let recipient = Player::from_db(player_id.try_into().unwrap())?;
-            let team_id: i64 = row.get(1);
+            let team_id: i64 = row.get(1).unwrap();
             let sender = Team::from_db(team_id.try_into().unwrap())?;
-            let message: Option<String> = row.get(2);
+            let message: Option<String> = row.get(2).unwrap();
             let deletion_time = {
-                let stamp: i64 = row.get(3);
+                let stamp: i64 = row.get(3).unwrap();
                 Utc.timestamp(stamp, 0)
             };
 
@@ -153,13 +159,18 @@ impl Invite {
 
 impl Team {
     /// Insert a new team into the database table.
-    pub fn add_to_db(new_cap: &Player, name: &str) -> Result<u64, postgres::Error> {
-        misc::get_db_connection().execute(
+    pub fn add_to_db(new_cap: &Player, name: &str) -> Result<u64, mysql::Error> {
+        misc::get_db_connection().prep_exec(
             "
-            INSERT INTO public.team_profiles(captain, creation_time, name) VALUES ($1,$2,$3);
+            INSERT INTO public.team_profiles(captain, creation_time, name) VALUES (:new_cap, :ts, :name);
             ",
-            &[new_cap.id(), &Utc::now().timestamp(), &name],
-        )
+            // &[new_cap.id(), &Utc::now().timestamp(), &name],
+            params! {
+                "new_cap" => new_cap.id(),
+                "ts" => Utc::now().timestamp(),
+                name
+            }
+        ).map(|query_res| query_res.last_insert_id())
     }
     /// Get a team's data from the database. If not found, it'll return
     /// `ModelError::Team` with the id of the team that wasn't found. I *may*
@@ -182,7 +193,7 @@ impl Team {
         is in the process of being deleted. That or have a special
         marker be displayed on the frontend to indicate that the
          team will be deleted soon. */
-        let c = misc::get_db_connection();
+        let mut c = misc::get_db_connection();
 
         // First thing's first: grab the team's captain. Their ID
         // is the same as their team's ID, so we can just use this.
@@ -196,17 +207,24 @@ impl Team {
         // the captain's ID.
         let mut player_ids: Vec<i64> = Vec::new();
 
-        for row in c
-            .query(
-                "
-            SELECT id FROM public.player_profiles WHERE team_id = $1;
+        for row in match c.prep_exec(
+            "
+            SELECT id FROM public.player_profiles WHERE team_id = :team_id;
             ",
-                &[&(team_id as i64)],
-            )
-            .unwrap()
-            .iter()
+            params! {team_id},
+        ) {
+            Ok(v) => v,
+            Err(e) => {
+                return Err(misc::ModelError::Database(
+                    format!("{:?}", e),
+                    Backtrace::capture(),
+                ))
+            }
+        }
+        .map(|x| x.unwrap())
+        .collect::<Vec<mysql::Row>>()
         {
-            let id: i64 = row.get(0);
+            let id: i64 = row.get(0).unwrap();
             player_ids.push(id);
         }
 
@@ -225,11 +243,11 @@ impl Team {
         let mut tournaments: Vec<Tournament> = Vec::new();
 
         for row in {
-            match c.query(
+            match c.prep_exec(
                 "
-            SELECT name, place, time FROM public.tournaments WHERE team = $1;
+            SELECT name, place, time FROM public.tournaments WHERE team = :team_id;
             ",
-                &[&(team_id as i64)],
+                params! {team_id},
             ) {
                 Ok(v) => v,
                 Err(e) => {
@@ -240,24 +258,25 @@ impl Team {
                 }
             }
         }
-        .iter()
+        .into_iter()
+        .map(|x| x.unwrap())
         {
             tournaments.push(Tournament {
-                name: row.get(0),
-                place: row.get(1),
-                time: Utc.timestamp(row.get(2), 0),
+                name: row.get(0).unwrap(),
+                place: row.get(1).unwrap(),
+                time: Utc.timestamp(row.get(2).unwrap(), 0),
             })
         }
 
         // Now that we have everything else we need, it's time to get the
         // data for the team itself!
 
-        let res = match c.query(
+        let res = match c.prep_exec(
             "
             SELECT name, description, thumbnail, creation_time, recruiting,
-            deletion_time FROM public.team_profiles WHERE captain = $1;
+            deletion_time FROM public.team_profiles WHERE captain = :team_id;
             ",
-            &[&(team_id as i64)],
+            params! {team_id},
         ) {
             Ok(v) => v,
             Err(e) => {
@@ -266,23 +285,26 @@ impl Team {
                     Backtrace::capture(),
                 ))
             }
-        };
-        if res.is_empty() {
+        }
+        .into_iter()
+        .map(|x| x.unwrap())
+        .collect::<Vec<mysql::Row>>();
+        if res.len() == 0 {
             return Err(misc::ModelError::NotFound(
                 misc::NFKind::Team(team_id),
                 Backtrace::capture(),
             ));
         }
-        let dat = res.get(0);
+        let dat = res.get(0).unwrap();
 
         Ok(Self {
-            name: dat.get(0),
+            name: dat.get(0).unwrap(),
             players,
             captain,
-            description: dat.get(1),
-            thumbnail: dat.get(2),
-            creation_time: Utc.timestamp(dat.get(3), 0),
-            recruiting: dat.get(4),
+            description: dat.get(1).unwrap(),
+            thumbnail: dat.get(2).unwrap(),
+            creation_time: Utc.timestamp(dat.get(3).unwrap(), 0),
+            recruiting: dat.get(4).unwrap(),
             deletion_time: if let Some(v) = dat.get(5) {
                 Some(Utc.timestamp(v, 0))
             } else {
@@ -357,7 +379,7 @@ impl Team {
     }
 
     pub fn update(&mut self) -> Result<(), misc::ModelError> {
-        let c = misc::get_db_connection();
+        let mut c = misc::get_db_connection();
 
         let dt = if let Some(v) = self.deletion_time {
             Some(v.timestamp())
@@ -365,24 +387,24 @@ impl Team {
             None
         };
 
-        if let Err(e) = c.execute(
+        if let Err(e) = c.prep_exec(
             "
             UPDATE public.team_profiles
-                SET name = $1,
-                deletion_time = $2,
-                description = $3,
-                thumbnail = $4,
-                recruiting = $5
-            WHERE captain = $6;
+                SET name = :name,
+                deletion_time = :del_time,
+                description = :desc,
+                thumbnail = :thumb,
+                recruiting = :recruit
+            WHERE captain = :cap;
             ",
-            &[
-                &self.name,
-                &dt,
-                &self.description,
-                &self.thumbnail,
-                &self.recruiting,
-                &self.captain.id(),
-            ],
+            params! {
+                "name" => &self.name,
+                "del_time" => dt,
+                "desc" => &self.description,
+                "thumb" => &self.thumbnail,
+                "recruit" => self.recruiting,
+                "cap" => self.captain.id(),
+            },
         ) {
             return Err(misc::ModelError::Database(
                 format!("{:?}", e),
@@ -404,22 +426,22 @@ impl Team {
                 ));
             }
         }
-        let stmt = c
-            .prepare_cached(
+        let mut stmt = c
+            .prepare(
                 "
         INSERT INTO public.tournaments(name, place, time, team)
-            VALUES ($1, $2, $3, $4);
+            VALUES (?, ?, ?, ?);
             ",
             )
             .unwrap();
 
         for tourney in &self.tournaments {
-            if let Err(e) = stmt.execute(&[
+            if let Err(e) = stmt.execute((
                 &tourney.name,
                 &tourney.place,
                 &tourney.time.timestamp(),
                 &self.captain.id(),
-            ]) {
+            )) {
                 return Err(misc::ModelError::Database(
                     format!("{:?}", e),
                     Backtrace::capture(),

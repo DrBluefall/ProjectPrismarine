@@ -6,7 +6,6 @@
 #![allow(clippy::cast_possible_truncation)]
 extern crate chrono;
 extern crate discord_bots_org; // DBL API Wrapper. Used with Reqwest.
-extern crate dotenv; // Get environment variables from .env files.
 extern crate reqwest; // Used with discord_bots_org for dispatching to DBL
 extern crate serde; // Serialization and deserialization of JSON from DB into structs
 extern crate serde_json; // JSON support of serde // Time keeping library.
@@ -21,9 +20,9 @@ extern crate better_panic;
 extern crate heck; // Case conversion crate.
 extern crate image; // Image editing library.
 extern crate time; // used with chrono.
+extern crate toml; // TOML parsing, for the new config.
 
 use discord_bots_org::ReqwestSyncClient as APIClient; // Used to update discordbots.org
-use dotenv::dotenv; // used to load .env files from directory.
 use reqwest::Client as ReqwestClient;
 use serenity::{
     // Library for Discord. The central library for this bot.
@@ -32,8 +31,7 @@ use serenity::{
     model::{event::ResumedEvent, gateway::Ready},
     prelude::*,
 };
-use std::env;
-use std::{collections::HashSet, sync::Arc};
+use std::{collections::HashSet, io::Read, sync::Arc};
 
 // Declare modules for use
 mod modules;
@@ -69,6 +67,25 @@ impl EventHandler for Handler {
     fn resume(&self, _ctx: Context, _: ResumedEvent) {
         info!("Reconnected to discord!");
     }
+}
+
+// Configuration structure
+#[derive(serde::Deserialize)]
+struct Config {
+    discord: DiscordCfg,
+    database: Database,
+    log: Option<String>,
+}
+#[derive(serde::Deserialize)]
+struct DiscordCfg {
+    bot_token: String,
+    dbl_api_token: Option<String>,
+    owners: Vec<u64>,
+    prefix: String,
+}
+#[derive(serde::Deserialize)]
+struct Database {
+    url: String,
 }
 
 ///Commands & Command Groups
@@ -127,24 +144,21 @@ struct TeamMod;
 
 /* End of commands */
 fn main() {
-    dotenv().ok();
+    let mut f = String::new();
+    std::fs::File::open("prisbot.toml")
+        .expect("Expected config file named 'prisbot.toml'")
+        .read_to_string(&mut f)
+        .unwrap();
+    let conf: Config = toml::from_str(&f).expect("Invalid TOML config");
+
+    std::env::set_var("RUST_LOG", if let Some(s) = &conf.log { s } else { "info" });
     pretty_env_logger::init_timed();
     better_panic::install();
-    let token = env::var("PRISBOT_TOKEN")
-        .expect("Expected bot token in environment variable PRISBOT_TOKEN");
-
-    let dbl_token = env::var("PRISBOT_API_TOKEN")
-        .expect("Expected top.gg API token in environment variable PRISBOT_API_TOKEN");
-    // Just check for the DB variable here, don't need runtime panics :P
-    env::var("PRISBOT_DATABASE")
-        .expect("Expected database URL in environment variable PRISBOT_DATABASE");
-
-    let prefix = env::var("PRISBOT_PREFIX")
-        .expect("Expected prefix declaration in environment variable PRISBOT_PREFIX");
-
+    std::env::set_var("PRISBOT_DATABASE", &conf.database.url);
     info!("Config acquired!");
 
-    let mut client = Client::new(&token, Handler).expect("Failed to create client");
+    let mut client =
+        Client::new(&conf.discord.bot_token, Handler).expect("Failed to create client");
 
     let req_client = Arc::new(ReqwestClient::new());
     let api_client = APIClient::new(Arc::clone(&req_client));
@@ -153,13 +167,20 @@ fn main() {
         let mut data = client.data.write();
         data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
         data.insert::<APIClientContainer>(api_client);
-        data.insert::<TokenHolder>(dbl_token);
+        data.insert::<TokenHolder>(if let Some(token) = &conf.discord.dbl_api_token {
+            token.to_owned()
+        } else {
+            "".to_string()
+        });
     }
 
     let (owners, bot_id) = match client.cache_and_http.http.get_current_application_info() {
         Ok(info) => {
             let mut owners = HashSet::new();
             owners.insert(info.owner.id);
+            for id in &conf.discord.owners {
+                owners.insert(serenity::model::id::UserId::from(*id));
+            }
             (owners, info.id)
         }
         Err(why) => panic!("Could not access application info: {:?}", why),
@@ -171,7 +192,7 @@ fn main() {
             .configure(|c| {
                 c.owners(owners)
                     .on_mention(Some(bot_id))
-                    .prefix(prefix.as_str())
+                    .prefix(conf.discord.prefix.as_str())
             })
             .group(&SUDOMOD_GROUP)
             .group(&PLAYERMOD_GROUP)

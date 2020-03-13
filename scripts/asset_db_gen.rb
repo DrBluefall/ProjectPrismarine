@@ -3,7 +3,14 @@
 
 require "mysql2"
 require "json"
-require "pp"
+
+# Just some assert code :3
+class AssertionError < RuntimeError
+end
+
+def assert &block
+    raise AssertionError unless yield
+end
 
 def get_db
   host = ENV["ASSET_HOST"]
@@ -115,15 +122,106 @@ def read_weapons
   end
 end
 
+def read_gear(geartype)
+  db = get_db
+  itemfile = readjson "#{geartype}.json"
+  short_val = nil # Range for the image path to be shortened by, since it's different depending on the gear type.
+  case geartype
+  when "headgear"
+    short_val = 31
+  when "clothing"
+    short_val = 34
+  when "shoes"
+    short_val = 32
+  end
+
+  assert { short_val != nil }
+
+  begin
+    itemfile.each do |item|
+      stat "Inserting '#{geartype}'... [On item #{item['name']}]"
+      main = "NULL"
+      if item['main'] != nil
+        main = "\"#{db.escape item['main']}\""
+      end
+      db.query "
+      INSERT IGNORE INTO prismarine_rusted.#{geartype} (
+        name,
+        image,
+        localized_name,
+        main,
+        stars,
+        id,
+        splatnet
+      ) VALUES (
+        \"#{db.escape item['name']}\",
+        \"#{db.escape "assets/img/gear/#{item['image']}"}\",
+        \"#{db.escape JSON.generate item['localizedName']}\",
+        #{main},
+        #{item['stars']},
+        #{item['id']},
+        #{item['splatnet']}
+      )
+      "
+    end
+  rescue Mysql2::Error => e
+    puts "ERROR while inserting weapons..."
+    puts "ERRNO: #{e.errno}"
+    puts "SQLST: #{e.sql_state}"
+    puts "ERMSG: #{e.error}"
+  ensure
+    db.close if db
+  end
+end
+
+def read_abilities
+  db = get_db
+  abilityfile = readjson "skills.json"
+  begin
+    abilityfile.each do |ability|
+      db.query "
+        INSERT IGNORE INTO prismarine_rusted.abilities (
+          name,
+          localized_name,
+          image,
+          id
+        ) VALUES (
+          \"#{db.escape ability['name']}\",
+          \"#{db.escape JSON.generate ability['localized_name']}\",
+          \"#{db.escape "assets/img/skills/#{ability['image'][28..-1]}"}\",
+          #{ability['id']}
+        )
+      "
+    end
+  rescue Mysql2::Error => e
+    puts "ERROR while inserting weapons..."
+    puts "ERRNO: #{e.errno}"
+    puts "SQLST: #{e.sql_state}"
+    puts "ERMSG: #{e.error}"
+  ensure
+    db.close if db
+  end
+end
+
 def main
 
   Dir.chdir("../assets/data") do
     read_subs
+    stat "All sub weapons read!\n"
     read_specials
+    stat "All specials read!\n"
     read_weapons
-
+    stat "All weapons read!\n"
+    read_gear "headgear"
+    stat "All headgear read!\n"
+    read_gear "shoes"
+    stat "All shoes read!\n"
+    read_gear "clothing"
+    stat "All clothes read!\n"
+    read_abilities
+    stat "All abilites read!\n"
   end
-
+  puts "\033[1;92mAll data read into the database! Cheers!\033[m"
 end
 
 main

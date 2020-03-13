@@ -1,0 +1,12 @@
+[discord]
+# Discord Bot token (discordapp.com/developers/applications/<app_id>/bot)
+bot_token = ""
+# Owner IDs (Turn on dev-mode, right click on user icon, select 'Copy ID')
+owners = [ 490650609641324544, 304406232582717440 ]
+# Prefix for the bot's commands.
+prefix = "prx."
+
+[database]
+# URL to connect to the database.
+url = "mysql://user[:password]@host[:port]/<database_name>"
+

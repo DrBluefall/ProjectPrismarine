@@ -137,7 +137,8 @@ dmypy.json
 #Added by cargo
 #
 #already existing elements are commented out
-
-/target
+target
 **/*.rs.bk
-ld_test.png
+prisbot.toml
+Cargo.lock
+

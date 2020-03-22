@@ -2,8 +2,8 @@
 
 use crate::utils::db::Player;
 use crate::utils::misc;
-use mysql::params;
 use chrono::{DateTime, TimeZone, Utc};
+use mysql::params;
 use regex::Regex;
 use std::backtrace::Backtrace;
 use std::convert::TryInto;

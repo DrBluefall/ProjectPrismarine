@@ -8,7 +8,7 @@ use serenity::{
 };
 
 #[command("new")]
-pub fn team_new(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
+pub async fn team_new(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
     let new_cap = get_player!(ctx, msg, *msg.author.id.as_u64());
     let name = args.rest().to_string();
     match Team::add_to_db(&new_cap, &name) {

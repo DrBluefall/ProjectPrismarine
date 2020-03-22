@@ -46,7 +46,7 @@ macro_rules! get_player {
 }
 
 #[command]
-fn new(ctx: &mut Context, msg: &Message) -> CommandResult {
+pub async fn new(ctx: &mut Context, msg: &Message) -> CommandResult {
     match Player::add_to_db(*msg.author.id.as_u64()) {
         Ok(_) => {
             let _ = msg.reply(&ctx, "Added you to the database! ^^)");
@@ -61,7 +61,7 @@ fn new(ctx: &mut Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-fn name(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
+pub async fn name(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
     let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
     if player.set_name(args.rest().to_string()).is_err() {
@@ -85,10 +85,10 @@ fn name(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
 }
 
 #[command]
-fn level(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+pub async fn level(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
-    let level = if let Ok(v) = args.single::<i32>() {
+    let level = if let Ok(v) = args.single::<i32>().await {
         v
     } else {
         let _ = msg.reply(&ctx, "Command Failed - Invalid argument passed.");
@@ -110,10 +110,10 @@ fn level(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 #[command]
-fn rank(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+pub async fn rank(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
-    let mode = if let Ok(v) = args.single::<String>() {
+    let mode = if let Ok(v) = args.single::<String>().await {
         v
     } else {
         let _ = msg.reply(&ctx, "Command Failed - Invalid parameter passed.");
@@ -140,10 +140,10 @@ fn rank(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 #[command]
-fn position(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+pub async fn position(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
-    let pos_int = if let Ok(v) = args.single::<i16>() {
+    let pos_int = if let Ok(v) = args.single::<i16>().await {
         v
     } else {
         let _ = msg.reply(&ctx, "Command Failed - Invalid argument passed.");
@@ -172,9 +172,9 @@ fn position(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 #[command]
-fn loadout(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+pub async fn loadout(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
-    let ldink_link = args.single::<String>().unwrap();
+    let ldink_link = args.single::<String>().await.unwrap();
     if !ldink_link.starts_with("https://selicia.github.io/en_US/#") {
         let _ = msg.reply(
             &ctx,
@@ -234,9 +234,9 @@ fn loadout(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
 }
 
 #[command]
-fn free_agent(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+pub async fn free_agent(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
-    let resp = args.single::<String>().unwrap();
+    let resp = args.single::<String>().await.unwrap();
 
     match player.set_free_agent(&resp) {
         Err(e) => {
@@ -260,10 +260,10 @@ fn free_agent(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult
 }
 
 #[command]
-fn set_private(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+pub async fn set_private(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
-    let resp = args.single::<String>().unwrap();
+    let resp = args.single::<String>().await.unwrap();
 
     match player.set_private(&resp) {
         Err(e) => {
@@ -287,15 +287,18 @@ fn set_private(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
 }
 
 #[command]
-fn fc(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
+pub async fn fc(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
     let mut player = get_player!(ctx, msg, *msg.author.id.as_u64());
 
     let fcin = args.rest();
     if player.set_fc(fcin).is_err() {
         msg.reply(&ctx, "Command Failed - Invaild friend code passed in.")
+            .await
             .unwrap();
     } else {
-        msg.reply(&ctx, "Friend code updated! :smiley:").unwrap();
+        msg.reply(&ctx, "Friend code updated! :smiley:")
+            .await
+            .unwrap();
     }
 
     if let Err(e) = player.update() {
@@ -310,14 +313,14 @@ fn fc(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
 }
 
 #[command]
-fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+pub async fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let mut self_retrieve: bool = false;
     let player_id: u64 = if args.is_empty() {
         self_retrieve = true;
         *msg.author.id.as_u64()
     } else if msg.mentions.len() == 1 {
         *msg.mentions[0].id.as_u64()
-    } else if let Ok(v) = args.single::<u64>() {
+    } else if let Ok(v) = args.single::<u64>().await {
         v
     } else {
         let _ = msg.reply(&ctx, "Command Failed - Invalid argument passed.");
@@ -372,17 +375,24 @@ fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         .encode(&i.into_raw(), w, h, ColorType::RGBA(8))
         .unwrap();
 
-    let usr = if let Ok(v) = ctx.http.get_user(player_id) {
+    let usr = if let Ok(v) = ctx.http.get_user(player_id).await {
         v
     } else {
         msg.reply(
             &ctx,
             format!("Command Failed - Discord User `{}` not found.", player_id),
         )
+        .await
         .unwrap();
         return Ok(());
     };
-
+    let url =
+                ctx.http.as_ref()
+                    .get_current_user().await.unwrap()
+                    .avatar_url().unwrap_or_else( ||
+                        "https://cdn.discordapp.com/attachments/637014853386764338/646812631130177546/JPEG_20190504_150808.png"
+                        .to_string()
+                    );
     msg.channel_id.send_message(&ctx, |m| {
         m.embed(|e| {
             e.title(format!("Player Profile - {}", usr.name));
@@ -410,12 +420,7 @@ fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
                 e.color(Color::from_rgb(0xFF, 0x4F, 0x00));
                 e.footer(|f| {
                     f.text("This user is a free agent! Spread the word and help this person get a team!");
-                    f.icon_url(ctx.http.as_ref()
-                    .get_current_user().unwrap()
-                    .avatar_url().unwrap_or_else( ||
-                        "https://cdn.discordapp.com/attachments/637014853386764338/646812631130177546/JPEG_20190504_150808.png"
-                        .to_string()
-                    ))
+                    f.icon_url(url)
                 });
             } else {
                 e.color(Color::from_rgb(0xFF, 0x00, 0x00));
@@ -424,7 +429,7 @@ fn show(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         });
         m.add_file(AttachmentType::Bytes {data: std::borrow::Cow::from(&buf), filename: "ld.png".to_string()});
         m
-    }).unwrap();
+    }).await.unwrap();
 
     Ok(())
 }

@@ -22,10 +22,14 @@ better-panic = "0.2.0"
 time = "0.1.42"
 toml = "0.5"
 
+[dependencies.tokio]
+version = "0.2"
+features = [ "macros" ]
+
 [dependencies.serenity]
-git = "https://github.com/serenity-rs/serenity"
-branch = "current"
-features = ["framework", "standard_framework"]
+git = "https://github.com/Lakelezz/serenity"
+branch = "await"
+default-features = true
 
 [dependencies.discord-bots-org]
 version = "0.1"

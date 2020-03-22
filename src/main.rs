@@ -20,6 +20,7 @@ extern crate better_panic;
 extern crate heck; // Case conversion crate.
 extern crate image; // Image editing library.
 extern crate time; // used with chrono.
+extern crate tokio;
 extern crate toml; // TOML parsing, for the new config.
 
 use discord_bots_org::ReqwestSyncClient as APIClient; // Used to update discordbots.org
@@ -57,14 +58,16 @@ impl TypeMapKey for TokenHolder {
 }
 
 struct Handler;
+
+#[serenity::async_trait]
 impl EventHandler for Handler {
-    fn ready(&self, _: Context, ready: Ready) {
+    async fn ready(&self, _: Context, ready: Ready) {
         info!(
             "\x1b[1m{}#{} is \x1b[38;5;082monline!\x1b[0m",
             ready.user.name, ready.user.discriminator
         );
     }
-    fn resume(&self, _ctx: Context, _: ResumedEvent) {
+    async fn resume(&self, _ctx: Context, _: ResumedEvent) {
         info!("Reconnected to discord!");
     }
 }
@@ -143,7 +146,9 @@ struct TeamUpdateMod;
 struct TeamMod;
 
 /* End of commands */
-fn main() {
+
+#[tokio::main]
+async fn main() {
     let mut f = String::new();
     std::fs::File::open("prisbot.toml")
         .expect("Expected config file named 'prisbot.toml'")
@@ -157,14 +162,32 @@ fn main() {
     std::env::set_var("PRISBOT_DATABASE", &conf.database.url);
     info!("Config acquired!");
 
-    let mut client =
-        Client::new(&conf.discord.bot_token, Handler).expect("Failed to create client");
+    let mut client = Client::new_with_extras(&conf.discord.bot_token, |ex| {
+        ex.event_handler(Handler).framework(
+            StandardFramework::new()
+                .configure(|c| {
+                    c.allow_dm(false).owners({
+                        let mut own = HashSet::new();
+                        for id in &conf.discord.owners {
+                            own.insert(serenity::model::id::UserId(*id));
+                        }
+                        own
+                    }).prefix(&conf.discord.prefix)
+                })
+                .group(&SUDOMOD_GROUP)
+                .group(&PLAYERMOD_GROUP)
+                .group(&TEAMMOD_GROUP)
+                .help(&ASSIST),
+        )
+    })
+    .await
+    .expect("Failed to create client");
 
     let req_client = Arc::new(ReqwestClient::new());
     let api_client = APIClient::new(Arc::clone(&req_client));
 
     {
-        let mut data = client.data.write();
+        let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
         data.insert::<APIClientContainer>(api_client);
         data.insert::<TokenHolder>(if let Some(token) = &conf.discord.dbl_api_token {
@@ -173,7 +196,7 @@ fn main() {
             "".to_string()
         });
     }
-
+    /*
     let (owners, bot_id) = match client.cache_and_http.http.get_current_application_info() {
         Ok(info) => {
             let mut owners = HashSet::new();
@@ -200,8 +223,8 @@ fn main() {
             .help(&ASSIST),
     );
     info!("Framework prepared!");
-
-    if let Err(why) = client.start() {
+    */
+    if let Err(why) = client.start().await {
         error!("Uncaught Exception: {:#?}", why);
     }
 }

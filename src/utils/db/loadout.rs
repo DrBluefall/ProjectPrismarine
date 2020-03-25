@@ -244,7 +244,7 @@ impl GearItem {
         let res = match gear_type {
             "head" => {
                 match misc::get_db_connection().first_exec::<_, _, mysql::Row>(
-                    "SELECT * FROM public.headgear WHERE id = :1 LIMIT 1;",
+                    include_str!("../../../data/statements/gear/head/select.sql"),
                     (raw.gear_id as i32,),
                 ) {
                     Ok(v) => v,
@@ -255,7 +255,7 @@ impl GearItem {
             }
             "clothes" => {
                 match misc::get_db_connection().first_exec::<_, _, mysql::Row>(
-                    "SELECT * FROM public.clothing WHERE id = :1 LIMIT 1;",
+                    include_str!("../../../data/statements/gear/clothes/select.sql"),
                     (raw.gear_id as i32,),
                 ) {
                     Ok(v) => v,
@@ -266,7 +266,7 @@ impl GearItem {
             }
             "shoes" => {
                 match misc::get_db_connection().first_exec::<_, _, mysql::Row>(
-                    "SELECT * FROM public.shoes WHERE id = :1 LIMIT 1;",
+                    include_str!("../../../data/statements/gear/shoes/select.sql"),
                     (raw.gear_id as i32,),
                 ) {
                     Ok(v) => v,
@@ -416,7 +416,7 @@ impl Ability {
     pub fn from_db(id: i32) -> Result<Option<Ability>, ModelError> {
         let row: mysql::Row = {
             let res = match misc::get_db_connection().first_exec(
-                "SELECT * FROM public.abilities WHERE id = $1 LIMIT 1;",
+                include_str!("../../../data/statements/gear/abilities/select.sql"),
                 (id,),
             ) {
                 Ok(v) => v,
@@ -457,7 +457,7 @@ pub struct MainWeapon {
 impl MainWeapon {
     pub fn from_raw(raw: &RawLoadoutData) -> Result<MainWeapon, ModelError> {
         match misc::get_db_connection().first_exec::<_, _, mysql::Row>(
-            "SELECT * FROM public.main_weapons WHERE site_id = :1 AND class = :2",
+            include_str!("../../../data/statements/gear/main_weapons/select.sql"),
             (raw.id, raw.set),
         ) {
             Ok(v) => {
@@ -504,7 +504,7 @@ pub struct SubWeapon {
 impl SubWeapon {
     pub fn from_db(name: String) -> Result<SubWeapon, ModelError> {
         match misc::get_db_connection()
-            .first_exec("SELECT * FROM public.sub_weapons WHERE name = ?;", (&name,))
+            .first_exec(include_str!("../../../data/statements/gear/sub_weapons/select.sql"), (&name,))
         {
             Ok(v) => {
                 let row: mysql::Row = match v {
@@ -547,7 +547,7 @@ pub struct SpecialWeapon {
 impl SpecialWeapon {
     pub fn from_db(name: String) -> Result<SpecialWeapon, ModelError> {
         match misc::get_db_connection().first_exec(
-            "SELECT * FROM public.special_weapons WHERE name = $1;",
+            include_str!("../../../data/statements/gear/special_weapons/select.sql"),
             (&name,),
         ) {
             Ok(v) => {

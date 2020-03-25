@@ -26,7 +26,7 @@ static SR_RANK_ARRAY: [&str; 6] = [
 
 #[derive(Debug)]
 pub struct Player {
-    id: i64,
+    id: u64,
     friend_code: String,
     ign: String,
     pub level: i32,
@@ -37,7 +37,7 @@ pub struct Player {
     sr: String,
     position: i16,
     loadout: Loadout,
-    team_id: Option<i64>,
+    team_id: Option<u64>,
     free_agent: bool,
     is_private: bool,
 }
@@ -46,31 +46,14 @@ impl Player {
     pub fn add_to_db(user_id: u64) -> Result<u64, Error> {
         misc::get_db_connection()
             .prep_exec(
-                "
-        INSERT OR REPLACE INTO public.player_profiles(id) VALUES (?);
-        ",
+                include_str!("../../../data/statements/player/insert.sql"),
                 (user_id,),
             )
             .map(|x| x.last_insert_id())
     }
     pub fn from_db(user_id: u64) -> Result<Player, ModelError> {
         let result = match misc::get_db_connection().first_exec::<_, _, mysql::Row>(
-            "SELECT 
-                level,
-                loadout,
-                id,
-                friend_code,
-                ign,
-                sz,
-                tc,
-                rm,
-                cb,
-                sr,
-                position,
-                team_id,
-                free_agent,
-                is_private
-            FROM public.player_profiles WHERE id = ?",
+            include_str!("../../../data/statements/player/select.sql"),
             (user_id,),
         ) {
             Ok(v) => v,
@@ -102,23 +85,23 @@ impl Player {
         };
 
         Ok(Player {
-            id: row.get(3).unwrap(),
-            friend_code: row.get(4).unwrap(),
-            ign: row.get(5).unwrap(),
+            id: row.get("id").unwrap(),
+            friend_code: row.get("friend_code").unwrap(),
+            ign: row.get("ign").unwrap(),
             level: lv,
-            sz: row.get(6).unwrap(),
-            tc: row.get(7).unwrap(),
-            rm: row.get(8).unwrap(),
-            cb: row.get(9).unwrap(),
-            sr: row.get(10).unwrap(),
-            position: row.get(11).unwrap(),
+            sz: row.get("sz").unwrap(),
+            tc: row.get("tc").unwrap(),
+            rm: row.get("rm").unwrap(),
+            cb: row.get("cb").unwrap(),
+            sr: row.get("sr").unwrap(),
+            position: row.get("position").unwrap(),
             loadout,
-            team_id: row.get(12),
-            free_agent: row.get(13).unwrap(),
-            is_private: row.get(14).unwrap(),
+            team_id: row.get("team_id").unwrap(),
+            free_agent: row.get("free_agent").unwrap(),
+            is_private: row.get("is_private").unwrap(),
         })
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &u64 {
         &self.id
     }
     pub fn fc(&self) -> &String {
@@ -251,10 +234,10 @@ impl Player {
         Ok(())
     }
     #[allow(dead_code)] // Only for now, while teams are still being implemented.
-    pub fn team_id(&self) -> &Option<i64> {
+    pub fn team_id(&self) -> &Option<u64> {
         &self.team_id
     }
-    pub fn set_team_id(&mut self, team_id: Option<i64>) {
+    pub fn set_team_id(&mut self, team_id: Option<u64>) {
         self.team_id = team_id;
     }
     pub fn is_free_agent(&self) -> &bool {
@@ -302,20 +285,7 @@ impl Player {
         use mysql::params;
         misc::get_db_connection()
             .prep_exec(
-                "
-UPDATE public.player_profiles
-SET
-    friend_code = :fc,
-    ign = :name,
-    level = :lv,
-    sz = :sz, tc = :tc, rm = :rm, cb = :cb, sr = :sr,
-    position = :pos,
-    loadout = :ld,
-    team_id = :tid,
-    is_private = :isp,
-    free_agent = :fa
-WHERE id = :id;
-                    ",
+                include_str!("../../../data/statements/player/update.sql"),
                 params! {
                     "fc" => &self.friend_code,
                     "name" => &self.ign,

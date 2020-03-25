@@ -1,0 +1,1 @@
+INSERT IGNORE INTO prismarine_rusted.player_profiles(id) VALUES (?);

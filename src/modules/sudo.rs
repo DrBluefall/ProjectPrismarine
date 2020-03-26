@@ -47,24 +47,23 @@ pub async fn latency(ctx: &mut Context, msg: &Message) -> CommandResult {
         res.push(format!("`{:#?}`", runner.latency.unwrap_or_default()));
     }
     let name = ctx.http.get_current_user().await.unwrap().name;
-    msg.channel_id.send_message(&ctx, |m| {
-        m.embed(|e| {
-            e.title(format!(
-                "{} - Latency Report",
-                name
-            ));
-            for (index, string) in res.iter().enumerate() {
-                e.field(
-                    format!("Shard #{}'s Latency:", index),
-                    string.to_string(),
-                    true,
-                );
-            }
-            e.color(Color::from_rgb(255, 0, 0));
-            e
-        });
-        m
-    }).await?;
+    msg.channel_id
+        .send_message(&ctx, |m| {
+            m.embed(|e| {
+                e.title(format!("{} - Latency Report", name));
+                for (index, string) in res.iter().enumerate() {
+                    e.field(
+                        format!("Shard #{}'s Latency:", index),
+                        string.to_string(),
+                        true,
+                    );
+                }
+                e.color(Color::from_rgb(255, 0, 0));
+                e
+            });
+            m
+        })
+        .await?;
     Ok(())
 }
 
@@ -96,15 +95,17 @@ pub async fn user(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
                     let _ = msg.reply(&ctx, "Command Failed - User not specified.");
                     return Ok(());
                 } else {
-                    Some(match ctx.http.get_user(*msg.mentions[0].id.as_u64()).await {
-                        Ok(v) => v,
-                        Err(e) => {
-                            error!("Could not retrieve user data: {:#?}", e);
-                            let _ =
-                                msg.reply(&ctx, "Command Failed - Could not retrieve user data.");
-                            return Ok(());
-                        }
-                    })
+                    Some(
+                        match ctx.http.get_user(*msg.mentions[0].id.as_u64()).await {
+                            Ok(v) => v,
+                            Err(e) => {
+                                error!("Could not retrieve user data: {:#?}", e);
+                                let _ = msg
+                                    .reply(&ctx, "Command Failed - Could not retrieve user data.");
+                                return Ok(());
+                            }
+                        },
+                    )
                 }
             }
         }
@@ -112,27 +113,30 @@ pub async fn user(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
 
     let user: User = user.unwrap();
 
-    let _ = msg.channel_id.send_message(&ctx, |m| {
-        m.embed(|e| {
-            e.title(format!(
-                "User Report - {}#{}",
-                user.name, user.discriminator
-            ));
-            e.field("Discord ID:", format!("`{}`", user.id.as_u64()), true);
-            e.field(
-                "Creation Date:",
-                format!("`{}`", user.created_at().to_rfc2822()),
-                true,
-            );
-            e.field(
-                "Account Type:",
-                if user.bot { "`Bot`" } else { "`Standard`" },
-                true,
-            );
-            e.thumbnail(user.face());
-            e.footer(|f| f.text(format!("Report Generated at {}", Utc::now().to_rfc2822())))
+    let _ = msg
+        .channel_id
+        .send_message(&ctx, |m| {
+            m.embed(|e| {
+                e.title(format!(
+                    "User Report - {}#{}",
+                    user.name, user.discriminator
+                ));
+                e.field("Discord ID:", format!("`{}`", user.id.as_u64()), true);
+                e.field(
+                    "Creation Date:",
+                    format!("`{}`", user.created_at().to_rfc2822()),
+                    true,
+                );
+                e.field(
+                    "Account Type:",
+                    if user.bot { "`Bot`" } else { "`Standard`" },
+                    true,
+                );
+                e.thumbnail(user.face());
+                e.footer(|f| f.text(format!("Report Generated at {}", Utc::now().to_rfc2822())))
+            })
         })
-    }).await;
+        .await;
 
     Ok(())
 }
@@ -167,7 +171,8 @@ pub async fn update_stats(ctx: &mut Context, msg: &Message) -> CommandResult {
             error!("Could not post stats to discordbots.org - failed to retrieve shard manager.");
             return Ok(());
         }
-        .lock().await;
+        .lock()
+        .await;
 
         let runners = manager.runners.lock().await;
 

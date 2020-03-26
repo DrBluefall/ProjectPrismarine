@@ -67,12 +67,17 @@ impl EventHandler for Handler {
             ready.user.name, ready.user.discriminator
         );
     }
-    async fn resume(&self, _ctx: Context, _: ResumedEvent) {
+    async fn resume(&self, _: Context, _: ResumedEvent) {
         info!("Reconnected to discord!");
     }
 }
 
 // Configuration structure
+#[derive(serde::Deserialize)]
+struct Prisbot {
+    prisbot: Config,
+}
+
 #[derive(serde::Deserialize)]
 struct Config {
     discord: DiscordCfg,
@@ -88,7 +93,12 @@ struct DiscordCfg {
 }
 #[derive(serde::Deserialize)]
 struct Database {
-    url: String,
+    url: Option<String>,
+    user: Option<String>,
+    password: Option<String>,
+    host: Option<String>,
+    port: Option<u16>,
+    database_name: Option<String>,
 }
 
 ///Commands & Command Groups
@@ -147,6 +157,31 @@ struct TeamMod;
 
 /* End of commands */
 
+lazy_static! {
+    static ref DATABASE_OPTIONS: mysql::Opts = {
+        let mut f = String::new();
+        std::fs::File::open("prisbot.toml")
+            .expect("Expected config file named 'prisbot.toml'")
+            .read_to_string(&mut f)
+            .unwrap();
+        let p: Prisbot = toml::from_str(&f).unwrap();
+        let out = if let Some(url) = p.prisbot.database.url {
+            mysql::Opts::from_url(&url).unwrap()
+        } else {
+            mysql::Opts::from({
+                let mut o = mysql::OptsBuilder::new();
+                o.user(p.prisbot.database.user)
+                    .ip_or_hostname(p.prisbot.database.host)
+                    .pass(p.prisbot.database.password)
+                    .db_name(p.prisbot.database.database_name)
+                    .tcp_port(p.prisbot.database.port.unwrap_or(3306_u16));
+                o
+            })
+        };
+        out
+    };
+}
+
 #[tokio::main]
 async fn main() {
     let mut f = String::new();
@@ -154,29 +189,40 @@ async fn main() {
         .expect("Expected config file named 'prisbot.toml'")
         .read_to_string(&mut f)
         .unwrap();
-    let conf: Config = toml::from_str(&f).expect("Invalid TOML config");
+    let conf = {
+        let p: Prisbot = toml::from_str(&f).expect("Invalid TOML config");
+        p.prisbot
+    };
 
     std::env::set_var("RUST_LOG", if let Some(s) = &conf.log { s } else { "info" });
     pretty_env_logger::init_timed();
     better_panic::install();
-    std::env::set_var("PRISBOT_DATABASE", &conf.database.url);
+
+    // Check if the db config was done correctly
+    if let Err(e) = mysql::Conn::new(DATABASE_OPTIONS.clone()) {
+        error!("Error occured while verifying database connection: {:?}", e);
+        std::process::exit(1);
+    }
+
     info!("Config acquired!");
 
     let mut client = Client::new_with_extras(&conf.discord.bot_token, |ex| {
         ex.event_handler(Handler).framework(
             StandardFramework::new()
                 .configure(|c| {
-                    c.allow_dm(false).owners({
-                        let mut own = HashSet::new();
-                        for id in &conf.discord.owners {
-                            own.insert(serenity::model::id::UserId(*id));
-                        }
-                        own
-                    }).prefix(&conf.discord.prefix)
+                    c.allow_dm(false)
+                        .owners({
+                            let mut own = HashSet::new();
+                            for id in &conf.discord.owners {
+                                own.insert(serenity::model::id::UserId(*id));
+                            }
+                            own
+                        })
+                        .prefix(&conf.discord.prefix)
                 })
                 .group(&SUDOMOD_GROUP)
                 .group(&PLAYERMOD_GROUP)
-                .group(&TEAMMOD_GROUP)
+                // .group(&TEAMMOD_GROUP) -- re-enable when teams are stable
                 .help(&ASSIST),
         )
     })

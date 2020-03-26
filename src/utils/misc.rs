@@ -1,10 +1,7 @@
+use crate::DATABASE_OPTIONS;
 use mysql::Conn;
 use std::backtrace::Backtrace;
 use std::collections::HashMap;
-
-lazy_static! {
-    static ref DATABASE_URL: String = std::env::var("PRISBOT_DATABASE").unwrap();
-}
 
 pub fn pos_map() -> HashMap<i16, &'static str> {
     let mut hm: HashMap<i16, &'static str> = HashMap::new();
@@ -134,7 +131,7 @@ impl WepCoords {
 }
 
 pub fn get_db_connection() -> Conn {
-    Conn::new(DATABASE_URL.as_str()).unwrap()
+    Conn::new(DATABASE_OPTIONS.clone()).unwrap()
 }
 
 #[macro_export]

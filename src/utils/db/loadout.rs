@@ -503,9 +503,10 @@ pub struct SubWeapon {
 
 impl SubWeapon {
     pub fn from_db(name: String) -> Result<SubWeapon, ModelError> {
-        match misc::get_db_connection()
-            .first_exec(include_str!("../../../data/statements/gear/sub_weapons/select.sql"), (&name,))
-        {
+        match misc::get_db_connection().first_exec(
+            include_str!("../../../data/statements/gear/sub_weapons/select.sql"),
+            (&name,),
+        ) {
             Ok(v) => {
                 let row: mysql::Row = match v {
                     None => {
